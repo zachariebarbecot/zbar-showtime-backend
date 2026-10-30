@@ -16,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 class SecurityConfiguration {
 
+  private static final int MIN_SECRET_BYTES = 32;
+
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http.csrf(AbstractHttpConfigurer::disable)
@@ -39,8 +41,11 @@ class SecurityConfiguration {
 
   @Bean
   JwtEncoder jwtEncoder(@Value("${app.jwt.secret}") String secret) {
-    return new NimbusJwtEncoder(
-        new ImmutableSecret<>(
-            new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256")));
+    byte[] key = secret.getBytes(StandardCharsets.UTF_8);
+    if (key.length < MIN_SECRET_BYTES) {
+      throw new IllegalStateException(
+          "app.jwt.secret must be at least %d bytes in UTF-8".formatted(MIN_SECRET_BYTES));
+    }
+    return new NimbusJwtEncoder(new ImmutableSecret<>(new SecretKeySpec(key, "HmacSHA256")));
   }
 }
