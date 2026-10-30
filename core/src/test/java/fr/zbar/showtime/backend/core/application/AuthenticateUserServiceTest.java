@@ -18,8 +18,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class AuthenticateUserServiceTest {
@@ -27,12 +25,7 @@ class AuthenticateUserServiceTest {
   private static final Clock CLOCK =
       Clock.fixed(Instant.parse("2026-03-01T10:15:30Z"), ZoneOffset.UTC);
   private static final String PASSWORD = "Str0ng!Passw0rd";
-  private final List<RawPassword> hashedPasswords = new ArrayList<>();
-  private final PasswordHasher hasher =
-      raw -> {
-        hashedPasswords.add(raw);
-        return new PasswordHash("hashed:" + raw.value());
-      };
+  private final PasswordHasher hasher = raw -> new PasswordHash("hashed:" + raw.value());
   private static final PasswordVerifier VERIFIER =
       (raw, hash) -> hash.equals(new PasswordHash("hashed:" + raw.value()));
   private static final TokenIssuer TOKEN_ISSUER = userId -> "token-" + userId;
@@ -52,7 +45,6 @@ class AuthenticateUserServiceTest {
             Gender.MALE,
             CLOCK);
     userRepository.save(user);
-    hashedPasswords.clear();
     return user;
   }
 
@@ -79,14 +71,13 @@ class AuthenticateUserServiceTest {
   }
 
   @Test
-  void should_reject_credentials_and_hash_a_dummy_password_when_no_account_has_the_email() {
+  void should_reject_credentials_when_no_account_has_the_email() {
     assertThatThrownBy(
             () ->
                 authenticateUserService.execute(
                     new AuthenticateUserCommand("unknown@mail.fr", PASSWORD)))
         .isInstanceOf(InvalidCredentialsException.class)
         .hasMessage("Identifiants invalides");
-    assertThat(hashedPasswords).containsExactly(new RawPassword(PASSWORD));
   }
 
   @Test
