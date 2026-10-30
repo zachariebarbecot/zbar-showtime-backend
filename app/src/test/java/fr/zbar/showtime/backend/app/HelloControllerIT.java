@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend;
+package fr.zbar.showtime.backend.app;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
