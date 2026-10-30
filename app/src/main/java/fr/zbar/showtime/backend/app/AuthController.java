@@ -18,7 +18,7 @@ class AuthController {
 
   @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
-  UserResponse register(@RequestBody RegisterRequest request) {
-    return UserResponse.from(registerUser.execute(request.toCommand()));
+  void register(@RequestBody RegisterRequest request) {
+    registerUser.execute(request.toCommand());
   }
 }

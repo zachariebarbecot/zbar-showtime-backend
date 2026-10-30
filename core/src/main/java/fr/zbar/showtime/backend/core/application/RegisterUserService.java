@@ -20,8 +20,8 @@ public class RegisterUserService implements RegisterUser {
   private final Clock clock;
 
   @Override
-  public User execute(RegisterUserCommand command) {
-    User user =
+  public void execute(RegisterUserCommand command) {
+    userRepository.save(
         User.register(
             new FullName(command.lastName(), command.firstName()),
             new Email(command.email()),
@@ -29,8 +29,6 @@ public class RegisterUserService implements RegisterUser {
             passwordHasher,
             new BirthDate(command.birthDate(), clock),
             Gender.from(command.gender()),
-            clock);
-    userRepository.save(user);
-    return user;
+            clock));
   }
 }
