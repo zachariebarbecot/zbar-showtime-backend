@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.app;
 
 import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
+import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
 import io.micrometer.tracing.Tracer;
 import java.util.List;
@@ -35,6 +36,11 @@ class DomainExceptionHandler {
   @ExceptionHandler(EmailAlreadyUsedException.class)
   ProblemDetail handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
     return problem(HttpStatus.CONFLICT, exception.getMessage());
+  }
+
+  @ExceptionHandler(InvalidCredentialsException.class)
+  ProblemDetail handleInvalidCredentials(InvalidCredentialsException exception) {
+    return problem(HttpStatus.UNAUTHORIZED, exception.getMessage());
   }
 
   private ProblemDetail problem(HttpStatus status, String detail) {

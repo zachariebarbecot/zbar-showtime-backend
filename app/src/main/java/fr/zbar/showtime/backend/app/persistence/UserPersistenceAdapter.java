@@ -1,8 +1,14 @@
 package fr.zbar.showtime.backend.app.persistence;
 
+import fr.zbar.showtime.backend.core.domain.BirthDate;
+import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
+import fr.zbar.showtime.backend.core.domain.FullName;
+import fr.zbar.showtime.backend.core.domain.Gender;
+import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,6 +42,23 @@ class UserPersistenceAdapter implements UserRepository {
       }
       throw exception;
     }
+  }
+
+  @Override
+  public Optional<User> findByEmail(Email email) {
+    return userJpaRepository.findByEmail(email.value()).map(UserPersistenceAdapter::toDomain);
+  }
+
+  private static User toDomain(UserJpaEntity entity) {
+    return new User(
+        entity.getId(),
+        new FullName(entity.getLastName(), entity.getFirstName()),
+        new Email(entity.getEmail()),
+        new PasswordHash(entity.getPasswordHash()),
+        new BirthDate(entity.getBirthDate()),
+        Gender.from(entity.getGender()),
+        entity.getCreatedAt(),
+        entity.getUpdatedAt());
   }
 
   private static boolean violatesEmailUniqueness(DataIntegrityViolationException exception) {

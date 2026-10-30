@@ -13,3 +13,6 @@ logging:
   level:
     # Hibernate logs the SQL error with the inserted email on a duplicate
     org.hibernate.orm.jdbc.error: "OFF"
+app:
+  jwt:
+    secret: ${JWT_SECRET}

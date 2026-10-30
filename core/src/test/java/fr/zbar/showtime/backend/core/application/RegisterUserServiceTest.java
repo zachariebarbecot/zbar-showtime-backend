@@ -26,7 +26,8 @@ class RegisterUserServiceTest {
 
   private final List<User> savedUsers = new ArrayList<>();
   private final RegisterUserService registerUserService =
-      new RegisterUserService(savedUsers::add, HASHER, Clock.fixed(NOW, ZoneOffset.UTC));
+      new RegisterUserService(
+          new InMemoryUserRepository(savedUsers), HASHER, Clock.fixed(NOW, ZoneOffset.UTC));
 
   @Test
   void should_save_user_with_hashed_password_when_command_is_valid() {
