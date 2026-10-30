@@ -16,9 +16,14 @@ class GenderTest {
     assertThat(Gender.from("FEMALE")).isEqualTo(Gender.FEMALE);
   }
 
+  @Test
+  void should_read_value_with_surrounding_spaces() {
+    assertThat(Gender.from("  MALE ")).isEqualTo(Gender.MALE);
+  }
+
   @ParameterizedTest
   @NullAndEmptySource
-  @ValueSource(strings = {"male", "AUTRE", "M"})
+  @ValueSource(strings = {"   ", "male", "AUTRE", "M"})
   void should_refuse_value_outside_male_and_female(String value) {
     assertThatThrownBy(() -> Gender.from(value))
         .isInstanceOfSatisfying(
