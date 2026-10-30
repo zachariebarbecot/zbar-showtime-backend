@@ -11,4 +11,11 @@
   <artifactId>zbar-showtime-backend-core</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>zbar-showtime-backend-core</name>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
