@@ -13,10 +13,6 @@
   <name>zbar-showtime-backend-app</name>
   <dependencies>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webmvc</artifactId>
-    </dependency>
-    <dependency>
       <groupId>fr.zbar</groupId>
       <artifactId>zbar-actuator-spring-boot-starter</artifactId>
     </dependency>
@@ -36,6 +32,10 @@
       <groupId>fr.zbar</groupId>
       <artifactId>zbar-showtime-backend-core</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
     </dependency>
     <dependency>
       <groupId>fr.zbar</groupId>
