@@ -8,6 +8,9 @@ public class Greeting extends AggregateRoot<UUID> {
 
   public Greeting(UUID id, String message) {
     super(id);
+    if (message.isBlank()) {
+      throw new InvalidGreetingException("Message cannot be blank");
+    }
     this.message = message;
   }
 
