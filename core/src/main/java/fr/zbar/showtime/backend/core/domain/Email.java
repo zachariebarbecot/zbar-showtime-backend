@@ -18,4 +18,9 @@ public record Email(String value) {
       throw new InvalidFieldException("email", INVALID_MESSAGE);
     }
   }
+
+  @Override
+  public String toString() {
+    return "Email[****]";
+  }
 }

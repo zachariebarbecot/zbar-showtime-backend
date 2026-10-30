@@ -12,4 +12,9 @@ public record FullName(String lastName, String firstName) {
       throw new InvalidFieldException("firstName", "First name cannot be blank");
     }
   }
+
+  @Override
+  public String toString() {
+    return "FullName[****]";
+  }
 }

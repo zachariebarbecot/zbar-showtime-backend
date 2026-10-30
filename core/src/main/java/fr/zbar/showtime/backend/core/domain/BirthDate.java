@@ -18,4 +18,9 @@ public record BirthDate(LocalDate value) {
     }
     return value;
   }
+
+  @Override
+  public String toString() {
+    return "BirthDate[****]";
+  }
 }
