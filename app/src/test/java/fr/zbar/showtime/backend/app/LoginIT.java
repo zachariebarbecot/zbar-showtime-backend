@@ -27,20 +27,20 @@ class LoginIT extends AbstractIT {
 
   private void register(String email) {
     restTestClient
-            .post()
-            .uri("/auth/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(
-                Map.of(
-                    "lastName", "Dupont",
-                    "firstName", "Jean",
-                    "email", email,
-                    "password", PASSWORD,
-                    "birthDate", "1990-05-17",
-                    "gender", "MALE"))
-            .exchange()
-            .expectStatus()
-            .isCreated();
+        .post()
+        .uri("/auth/register")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+            Map.of(
+                "lastName", "Dupont",
+                "firstName", "Jean",
+                "email", email,
+                "password", PASSWORD,
+                "birthDate", "1990-05-17",
+                "gender", "MALE"))
+        .exchange()
+        .expectStatus()
+        .isCreated();
   }
 
   private String userId(String email) {
