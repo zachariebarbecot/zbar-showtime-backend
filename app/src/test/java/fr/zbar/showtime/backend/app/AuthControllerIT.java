@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -22,6 +23,8 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 class AuthControllerIT extends AbstractIT {
 
   private static final String PASSWORD = "Str0ng!Passw0rd";
+  private static final LocalDate TODAY =
+      LocalDate.ofInstant(FixedClockConfiguration.NOW, ZoneOffset.UTC);
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -59,7 +62,9 @@ class AuthControllerIT extends AbstractIT {
     Map<String, Object> row =
         jdbcTemplate.queryForMap(
             "select created_at, updated_at from users where email = ?", "ca1-dates@b.fr");
-    assertThat(row.get("created_at")).isNotNull().isEqualTo(row.get("updated_at"));
+    assertThat(row.get("created_at")).isEqualTo(row.get("updated_at"));
+    assertThat(((Timestamp) row.get("created_at")).toInstant())
+        .isEqualTo(FixedClockConfiguration.NOW);
   }
 
   @Test
@@ -152,7 +157,7 @@ class AuthControllerIT extends AbstractIT {
   @Test
   void should_return_400_when_birth_date_is_today() {
     Map<String, Object> body = registration("ca4-today@b.fr");
-    body.put("birthDate", LocalDate.now(ZoneOffset.UTC).toString());
+    body.put("birthDate", TODAY.toString());
 
     register(body)
         .expectStatus()
@@ -161,6 +166,14 @@ class AuthControllerIT extends AbstractIT {
         .jsonPath("$.errors[0].field")
         .isEqualTo("birthDate");
     assertThat(countAccounts("ca4-today@b.fr")).isZero();
+  }
+
+  @Test
+  void should_answer_201_when_birth_date_is_yesterday() {
+    Map<String, Object> body = registration("ca4-yesterday@b.fr");
+    body.put("birthDate", TODAY.minusDays(1).toString());
+
+    register(body).expectStatus().isCreated();
   }
 
   @Test
