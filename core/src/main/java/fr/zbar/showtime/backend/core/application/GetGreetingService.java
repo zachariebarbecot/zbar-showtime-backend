@@ -6,6 +6,6 @@ public class GetGreetingService implements GetGreeting {
 
   @Override
   public Greeting execute() {
-    return null;
+    return new Greeting("Hello World");
   }
 }
