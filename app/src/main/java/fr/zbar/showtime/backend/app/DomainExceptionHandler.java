@@ -23,8 +23,7 @@ class DomainExceptionHandler {
 
   @ExceptionHandler(InvalidFieldException.class)
   ProblemDetail handleInvalidField(InvalidFieldException exception) {
-    ProblemDetail problem =
-        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request content.");
+    ProblemDetail problem = problem(HttpStatus.BAD_REQUEST, "Invalid request content.");
     List<Map<String, String>> errors =
         exception.messages().stream()
             .map(message -> Map.of("field", exception.field(), "message", message))
@@ -35,6 +34,18 @@ class DomainExceptionHandler {
 
   @ExceptionHandler(EmailAlreadyUsedException.class)
   ProblemDetail handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
-    return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
+    return problem(HttpStatus.CONFLICT, exception.getMessage());
+  }
+
+  private ProblemDetail problem(HttpStatus status, String detail) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+    tracer.ifAvailable(
+        availableTracer -> {
+          var span = availableTracer.currentSpan();
+          if (span != null) {
+            problem.setProperty("traceId", span.context().traceId());
+          }
+        });
+    return problem;
   }
 }
