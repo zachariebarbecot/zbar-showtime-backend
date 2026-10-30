@@ -2,8 +2,13 @@ package fr.zbar.showtime.backend.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -95,6 +100,40 @@ class AuthControllerIT extends AbstractIT {
                         "Password must contain an uppercase letter",
                         "Password must not contain the email"));
     assertThat(countAccounts("ca2@b.fr")).isZero();
+  }
+
+  @Test
+  void should_return_409_and_keep_a_single_account_when_email_is_already_used() {
+    register(registration("ca3@b.fr")).expectStatus().isCreated();
+
+    register(registration("ca3@b.fr"))
+        .expectStatus()
+        .isEqualTo(409)
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Email already used");
+    assertThat(countAccounts("ca3@b.fr")).isEqualTo(1);
+  }
+
+  @Test
+  void should_create_a_single_account_when_same_email_is_registered_concurrently()
+      throws Exception {
+    int attempts = 5;
+    try (ExecutorService executor = Executors.newFixedThreadPool(attempts)) {
+      List<Future<Integer>> statuses = new ArrayList<>();
+      for (int i = 0; i < attempts; i++) {
+        statuses.add(
+            executor.submit(
+                () -> register(registration("ca3-race@b.fr")).returnResult().getStatus().value()));
+      }
+      List<Integer> results = new ArrayList<>();
+      for (Future<Integer> status : statuses) {
+        results.add(status.get());
+      }
+
+      assertThat(results).containsOnly(201, 409).filteredOn(code -> code == 201).hasSize(1);
+    }
+    assertThat(countAccounts("ca3-race@b.fr")).isEqualTo(1);
   }
 
   private Integer countAccounts(String email) {
