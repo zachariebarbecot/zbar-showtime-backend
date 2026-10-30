@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app;
 
+import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
 import java.util.List;
 import java.util.Map;
@@ -24,5 +25,10 @@ class DomainExceptionHandler {
             .toList();
     problem.setProperty("errors", errors);
     return problem;
+  }
+
+  @ExceptionHandler(EmailAlreadyUsedException.class)
+  ProblemDetail handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
   }
 }

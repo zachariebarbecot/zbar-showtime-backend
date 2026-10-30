@@ -2,7 +2,7 @@ package fr.zbar.showtime.backend.core.domain;
 
 public class EmailAlreadyUsedException extends RuntimeException {
 
-  public EmailAlreadyUsedException(Email email) {
+  public EmailAlreadyUsedException() {
     super("Email already used");
   }
 }

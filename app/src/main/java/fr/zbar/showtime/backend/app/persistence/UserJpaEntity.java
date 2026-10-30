@@ -29,7 +29,7 @@ class UserJpaEntity {
   @Column(name = "first_name", nullable = false, columnDefinition = "TEXT")
   private String firstName;
 
-  @Column(name = "email", nullable = false, columnDefinition = "TEXT")
+  @Column(name = "email", nullable = false, unique = true, columnDefinition = "TEXT")
   private String email;
 
   @Column(name = "password_hash", nullable = false, columnDefinition = "TEXT")
