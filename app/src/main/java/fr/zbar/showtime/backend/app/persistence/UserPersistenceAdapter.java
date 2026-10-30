@@ -1,8 +1,10 @@
 package fr.zbar.showtime.backend.app.persistence;
 
+import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,6 +38,11 @@ class UserPersistenceAdapter implements UserRepository {
       }
       throw exception;
     }
+  }
+
+  @Override
+  public Optional<User> findByEmail(Email email) {
+    return Optional.empty();
   }
 
   private static boolean violatesEmailUniqueness(DataIntegrityViolationException exception) {
