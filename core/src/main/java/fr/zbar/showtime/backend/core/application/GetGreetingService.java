@@ -1,0 +1,11 @@
+package fr.zbar.showtime.backend.core.application;
+
+import fr.zbar.showtime.backend.core.domain.Greeting;
+
+public class GetGreetingService implements GetGreeting {
+
+  @Override
+  public Greeting execute() {
+    return null;
+  }
+}
