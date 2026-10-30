@@ -1,3 +1,15 @@
 spring:
   application:
     name: zbar-showtime-backend
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+logging:
+  level:
+    # Hibernate logs the SQL error with the inserted email on a duplicate
+    org.hibernate.orm.jdbc.error: "OFF"

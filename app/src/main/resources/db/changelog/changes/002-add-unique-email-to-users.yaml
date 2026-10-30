@@ -1,0 +1,10 @@
+databaseChangeLog:
+- changeSet:
+    id: 1793397014675-1
+    author: zbarbecot (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: email
+        constraintName: UC_USERSEMAIL_COL
+        tableName: users
+
