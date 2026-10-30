@@ -24,7 +24,8 @@ class HelloControllerIT {
         .expectHeader()
         .contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
         .expectBody()
-        .json("{\"message\":\"Hello World\"}");
+        .jsonPath("$.message")
+        .isEqualTo("Hello World");
   }
 
   @Test
