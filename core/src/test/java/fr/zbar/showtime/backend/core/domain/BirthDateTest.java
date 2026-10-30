@@ -51,4 +51,9 @@ class BirthDateTest {
               assertThat(exception.messages()).containsExactly("Birth date cannot be null");
             });
   }
+
+  @Test
+  void should_hide_value_when_converted_to_string() {
+    assertThat(new BirthDate(LocalDate.of(1990, 5, 17)).toString()).doesNotContain("1990");
+  }
 }

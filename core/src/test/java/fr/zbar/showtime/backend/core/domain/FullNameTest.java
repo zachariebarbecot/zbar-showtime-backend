@@ -43,4 +43,9 @@ class FullNameTest {
               assertThat(exception.messages()).containsExactly("First name cannot be blank");
             });
   }
+
+  @Test
+  void should_hide_names_when_converted_to_string() {
+    assertThat(new FullName("Dupont", "Jean").toString()).doesNotContain("Dupont", "Jean");
+  }
 }

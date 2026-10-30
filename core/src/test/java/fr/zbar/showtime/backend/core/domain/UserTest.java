@@ -74,4 +74,28 @@ class UserTest {
                       "Password must contain an uppercase letter");
             });
   }
+
+  @Test
+  void should_hide_personal_data_when_converted_to_string() {
+    assertThat(register().toString())
+        .doesNotContain("Dupont", "Jean", "a@b.fr", "1990", "hashed", "MALE");
+  }
+
+  @Test
+  void should_be_equal_when_ids_are_equal() {
+    User user = register();
+    User sameId =
+        new User(
+            user.id(),
+            new FullName("Martin", "Paul"),
+            new Email("c@d.fr"),
+            new PasswordHash("other"),
+            new BirthDate(LocalDate.of(1980, 1, 1)),
+            Gender.FEMALE,
+            NOW,
+            NOW);
+
+    assertThat(sameId).isEqualTo(user).hasSameHashCodeAs(user);
+    assertThat(register()).isNotEqualTo(user);
+  }
 }

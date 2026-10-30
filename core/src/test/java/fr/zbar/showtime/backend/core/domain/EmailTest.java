@@ -37,4 +37,9 @@ class EmailTest {
               assertThat(exception.messages()).containsExactly("Email must be a valid address");
             });
   }
+
+  @Test
+  void should_hide_value_when_converted_to_string() {
+    assertThat(new Email("jean@mail.fr").toString()).doesNotContain("jean");
+  }
 }
