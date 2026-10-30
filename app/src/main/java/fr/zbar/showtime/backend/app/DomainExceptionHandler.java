@@ -2,8 +2,11 @@ package fr.zbar.showtime.backend.app;
 
 import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
+import io.micrometer.tracing.Tracer;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -13,7 +16,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@RequiredArgsConstructor
 class DomainExceptionHandler {
+
+  private final ObjectProvider<Tracer> tracer;
 
   @ExceptionHandler(InvalidFieldException.class)
   ProblemDetail handleInvalidField(InvalidFieldException exception) {
