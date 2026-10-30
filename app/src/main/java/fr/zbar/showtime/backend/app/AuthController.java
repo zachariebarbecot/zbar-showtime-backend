@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app;
 
+import fr.zbar.showtime.backend.core.application.AuthenticateUser;
 import fr.zbar.showtime.backend.core.application.RegisterUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,10 +16,16 @@ import org.springframework.web.bind.annotation.RestController;
 class AuthController {
 
   private final RegisterUser registerUser;
+  private final AuthenticateUser authenticateUser;
 
   @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
   void register(@RequestBody RegisterRequest request) {
     registerUser.execute(request.toCommand());
+  }
+
+  @PostMapping("/login")
+  LoginResponse login(@RequestBody LoginRequest request) {
+    return new LoginResponse(authenticateUser.execute(request.toCommand()));
   }
 }

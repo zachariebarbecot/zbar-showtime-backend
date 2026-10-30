@@ -1,8 +1,10 @@
 package fr.zbar.showtime.backend.core.application;
 
+import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
 import fr.zbar.showtime.backend.core.domain.TokenIssuer;
+import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +19,7 @@ public class AuthenticateUserService implements AuthenticateUser {
 
   @Override
   public String execute(AuthenticateUserCommand command) {
-    return null;
+    User user = userRepository.findByEmail(new Email(command.email())).orElseThrow();
+    return tokenIssuer.issue(user.id());
   }
 }
