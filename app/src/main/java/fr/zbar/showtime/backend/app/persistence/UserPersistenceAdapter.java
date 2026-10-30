@@ -4,12 +4,15 @@ import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 class UserPersistenceAdapter implements UserRepository {
+
+  private static final String EMAIL_UNIQUE_CONSTRAINT = "UC_USERSEMAIL_COL";
 
   private final UserJpaRepository userJpaRepository;
 
@@ -28,7 +31,15 @@ class UserPersistenceAdapter implements UserRepository {
               user.createdAt(),
               user.updatedAt()));
     } catch (DataIntegrityViolationException exception) {
-      throw new EmailAlreadyUsedException();
+      if (violatesEmailUniqueness(exception)) {
+        throw new EmailAlreadyUsedException();
+      }
+      throw exception;
     }
+  }
+
+  private static boolean violatesEmailUniqueness(DataIntegrityViolationException exception) {
+    return exception.getCause() instanceof ConstraintViolationException violation
+        && EMAIL_UNIQUE_CONSTRAINT.equalsIgnoreCase(violation.getConstraintName());
   }
 }
