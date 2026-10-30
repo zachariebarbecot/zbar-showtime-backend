@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.core.application;
 
 import fr.zbar.showtime.backend.core.domain.Greeting;
 
+@CoreUseCase
 public class GetGreetingService implements GetGreeting {
 
   @Override
