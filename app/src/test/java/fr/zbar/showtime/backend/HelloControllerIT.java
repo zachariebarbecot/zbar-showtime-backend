@@ -26,4 +26,9 @@ class HelloControllerIT {
         .expectBody()
         .json("{\"message\":\"Hello World\"}");
   }
+
+  @Test
+  void should_return_405_when_posting_hello() {
+    restTestClient.post().uri("/hello").exchange().expectStatus().isEqualTo(405);
+  }
 }
