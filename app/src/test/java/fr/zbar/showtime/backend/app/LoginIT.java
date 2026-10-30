@@ -129,4 +129,20 @@ class LoginIT extends AbstractIT {
 
     login(" Jean-CA4@Mail.FR ", PASSWORD).expectStatus().isOk();
   }
+
+  @Test
+  void should_expose_only_the_token_when_login_succeeds() {
+    register("login-ca5@mail.fr");
+
+    login("login-ca5@mail.fr", PASSWORD)
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.password")
+        .doesNotExist()
+        .jsonPath("$.passwordHash")
+        .doesNotExist()
+        .jsonPath("$.length()")
+        .isEqualTo(1);
+  }
 }
