@@ -88,4 +88,14 @@ class AuthenticateUserServiceTest {
         .hasMessage("Identifiants invalides");
     assertThat(hashedPasswords).containsExactly(new RawPassword(PASSWORD));
   }
+
+  @Test
+  void should_return_token_when_email_has_spaces_and_uppercase() {
+    User user = registeredUser();
+
+    String token =
+        authenticateUserService.execute(new AuthenticateUserCommand(" Jean@Mail.FR ", PASSWORD));
+
+    assertThat(token).isEqualTo("token-" + user.id());
+  }
 }

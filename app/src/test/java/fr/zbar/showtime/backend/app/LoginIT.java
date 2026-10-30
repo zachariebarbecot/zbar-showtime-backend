@@ -122,4 +122,11 @@ class LoginIT extends AbstractIT {
     assertThat(new String(unknownEmail, StandardCharsets.UTF_8))
         .isEqualTo(new String(wrongPassword, StandardCharsets.UTF_8));
   }
+
+  @Test
+  void should_log_in_when_email_has_spaces_and_uppercase() {
+    register("jean-ca4@mail.fr");
+
+    login(" Jean-CA4@Mail.FR ", PASSWORD).expectStatus().isOk();
+  }
 }
