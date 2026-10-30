@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.core.domain;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public class User extends AggregateRoot<UUID> {
@@ -41,6 +42,10 @@ public class User extends AggregateRoot<UUID> {
       BirthDate birthDate,
       Gender gender,
       Clock clock) {
+    List<String> passwordViolations = password.violations(email);
+    if (!passwordViolations.isEmpty()) {
+      throw new InvalidFieldException("password", passwordViolations);
+    }
     Instant now = clock.instant();
     return new User(
         UUID.randomUUID(), name, email, passwordHasher.hash(password), birthDate, gender, now, now);
