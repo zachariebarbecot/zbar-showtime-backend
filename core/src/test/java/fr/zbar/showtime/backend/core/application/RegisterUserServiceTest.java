@@ -29,14 +29,15 @@ class RegisterUserServiceTest {
       new RegisterUserService(savedUsers::add, HASHER, Clock.fixed(NOW, ZoneOffset.UTC));
 
   @Test
-  void should_save_and_return_user_with_hashed_password_when_command_is_valid() {
+  void should_save_user_with_hashed_password_when_command_is_valid() {
     RegisterUserCommand command =
         new RegisterUserCommand(
             "Dupont", "Jean", "a@b.fr", "Str0ng!Passw0rd", LocalDate.of(1990, 5, 17), "MALE");
 
-    User user = registerUserService.execute(command);
+    registerUserService.execute(command);
 
-    assertThat(savedUsers).containsExactly(user);
+    assertThat(savedUsers).hasSize(1);
+    User user = savedUsers.getFirst();
     assertThat(user.email()).isEqualTo(new Email("a@b.fr"));
     assertThat(user.gender()).isEqualTo(Gender.MALE);
     assertThat(user.passwordHash()).isEqualTo(new PasswordHash("hashed:Str0ng!Passw0rd"));

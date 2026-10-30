@@ -46,34 +46,20 @@ class AuthControllerIT extends AbstractIT {
   }
 
   @Test
-  void should_create_account_and_hide_password_when_registration_is_valid() {
-    register(registration("ca1@b.fr"))
-        .expectStatus()
-        .isCreated()
-        .expectBody()
-        .jsonPath("$.id")
-        .isNotEmpty()
-        .jsonPath("$.email")
-        .isEqualTo("ca1@b.fr")
-        .jsonPath("$.password")
-        .doesNotExist()
-        .jsonPath("$.passwordHash")
-        .doesNotExist();
+  void should_answer_201_without_body_when_registration_is_valid() {
+    register(registration("ca1@b.fr")).expectStatus().isCreated().expectBody().isEmpty();
+
+    assertThat(countAccounts("ca1@b.fr")).isEqualTo(1);
   }
 
   @Test
-  void should_return_same_creation_and_update_dates_when_registration_is_valid() {
-    Map<String, Object> response =
-        register(registration("ca1-dates@b.fr"))
-            .expectStatus()
-            .isCreated()
-            .expectBody(
-                new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
-            .returnResult()
-            .getResponseBody();
+  void should_store_same_creation_and_update_dates_when_registration_is_valid() {
+    register(registration("ca1-dates@b.fr")).expectStatus().isCreated();
 
-    assertThat(response).containsKeys("createdAt", "updatedAt");
-    assertThat(response.get("createdAt")).isEqualTo(response.get("updatedAt"));
+    Map<String, Object> row =
+        jdbcTemplate.queryForMap(
+            "select created_at, updated_at from users where email = ?", "ca1-dates@b.fr");
+    assertThat(row.get("created_at")).isNotNull().isEqualTo(row.get("updated_at"));
   }
 
   @Test
@@ -192,13 +178,8 @@ class AuthControllerIT extends AbstractIT {
   }
 
   @Test
-  void should_store_and_return_normalized_email_when_email_has_spaces_and_uppercase() {
-    register(registration(" Jean@Mail.FR "))
-        .expectStatus()
-        .isCreated()
-        .expectBody()
-        .jsonPath("$.email")
-        .isEqualTo("jean@mail.fr");
+  void should_store_normalized_email_when_email_has_spaces_and_uppercase() {
+    register(registration(" Jean@Mail.FR ")).expectStatus().isCreated();
 
     assertThat(countAccounts("jean@mail.fr")).isEqualTo(1);
   }
