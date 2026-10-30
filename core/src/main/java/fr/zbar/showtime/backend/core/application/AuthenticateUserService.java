@@ -1,8 +1,10 @@
 package fr.zbar.showtime.backend.core.application;
 
 import fr.zbar.showtime.backend.core.domain.Email;
+import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
+import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.TokenIssuer;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
@@ -20,6 +22,9 @@ public class AuthenticateUserService implements AuthenticateUser {
   @Override
   public String execute(AuthenticateUserCommand command) {
     User user = userRepository.findByEmail(new Email(command.email())).orElseThrow();
+    if (!passwordVerifier.matches(new RawPassword(command.password()), user.passwordHash())) {
+      throw new InvalidCredentialsException();
+    }
     return tokenIssuer.issue(user.id());
   }
 }
