@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.core.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,5 +64,16 @@ class RawPasswordTest {
   @Test
   void should_hide_value_when_converted_to_string() {
     assertThat(new RawPassword("Str0ng!Passw0rd").toString()).doesNotContain("Str0ng");
+  }
+
+  @Test
+  void should_refuse_password_when_missing() {
+    assertThatThrownBy(() -> new RawPassword(null))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> {
+              assertThat(exception.field()).isEqualTo("password");
+              assertThat(exception.messages()).containsExactly("Password must be provided");
+            });
   }
 }

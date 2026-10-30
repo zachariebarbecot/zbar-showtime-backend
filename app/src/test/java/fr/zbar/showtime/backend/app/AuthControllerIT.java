@@ -146,7 +146,8 @@ class AuthControllerIT extends AbstractIT {
     "birthDate, birthDate, 2999-01-01",
     "gender, gender, AUTRE",
     "lastName, lastName, ''",
-    "firstName, firstName, ''"
+    "firstName, firstName, ''",
+    "password, password,"
   })
   void should_return_400_naming_the_field_and_create_no_account_when_data_is_invalid(
       String field, String key, String value) {
