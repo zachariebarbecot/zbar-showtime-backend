@@ -38,6 +38,11 @@
       <artifactId>spring-boot-starter-webmvc</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>fr.zbar</groupId>
       <artifactId>zbar-test-spring-boot-starter</artifactId>
       <scope>test</scope>

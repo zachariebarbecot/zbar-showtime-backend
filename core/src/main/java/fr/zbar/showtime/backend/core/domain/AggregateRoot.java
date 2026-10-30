@@ -1,14 +1,13 @@
 package fr.zbar.showtime.backend.core.domain;
 
 import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AggregateRoot<ID> {
 
   private final ID id;
-
-  protected AggregateRoot(ID id) {
-    this.id = id;
-  }
 
   public ID id() {
     return id;
