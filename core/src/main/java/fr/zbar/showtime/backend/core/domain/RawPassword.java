@@ -3,12 +3,19 @@ package fr.zbar.showtime.backend.core.domain;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public record RawPassword(String value) {
 
   private static final int MIN_LENGTH = 12;
   private static final int MAX_LENGTH = 64;
   private static final int MAX_BYTES = 72;
+
+  public RawPassword {
+    if (value == null) {
+      throw new InvalidFieldException("password", "Password must be provided");
+    }
+  }
 
   public List<String> violations(Email email) {
     List<String> violations = new ArrayList<>();
@@ -33,7 +40,7 @@ public record RawPassword(String value) {
     if (value.chars().allMatch(Character::isLetterOrDigit)) {
       violations.add("Password must contain a non-alphanumeric character");
     }
-    if (value.toLowerCase().contains(email.value())) {
+    if (value.toLowerCase(Locale.ROOT).contains(email.value())) {
       violations.add("Password must not contain the email");
     }
     return violations;
