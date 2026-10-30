@@ -4,15 +4,18 @@ import java.util.UUID;
 
 public class Greeting extends AggregateRoot<UUID> {
 
-  public Greeting(UUID id, String message) {}
+  private final String message;
 
-  public Greeting(String message) {}
+  public Greeting(UUID id, String message) {
+    super(id);
+    this.message = message;
+  }
 
-  public UUID id() {
-    return null;
+  public Greeting(String message) {
+    this(UUID.randomUUID(), message);
   }
 
   public String message() {
-    return null;
+    return message;
   }
 }
