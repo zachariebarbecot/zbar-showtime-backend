@@ -32,7 +32,7 @@ class AuthControllerIT extends AbstractIT {
     body.put("email", email);
     body.put("password", PASSWORD);
     body.put("birthDate", "1990-05-17");
-    body.put("gender", "HOMME");
+    body.put("gender", "MALE");
     return body;
   }
 

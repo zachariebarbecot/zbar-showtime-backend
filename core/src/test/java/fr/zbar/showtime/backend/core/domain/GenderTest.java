@@ -12,20 +12,20 @@ class GenderTest {
 
   @Test
   void should_read_known_values() {
-    assertThat(Gender.from("HOMME")).isEqualTo(Gender.HOMME);
-    assertThat(Gender.from("FEMME")).isEqualTo(Gender.FEMME);
+    assertThat(Gender.from("MALE")).isEqualTo(Gender.MALE);
+    assertThat(Gender.from("FEMALE")).isEqualTo(Gender.FEMALE);
   }
 
   @ParameterizedTest
   @NullAndEmptySource
-  @ValueSource(strings = {"homme", "AUTRE", "M"})
-  void should_refuse_value_outside_homme_and_femme(String value) {
+  @ValueSource(strings = {"male", "AUTRE", "M"})
+  void should_refuse_value_outside_male_and_female(String value) {
     assertThatThrownBy(() -> Gender.from(value))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,
             exception -> {
               assertThat(exception.field()).isEqualTo("gender");
-              assertThat(exception.messages()).containsExactly("Gender must be HOMME or FEMME");
+              assertThat(exception.messages()).containsExactly("Gender must be MALE or FEMALE");
             });
   }
 }

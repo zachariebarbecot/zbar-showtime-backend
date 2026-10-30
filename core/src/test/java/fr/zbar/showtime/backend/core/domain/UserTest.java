@@ -22,7 +22,7 @@ class UserTest {
         new RawPassword("Str0ng!Passw0rd"),
         HASHER,
         new BirthDate(LocalDate.of(1990, 5, 17)),
-        Gender.HOMME,
+        Gender.MALE,
         CLOCK);
   }
 
@@ -49,7 +49,7 @@ class UserTest {
     assertThat(user.name()).isEqualTo(new FullName("Dupont", "Jean"));
     assertThat(user.email()).isEqualTo(new Email("a@b.fr"));
     assertThat(user.birthDate()).isEqualTo(new BirthDate(LocalDate.of(1990, 5, 17)));
-    assertThat(user.gender()).isEqualTo(Gender.HOMME);
+    assertThat(user.gender()).isEqualTo(Gender.MALE);
   }
 
   @Test
@@ -62,7 +62,7 @@ class UserTest {
                     new RawPassword("short"),
                     HASHER,
                     new BirthDate(LocalDate.of(1990, 5, 17)),
-                    Gender.HOMME,
+                    Gender.MALE,
                     CLOCK))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,

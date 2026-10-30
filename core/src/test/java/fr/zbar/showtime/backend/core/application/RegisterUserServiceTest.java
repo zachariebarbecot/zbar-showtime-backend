@@ -32,13 +32,13 @@ class RegisterUserServiceTest {
   void should_save_and_return_user_with_hashed_password_when_command_is_valid() {
     RegisterUserCommand command =
         new RegisterUserCommand(
-            "Dupont", "Jean", "a@b.fr", "Str0ng!Passw0rd", LocalDate.of(1990, 5, 17), "HOMME");
+            "Dupont", "Jean", "a@b.fr", "Str0ng!Passw0rd", LocalDate.of(1990, 5, 17), "MALE");
 
     User user = registerUserService.execute(command);
 
     assertThat(savedUsers).containsExactly(user);
     assertThat(user.email()).isEqualTo(new Email("a@b.fr"));
-    assertThat(user.gender()).isEqualTo(Gender.HOMME);
+    assertThat(user.gender()).isEqualTo(Gender.MALE);
     assertThat(user.passwordHash()).isEqualTo(new PasswordHash("hashed:Str0ng!Passw0rd"));
     assertThat(user.createdAt()).isEqualTo(NOW).isEqualTo(user.updatedAt());
   }
@@ -47,7 +47,7 @@ class RegisterUserServiceTest {
   void should_not_save_user_when_password_violates_the_policy() {
     RegisterUserCommand command =
         new RegisterUserCommand(
-            "Dupont", "Jean", "a@b.fr", "short", LocalDate.of(1990, 5, 17), "HOMME");
+            "Dupont", "Jean", "a@b.fr", "short", LocalDate.of(1990, 5, 17), "MALE");
 
     assertThatThrownBy(() -> registerUserService.execute(command))
         .isInstanceOf(InvalidFieldException.class);
@@ -56,12 +56,12 @@ class RegisterUserServiceTest {
 
   @ParameterizedTest
   @CsvSource({
-    "email, not-an-email, 1990-05-17, HOMME, Dupont, Jean",
-    "birthDate, a@b.fr, 2026-03-01, HOMME, Dupont, Jean",
-    "birthDate, a@b.fr, 2026-03-02, HOMME, Dupont, Jean",
+    "email, not-an-email, 1990-05-17, MALE, Dupont, Jean",
+    "birthDate, a@b.fr, 2026-03-01, MALE, Dupont, Jean",
+    "birthDate, a@b.fr, 2026-03-02, MALE, Dupont, Jean",
     "gender, a@b.fr, 1990-05-17, AUTRE, Dupont, Jean",
-    "lastName, a@b.fr, 1990-05-17, HOMME, ' ', Jean",
-    "firstName, a@b.fr, 1990-05-17, HOMME, Dupont, ' '"
+    "lastName, a@b.fr, 1990-05-17, MALE, ' ', Jean",
+    "firstName, a@b.fr, 1990-05-17, MALE, Dupont, ' '"
   })
   void should_not_save_user_and_name_the_field_when_data_is_invalid(
       String field,

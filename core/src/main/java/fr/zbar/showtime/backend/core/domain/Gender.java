@@ -2,6 +2,8 @@ package fr.zbar.showtime.backend.core.domain;
 
 public enum Gender {
   HOMME,
+  MALE,
+  FEMALE,
   FEMME;
 
   public static Gender from(String value) {
