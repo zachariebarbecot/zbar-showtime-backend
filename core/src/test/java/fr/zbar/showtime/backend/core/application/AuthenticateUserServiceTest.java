@@ -1,11 +1,13 @@
 package fr.zbar.showtime.backend.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.domain.BirthDate;
 import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.FullName;
 import fr.zbar.showtime.backend.core.domain.Gender;
+import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
@@ -54,5 +56,17 @@ class AuthenticateUserServiceTest {
         authenticateUserService.execute(new AuthenticateUserCommand("jean@mail.fr", PASSWORD));
 
     assertThat(token).isEqualTo("token-" + user.id());
+  }
+
+  @Test
+  void should_reject_credentials_when_password_is_wrong() {
+    registeredUser();
+
+    assertThatThrownBy(
+            () ->
+                authenticateUserService.execute(
+                    new AuthenticateUserCommand("jean@mail.fr", "Wr0ng!Passw0rd")))
+        .isInstanceOf(InvalidCredentialsException.class)
+        .hasMessage("Identifiants invalides");
   }
 }

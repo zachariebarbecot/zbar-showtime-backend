@@ -85,4 +85,18 @@ class LoginIT extends AbstractIT {
     assertThat(expiresAt - issuedAt).isEqualTo(3600);
     assertThat(JsonPath.<String>read(claims, "$.sub")).isEqualTo(userId("login-ca1@mail.fr"));
   }
+
+  @Test
+  void should_return_401_without_token_when_password_is_wrong() {
+    register("login-ca2@mail.fr");
+
+    login("login-ca2@mail.fr", "Wr0ng!Passw0rd")
+        .expectStatus()
+        .isUnauthorized()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Identifiants invalides")
+        .jsonPath("$.token")
+        .doesNotExist();
+  }
 }
