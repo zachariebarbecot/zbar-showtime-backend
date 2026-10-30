@@ -1,10 +1,8 @@
 package fr.zbar.showtime.backend.core.domain;
 
 public enum Gender {
-  HOMME,
   MALE,
-  FEMALE,
-  FEMME;
+  FEMALE;
 
   public static Gender from(String value) {
     for (Gender gender : values()) {
@@ -12,6 +10,6 @@ public enum Gender {
         return gender;
       }
     }
-    throw new InvalidFieldException("gender", "Gender must be HOMME or FEMME");
+    throw new InvalidFieldException("gender", "Gender must be MALE or FEMALE");
   }
 }
