@@ -6,6 +6,16 @@ import java.time.LocalDate;
 public record BirthDate(LocalDate value) {
 
   public BirthDate(LocalDate value, Clock clock) {
-    this(value);
+    this(requirePast(value, clock));
+  }
+
+  private static LocalDate requirePast(LocalDate value, Clock clock) {
+    if (value == null) {
+      throw new InvalidFieldException("birthDate", "Birth date cannot be null");
+    }
+    if (!value.isBefore(LocalDate.now(clock))) {
+      throw new InvalidFieldException("birthDate", "Birth date must be in the past");
+    }
+    return value;
   }
 }

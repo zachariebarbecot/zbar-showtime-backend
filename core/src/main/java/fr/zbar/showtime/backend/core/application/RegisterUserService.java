@@ -27,8 +27,8 @@ public class RegisterUserService implements RegisterUser {
             new Email(command.email()),
             new RawPassword(command.password()),
             passwordHasher,
-            new BirthDate(command.birthDate()),
-            Gender.valueOf(command.gender()),
+            new BirthDate(command.birthDate(), clock),
+            Gender.from(command.gender()),
             clock);
     userRepository.save(user);
     return user;
