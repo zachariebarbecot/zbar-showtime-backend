@@ -32,6 +32,7 @@ public class AuthenticateUserService implements AuthenticateUser {
     if (!passwordVerifier.matches(password, user.get().passwordHash())) {
       throw new InvalidCredentialsException();
     }
+    loginHistory.record(user.get().id(), clock.instant());
     return tokenIssuer.issue(user.get().id());
   }
 }
