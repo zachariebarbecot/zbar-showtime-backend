@@ -18,4 +18,11 @@ public class Greeting extends AggregateRoot<UUID> {
   public String message() {
     return message;
   }
+
+  public static class InvalidGreetingException extends RuntimeException {
+
+    public InvalidGreetingException(String message) {
+      super(message);
+    }
+  }
 }

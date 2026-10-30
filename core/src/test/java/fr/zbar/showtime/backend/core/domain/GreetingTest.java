@@ -1,9 +1,12 @@
 package fr.zbar.showtime.backend.core.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class GreetingTest {
 
@@ -29,5 +32,21 @@ class GreetingTest {
   @Test
   void should_expose_its_id() {
     assertThat(new Greeting(ID, "Hello World").id()).isEqualTo(ID);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"", " ", "   "})
+  void should_refuse_greeting_when_message_is_blank(String message) {
+    assertThatThrownBy(() -> new Greeting(message))
+        .isInstanceOf(Greeting.InvalidGreetingException.class)
+        .hasMessage("Message cannot be blank");
+  }
+
+  @Test
+  void should_have_an_id_when_message_is_valid() {
+    Greeting greeting = new Greeting("Hello World");
+
+    assertThat(greeting.id()).isNotNull();
+    assertThat(greeting.message()).isEqualTo("Hello World");
   }
 }
