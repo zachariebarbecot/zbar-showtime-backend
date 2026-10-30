@@ -1,6 +1,11 @@
 package fr.zbar.showtime.backend.core.application;
 
+import fr.zbar.showtime.backend.core.domain.BirthDate;
+import fr.zbar.showtime.backend.core.domain.Email;
+import fr.zbar.showtime.backend.core.domain.FullName;
+import fr.zbar.showtime.backend.core.domain.Gender;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
+import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
 import java.time.Clock;
@@ -16,6 +21,16 @@ public class RegisterUserService implements RegisterUser {
 
   @Override
   public User execute(RegisterUserCommand command) {
-    return null;
+    User user =
+        User.register(
+            new FullName(command.lastName(), command.firstName()),
+            new Email(command.email()),
+            new RawPassword(command.password()),
+            passwordHasher,
+            new BirthDate(command.birthDate()),
+            Gender.valueOf(command.gender()),
+            clock);
+    userRepository.save(user);
+    return user;
   }
 }

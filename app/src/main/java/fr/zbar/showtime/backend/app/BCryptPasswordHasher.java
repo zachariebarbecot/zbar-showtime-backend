@@ -3,13 +3,16 @@ package fr.zbar.showtime.backend.app;
 import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.RawPassword;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 class BCryptPasswordHasher implements PasswordHasher {
 
+  private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
   @Override
   public PasswordHash hash(RawPassword password) {
-    return null;
+    return new PasswordHash(encoder.encode(password.value()));
   }
 }

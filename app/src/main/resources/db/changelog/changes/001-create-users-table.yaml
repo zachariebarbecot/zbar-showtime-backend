@@ -1,0 +1,56 @@
+databaseChangeLog:
+- changeSet:
+    id: 1793396703279-1
+    author: zbarbecot (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: usersPK
+            name: id
+            type: UUID
+        - column:
+            constraints:
+              nullable: false
+            name: birth_date
+            type: date
+        - column:
+            constraints:
+              nullable: false
+            name: created_at
+            type: TIMESTAMP(6) WITH TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: email
+            type: TEXT
+        - column:
+            constraints:
+              nullable: false
+            name: first_name
+            type: TEXT
+        - column:
+            constraints:
+              nullable: false
+            name: gender
+            type: TEXT
+        - column:
+            constraints:
+              nullable: false
+            name: last_name
+            type: TEXT
+        - column:
+            constraints:
+              nullable: false
+            name: password_hash
+            type: TEXT
+        - column:
+            constraints:
+              nullable: false
+            name: updated_at
+            type: TIMESTAMP(6) WITH TIME ZONE
+        tableName: users
+

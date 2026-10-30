@@ -41,7 +41,9 @@ public class User extends AggregateRoot<UUID> {
       BirthDate birthDate,
       Gender gender,
       Clock clock) {
-    return null;
+    Instant now = clock.instant();
+    return new User(
+        UUID.randomUUID(), name, email, passwordHasher.hash(password), birthDate, gender, now, now);
   }
 
   public FullName name() {
