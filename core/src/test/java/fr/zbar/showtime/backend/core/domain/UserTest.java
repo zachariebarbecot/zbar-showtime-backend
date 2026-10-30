@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.core.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -49,5 +50,28 @@ class UserTest {
     assertThat(user.email()).isEqualTo(new Email("a@b.fr"));
     assertThat(user.birthDate()).isEqualTo(new BirthDate(LocalDate.of(1990, 5, 17)));
     assertThat(user.gender()).isEqualTo(Gender.HOMME);
+  }
+
+  @Test
+  void should_refuse_registration_when_password_violates_the_policy() {
+    assertThatThrownBy(
+            () ->
+                User.register(
+                    new FullName("Dupont", "Jean"),
+                    new Email("jean@mail.fr"),
+                    new RawPassword("short"),
+                    HASHER,
+                    new BirthDate(LocalDate.of(1990, 5, 17)),
+                    Gender.HOMME,
+                    CLOCK))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> {
+              assertThat(exception.field()).isEqualTo("password");
+              assertThat(exception.messages())
+                  .contains(
+                      "Password must be at least 12 characters",
+                      "Password must contain an uppercase letter");
+            });
   }
 }

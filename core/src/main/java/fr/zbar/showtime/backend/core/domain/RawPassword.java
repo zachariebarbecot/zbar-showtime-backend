@@ -1,3 +1,10 @@
 package fr.zbar.showtime.backend.core.domain;
 
-public record RawPassword(String value) {}
+import java.util.List;
+
+public record RawPassword(String value) {
+
+  public List<String> violations(Email email) {
+    return List.of();
+  }
+}

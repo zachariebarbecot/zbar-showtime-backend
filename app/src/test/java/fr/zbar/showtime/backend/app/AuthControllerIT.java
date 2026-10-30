@@ -76,4 +76,29 @@ class AuthControllerIT extends AbstractIT {
             "select password_hash from users where email = ?", String.class, "ca1-hash@b.fr");
     assertThat(storedHash).startsWith("$2").isNotEqualTo(PASSWORD);
   }
+
+  @Test
+  void should_return_400_listing_every_violated_rule_and_create_no_account_when_password_is_weak() {
+    Map<String, Object> body = registration("ca2@b.fr");
+    body.put("password", "ca2@b.fr");
+
+    register(body)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[?(@.field == 'password')].message")
+        .value(
+            messages ->
+                assertThat(((java.util.List<?>) messages).stream().map(Object::toString).toList())
+                    .contains(
+                        "Password must be at least 12 characters",
+                        "Password must contain an uppercase letter",
+                        "Password must not contain the email"));
+    assertThat(countAccounts("ca2@b.fr")).isZero();
+  }
+
+  private Integer countAccounts(String email) {
+    return jdbcTemplate.queryForObject(
+        "select count(*) from users where email = ?", Integer.class, email);
+  }
 }
