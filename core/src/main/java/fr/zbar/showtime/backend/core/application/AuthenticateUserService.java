@@ -8,6 +8,7 @@ import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.TokenIssuer;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @CoreUseCase
@@ -21,10 +22,15 @@ public class AuthenticateUserService implements AuthenticateUser {
 
   @Override
   public String execute(AuthenticateUserCommand command) {
-    User user = userRepository.findByEmail(new Email(command.email())).orElseThrow();
-    if (!passwordVerifier.matches(new RawPassword(command.password()), user.passwordHash())) {
+    RawPassword password = new RawPassword(command.password());
+    Optional<User> user = userRepository.findByEmail(new Email(command.email()));
+    if (user.isEmpty()) {
+      passwordHasher.hash(password);
       throw new InvalidCredentialsException();
     }
-    return tokenIssuer.issue(user.id());
+    if (!passwordVerifier.matches(password, user.get().passwordHash())) {
+      throw new InvalidCredentialsException();
+    }
+    return tokenIssuer.issue(user.get().id());
   }
 }
