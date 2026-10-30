@@ -18,6 +18,14 @@ class FullNameTest {
     assertThat(name.firstName()).isEqualTo("Jean");
   }
 
+  @Test
+  void should_store_trimmed_names_when_they_have_surrounding_spaces() {
+    FullName name = new FullName("  Dupont  ", "  Jean ");
+
+    assertThat(name.lastName()).isEqualTo("Dupont");
+    assertThat(name.firstName()).isEqualTo("Jean");
+  }
+
   @ParameterizedTest
   @NullAndEmptySource
   @ValueSource(strings = {"  "})
