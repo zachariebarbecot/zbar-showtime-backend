@@ -9,12 +9,6 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate
-  liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
 logging:
   level:
     # Hibernate logs the SQL error with the inserted email on a duplicate
