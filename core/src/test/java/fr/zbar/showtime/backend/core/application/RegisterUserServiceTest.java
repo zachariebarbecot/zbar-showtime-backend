@@ -16,6 +16,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class RegisterUserServiceTest {
 
@@ -49,6 +51,32 @@ class RegisterUserServiceTest {
 
     assertThatThrownBy(() -> registerUserService.execute(command))
         .isInstanceOf(InvalidFieldException.class);
+    assertThat(savedUsers).isEmpty();
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "email, not-an-email, 1990-05-17, HOMME, Dupont, Jean",
+    "birthDate, a@b.fr, 2026-03-01, HOMME, Dupont, Jean",
+    "birthDate, a@b.fr, 2026-03-02, HOMME, Dupont, Jean",
+    "gender, a@b.fr, 1990-05-17, AUTRE, Dupont, Jean",
+    "lastName, a@b.fr, 1990-05-17, HOMME, ' ', Jean",
+    "firstName, a@b.fr, 1990-05-17, HOMME, Dupont, ' '"
+  })
+  void should_not_save_user_and_name_the_field_when_data_is_invalid(
+      String field,
+      String email,
+      LocalDate birthDate,
+      String gender,
+      String lastName,
+      String firstName) {
+    RegisterUserCommand command =
+        new RegisterUserCommand(lastName, firstName, email, "Str0ng!Passw0rd", birthDate, gender);
+
+    assertThatThrownBy(() -> registerUserService.execute(command))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo(field));
     assertThat(savedUsers).isEmpty();
   }
 }

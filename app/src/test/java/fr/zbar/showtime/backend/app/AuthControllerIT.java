@@ -2,6 +2,8 @@ package fr.zbar.showtime.backend.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -134,6 +138,56 @@ class AuthControllerIT extends AbstractIT {
       assertThat(results).containsOnly(201, 409).filteredOn(code -> code == 201).hasSize(1);
     }
     assertThat(countAccounts("ca3-race@b.fr")).isEqualTo(1);
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "email, email, not-an-email",
+    "birthDate, birthDate, 2999-01-01",
+    "gender, gender, AUTRE",
+    "lastName, lastName, ''",
+    "firstName, firstName, ''"
+  })
+  void should_return_400_naming_the_field_and_create_no_account_when_data_is_invalid(
+      String field, String key, String value) {
+    Map<String, Object> body = registration("ca4-" + field + "@b.fr");
+    body.put(key, value);
+
+    register(body)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo(field);
+    assertThat(countAccounts("ca4-" + field + "@b.fr")).isZero();
+  }
+
+  @Test
+  void should_return_400_when_birth_date_is_today() {
+    Map<String, Object> body = registration("ca4-today@b.fr");
+    body.put("birthDate", LocalDate.now(ZoneOffset.UTC).toString());
+
+    register(body)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("birthDate");
+    assertThat(countAccounts("ca4-today@b.fr")).isZero();
+  }
+
+  @Test
+  void should_return_400_when_last_name_is_missing() {
+    Map<String, Object> body = registration("ca4-missing@b.fr");
+    body.remove("lastName");
+
+    register(body)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("lastName");
+    assertThat(countAccounts("ca4-missing@b.fr")).isZero();
   }
 
   private Integer countAccounts(String email) {
