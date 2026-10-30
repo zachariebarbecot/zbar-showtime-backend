@@ -32,7 +32,7 @@ class AuthenticateUserServiceTest {
 
   private final InMemoryUserRepository userRepository = new InMemoryUserRepository();
   private final AuthenticateUserService authenticateUserService =
-      new AuthenticateUserService(userRepository, VERIFIER, hasher, TOKEN_ISSUER);
+      new AuthenticateUserService(userRepository, VERIFIER, TOKEN_ISSUER);
 
   private User registeredUser() {
     User user =
