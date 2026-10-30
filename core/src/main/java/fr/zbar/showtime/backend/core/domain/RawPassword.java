@@ -13,13 +13,13 @@ public record RawPassword(String value) {
   public List<String> violations(Email email) {
     List<String> violations = new ArrayList<>();
     if (value.length() < MIN_LENGTH) {
-      violations.add("Password must be at least 12 characters");
+      violations.add("Password must be at least %d characters".formatted(MIN_LENGTH));
     }
     if (value.length() > MAX_LENGTH) {
-      violations.add("Password must be at most 64 characters");
+      violations.add("Password must be at most %d characters".formatted(MAX_LENGTH));
     }
     if (value.getBytes(StandardCharsets.UTF_8).length > MAX_BYTES) {
-      violations.add("Password must be at most 72 bytes in UTF-8");
+      violations.add("Password must be at most %d bytes in UTF-8".formatted(MAX_BYTES));
     }
     if (value.chars().noneMatch(Character::isUpperCase)) {
       violations.add("Password must contain an uppercase letter");
