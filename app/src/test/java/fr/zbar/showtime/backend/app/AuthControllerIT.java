@@ -190,6 +190,26 @@ class AuthControllerIT extends AbstractIT {
     assertThat(countAccounts("ca4-missing@b.fr")).isZero();
   }
 
+  @Test
+  void should_store_and_return_normalized_email_when_email_has_spaces_and_uppercase() {
+    register(registration(" Jean@Mail.FR "))
+        .expectStatus()
+        .isCreated()
+        .expectBody()
+        .jsonPath("$.email")
+        .isEqualTo("jean@mail.fr");
+
+    assertThat(countAccounts("jean@mail.fr")).isEqualTo(1);
+  }
+
+  @Test
+  void should_return_409_when_email_differs_only_by_case_and_spaces_from_an_existing_one() {
+    register(registration("ca5-dup@b.fr")).expectStatus().isCreated();
+
+    register(registration("  CA5-Dup@B.fr ")).expectStatus().isEqualTo(409);
+    assertThat(countAccounts("ca5-dup@b.fr")).isEqualTo(1);
+  }
+
   private Integer countAccounts(String email) {
     return jdbcTemplate.queryForObject(
         "select count(*) from users where email = ?", Integer.class, email);

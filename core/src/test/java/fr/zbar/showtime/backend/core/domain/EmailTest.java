@@ -15,6 +15,16 @@ class EmailTest {
     assertThat(new Email("a@b.fr").value()).isEqualTo("a@b.fr");
   }
 
+  @Test
+  void should_trim_and_lowercase_value_when_created() {
+    assertThat(new Email(" Jean@Mail.FR ").value()).isEqualTo("jean@mail.fr");
+  }
+
+  @Test
+  void should_be_equal_when_values_differ_only_by_case_and_surrounding_spaces() {
+    assertThat(new Email("  A@B.fr ")).isEqualTo(new Email("a@b.FR"));
+  }
+
   @ParameterizedTest
   @NullAndEmptySource
   @ValueSource(strings = {"   ", "plainaddress", "a@", "@b.fr", "a@b", "a b@c.fr", "a@@b.fr"})
