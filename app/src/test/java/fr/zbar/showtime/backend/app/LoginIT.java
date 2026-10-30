@@ -99,4 +99,27 @@ class LoginIT extends AbstractIT {
         .jsonPath("$.token")
         .doesNotExist();
   }
+
+  @Test
+  void should_return_same_response_as_wrong_password_when_no_account_has_the_email() {
+    register("login-ca3@mail.fr");
+
+    byte[] wrongPassword =
+        login("login-ca3@mail.fr", "Wr0ng!Passw0rd")
+            .expectStatus()
+            .isUnauthorized()
+            .expectBody()
+            .returnResult()
+            .getResponseBody();
+    byte[] unknownEmail =
+        login("nobody-ca3@mail.fr", "Wr0ng!Passw0rd")
+            .expectStatus()
+            .isUnauthorized()
+            .expectBody()
+            .returnResult()
+            .getResponseBody();
+
+    assertThat(new String(unknownEmail, StandardCharsets.UTF_8))
+        .isEqualTo(new String(wrongPassword, StandardCharsets.UTF_8));
+  }
 }

@@ -18,6 +18,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class AuthenticateUserServiceTest {
@@ -25,14 +27,19 @@ class AuthenticateUserServiceTest {
   private static final Clock CLOCK =
       Clock.fixed(Instant.parse("2026-03-01T10:15:30Z"), ZoneOffset.UTC);
   private static final String PASSWORD = "Str0ng!Passw0rd";
-  private static final PasswordHasher HASHER = raw -> new PasswordHash("hashed:" + raw.value());
+  private final List<RawPassword> hashedPasswords = new ArrayList<>();
+  private final PasswordHasher hasher =
+      raw -> {
+        hashedPasswords.add(raw);
+        return new PasswordHash("hashed:" + raw.value());
+      };
   private static final PasswordVerifier VERIFIER =
       (raw, hash) -> hash.equals(new PasswordHash("hashed:" + raw.value()));
   private static final TokenIssuer TOKEN_ISSUER = userId -> "token-" + userId;
 
   private final InMemoryUserRepository userRepository = new InMemoryUserRepository();
   private final AuthenticateUserService authenticateUserService =
-      new AuthenticateUserService(userRepository, VERIFIER, HASHER, TOKEN_ISSUER);
+      new AuthenticateUserService(userRepository, VERIFIER, hasher, TOKEN_ISSUER);
 
   private User registeredUser() {
     User user =
@@ -40,11 +47,12 @@ class AuthenticateUserServiceTest {
             new FullName("Dupont", "Jean"),
             new Email("jean@mail.fr"),
             new RawPassword(PASSWORD),
-            HASHER,
+            hasher,
             new BirthDate(LocalDate.of(1990, 5, 17), CLOCK),
             Gender.MALE,
             CLOCK);
     userRepository.save(user);
+    hashedPasswords.clear();
     return user;
   }
 
@@ -68,5 +76,16 @@ class AuthenticateUserServiceTest {
                     new AuthenticateUserCommand("jean@mail.fr", "Wr0ng!Passw0rd")))
         .isInstanceOf(InvalidCredentialsException.class)
         .hasMessage("Identifiants invalides");
+  }
+
+  @Test
+  void should_reject_credentials_and_hash_a_dummy_password_when_no_account_has_the_email() {
+    assertThatThrownBy(
+            () ->
+                authenticateUserService.execute(
+                    new AuthenticateUserCommand("unknown@mail.fr", PASSWORD)))
+        .isInstanceOf(InvalidCredentialsException.class)
+        .hasMessage("Identifiants invalides");
+    assertThat(hashedPasswords).containsExactly(new RawPassword(PASSWORD));
   }
 }
