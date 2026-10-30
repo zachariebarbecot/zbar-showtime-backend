@@ -7,10 +7,15 @@ public record Email(String value) {
 
   private static final Pattern FORMAT = Pattern.compile("[^@\\s]+@[^@\\s]+\\.[^@\\s]+");
 
+  private static final String INVALID_MESSAGE = "Email must be a valid address";
+
   public Email {
-    value = value == null ? null : value.strip().toLowerCase(Locale.ROOT);
-    if (value == null || !FORMAT.matcher(value).matches()) {
-      throw new InvalidFieldException("email", "Email must be a valid address");
+    if (value == null) {
+      throw new InvalidFieldException("email", INVALID_MESSAGE);
+    }
+    value = value.strip().toLowerCase(Locale.ROOT);
+    if (!FORMAT.matcher(value).matches()) {
+      throw new InvalidFieldException("email", INVALID_MESSAGE);
     }
   }
 }
