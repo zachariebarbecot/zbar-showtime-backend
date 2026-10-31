@@ -164,4 +164,22 @@ class UpdateProfileIT extends AbstractIT {
     assertThat(other.get("last_name")).isEqualTo("Dupont");
     assertThat(other.get("first_name")).isEqualTo("Jean");
   }
+
+  @Test
+  void should_change_only_the_first_name_when_the_last_name_is_absent() {
+    String token = registerAndLogin("patch-ca5@mail.fr");
+
+    patchMe(token, Map.of("firstName", "Paul"))
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.lastName")
+        .isEqualTo("Dupont")
+        .jsonPath("$.firstName")
+        .isEqualTo("Paul");
+
+    Map<String, Object> row = row("patch-ca5@mail.fr");
+    assertThat(row.get("last_name")).isEqualTo("Dupont");
+    assertThat(row.get("first_name")).isEqualTo("Paul");
+  }
 }
