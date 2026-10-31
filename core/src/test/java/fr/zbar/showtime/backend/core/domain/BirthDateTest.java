@@ -18,12 +18,12 @@ class BirthDateTest {
   void should_accept_yesterday() {
     LocalDate yesterday = LocalDate.of(2026, 2, 28);
 
-    assertThat(new BirthDate(yesterday, CLOCK).value()).isEqualTo(yesterday);
+    assertThat(BirthDate.of(yesterday, CLOCK).value()).isEqualTo(yesterday);
   }
 
   @Test
   void should_refuse_today() {
-    assertThatThrownBy(() -> new BirthDate(LocalDate.of(2026, 3, 1), CLOCK))
+    assertThatThrownBy(() -> BirthDate.of(LocalDate.of(2026, 3, 1), CLOCK))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,
             exception -> {
@@ -34,7 +34,7 @@ class BirthDateTest {
 
   @Test
   void should_refuse_future_date() {
-    assertThatThrownBy(() -> new BirthDate(LocalDate.of(2026, 3, 2), CLOCK))
+    assertThatThrownBy(() -> BirthDate.of(LocalDate.of(2026, 3, 2), CLOCK))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,
             exception ->
@@ -43,12 +43,31 @@ class BirthDateTest {
 
   @Test
   void should_refuse_missing_date() {
-    assertThatThrownBy(() -> new BirthDate(null, CLOCK))
+    assertThatThrownBy(() -> BirthDate.of(null, CLOCK))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,
             exception -> {
               assertThat(exception.field()).isEqualTo("birthDate");
               assertThat(exception.messages()).containsExactly("Birth date cannot be null");
+            });
+  }
+
+  @Test
+  void should_accept_the_first_day_of_1900() {
+    LocalDate limit = LocalDate.of(1900, 1, 1);
+
+    assertThat(BirthDate.of(limit, CLOCK).value()).isEqualTo(limit);
+  }
+
+  @Test
+  void should_refuse_a_date_before_1900() {
+    assertThatThrownBy(() -> BirthDate.of(LocalDate.of(1899, 12, 31), CLOCK))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> {
+              assertThat(exception.field()).isEqualTo("birthDate");
+              assertThat(exception.messages())
+                  .containsExactly("Birth date must be on or after 1900-01-01");
             });
   }
 

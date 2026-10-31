@@ -42,7 +42,7 @@ class ChangeEmailServiceTest {
             new Email("jean@mail.fr"),
             new RawPassword(PASSWORD),
             HASHER,
-            new BirthDate(LocalDate.of(1990, 5, 17), REGISTRATION_CLOCK),
+            BirthDate.of(LocalDate.of(1990, 5, 17), REGISTRATION_CLOCK),
             Gender.MALE,
             REGISTRATION_CLOCK);
     userRepository.save(user);

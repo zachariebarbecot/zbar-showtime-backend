@@ -5,6 +5,10 @@ import java.time.LocalDate;
 
 public record BirthDate(LocalDate value) {
 
+  public static BirthDate of(LocalDate value, Clock clock) {
+    return new BirthDate(value);
+  }
+
   public BirthDate(LocalDate value, Clock clock) {
     this(requirePast(value, clock));
   }

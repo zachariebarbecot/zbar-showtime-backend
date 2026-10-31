@@ -43,7 +43,7 @@ class ChangePasswordServiceTest {
             new Email("jean@mail.fr"),
             new RawPassword(CURRENT),
             HASHER,
-            new BirthDate(LocalDate.of(1990, 5, 17), REGISTER_CLOCK),
+            BirthDate.of(LocalDate.of(1990, 5, 17), REGISTER_CLOCK),
             Gender.MALE,
             REGISTER_CLOCK);
     userRepository.save(user);

@@ -44,7 +44,7 @@ class AuthenticateUserServiceTest {
             new Email("jean@mail.fr"),
             new RawPassword(PASSWORD),
             hasher,
-            new BirthDate(LocalDate.of(1990, 5, 17), CLOCK),
+            BirthDate.of(LocalDate.of(1990, 5, 17), CLOCK),
             Gender.MALE,
             CLOCK);
     userRepository.save(user);
