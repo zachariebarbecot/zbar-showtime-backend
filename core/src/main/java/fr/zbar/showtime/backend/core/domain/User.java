@@ -57,6 +57,10 @@ public class User extends AggregateRoot<UUID> {
         UUID.randomUUID(), name, email, passwordHasher.hash(password), birthDate, gender, now, now);
   }
 
+  public User rename(FullName newName, Clock clock) {
+    return this;
+  }
+
   @Override
   public String toString() {
     return "User[****]";
