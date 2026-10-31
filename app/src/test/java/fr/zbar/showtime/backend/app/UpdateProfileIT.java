@@ -2,8 +2,6 @@ package fr.zbar.showtime.backend.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.jayway.jsonpath.JsonPath;
-import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
@@ -18,42 +16,15 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 @AutoConfigureMockMvc
 class UpdateProfileIT extends AbstractIT {
 
-  private static final String PASSWORD = "Str0ng!Passw0rd";
   private static final Instant REGISTERED_AT = Instant.parse("2025-01-01T08:00:00Z");
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
   private String registerAndLogin(String email) {
-    restTestClient
-        .post()
-        .uri("/auth/register")
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(
-            Map.of(
-                "lastName", "Dupont",
-                "firstName", "Jean",
-                "email", email,
-                "password", PASSWORD,
-                "birthDate", "1990-05-17",
-                "gender", "MALE"))
-        .exchange()
-        .expectStatus()
-        .isCreated();
+    registerUser(email);
     jdbcTemplate.update(
         "update users set updated_at = ? where email = ?", Timestamp.from(REGISTERED_AT), email);
-    byte[] body =
-        restTestClient
-            .post()
-            .uri("/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(Map.of("email", email, "password", PASSWORD))
-            .exchange()
-            .expectStatus()
-            .isOk()
-            .expectBody()
-            .returnResult()
-            .getResponseBody();
-    return JsonPath.read(new String(body, StandardCharsets.UTF_8), "$.token");
+    return loginToken(email);
   }
 
   private RestTestClient.ResponseSpec patchMe(String token, Map<String, Object> body) {
