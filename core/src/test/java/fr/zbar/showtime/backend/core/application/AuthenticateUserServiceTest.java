@@ -68,7 +68,7 @@ class AuthenticateUserServiceTest {
                 authenticateUserService.execute(
                     new AuthenticateUserCommand("jean@mail.fr", "Wr0ng!Passw0rd")))
         .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Identifiants invalides");
+        .hasMessage("Invalid credentials");
   }
 
   @Test
@@ -78,7 +78,7 @@ class AuthenticateUserServiceTest {
                 authenticateUserService.execute(
                     new AuthenticateUserCommand("unknown@mail.fr", PASSWORD)))
         .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Identifiants invalides");
+        .hasMessage("Invalid credentials");
   }
 
   @Test

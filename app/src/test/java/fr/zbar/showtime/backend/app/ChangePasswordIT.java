@@ -44,7 +44,7 @@ class ChangePasswordIT extends AbstractIT {
         .isUnauthorized()
         .expectBody()
         .jsonPath("$.detail")
-        .isEqualTo("Identifiants invalides");
+        .isEqualTo("Invalid credentials");
   }
 
   @Test
@@ -56,7 +56,7 @@ class ChangePasswordIT extends AbstractIT {
         .isUnauthorized()
         .expectBody()
         .jsonPath("$.detail")
-        .isEqualTo("Identifiants invalides");
+        .isEqualTo("Invalid credentials");
 
     login("pwd-ca2@mail.fr", PASSWORD).expectStatus().isOk();
     login("pwd-ca2@mail.fr", NEW_PASSWORD).expectStatus().isUnauthorized();

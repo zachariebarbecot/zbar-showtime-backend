@@ -72,7 +72,7 @@ class ChangePasswordServiceTest {
                 changePasswordService.execute(
                     new ChangePasswordCommand(user.id(), "Wr0ng!Passw0rd", NEW)))
         .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Identifiants invalides");
+        .hasMessage("Invalid credentials");
 
     assertThat(userRepository.findById(user.id()).orElseThrow().passwordHash())
         .isEqualTo(user.passwordHash());
