@@ -106,4 +106,40 @@ class ChangePasswordIT extends AbstractIT {
         .expectStatus()
         .isOk();
   }
+
+  @Test
+  void should_return_400_on_new_password_when_it_is_missing() {
+    registerUser("pwd-missing-new@mail.fr");
+
+    restTestClient
+        .put()
+        .uri("/users/me/password")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken("pwd-missing-new@mail.fr"))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Map.of("currentPassword", PASSWORD))
+        .exchange()
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("newPassword");
+  }
+
+  @Test
+  void should_return_400_on_current_password_when_it_is_missing() {
+    registerUser("pwd-missing-cur@mail.fr");
+
+    restTestClient
+        .put()
+        .uri("/users/me/password")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken("pwd-missing-cur@mail.fr"))
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Map.of("newPassword", NEW_PASSWORD))
+        .exchange()
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("currentPassword");
+  }
 }
