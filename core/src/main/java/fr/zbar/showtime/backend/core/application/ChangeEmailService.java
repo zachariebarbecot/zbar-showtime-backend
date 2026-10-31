@@ -1,7 +1,9 @@
 package fr.zbar.showtime.backend.core.application;
 
+import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
 import fr.zbar.showtime.backend.core.domain.User;
+import fr.zbar.showtime.backend.core.domain.UserNotFoundException;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,9 @@ public class ChangeEmailService implements ChangeEmail {
 
   @Override
   public User execute(ChangeEmailCommand command) {
-    return null;
+    User user = userRepository.findById(command.userId()).orElseThrow(UserNotFoundException::new);
+    User changed = user.changeEmail(new Email(command.newEmail()), clock);
+    userRepository.save(changed);
+    return changed;
   }
 }

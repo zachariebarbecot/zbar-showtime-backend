@@ -66,7 +66,8 @@ public class User extends AggregateRoot<UUID> {
   }
 
   public User changeEmail(Email newEmail, Clock clock) {
-    return this;
+    return new User(
+        id(), name, newEmail, passwordHash, birthDate, gender, createdAt, clock.instant());
   }
 
   @Override
