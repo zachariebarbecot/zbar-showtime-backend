@@ -8,6 +8,7 @@ import fr.zbar.showtime.backend.core.domain.SearchPage;
 import fr.zbar.showtime.backend.core.domain.SearchQuery;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -45,7 +46,13 @@ class TmdbSearchAdapter implements SearchCatalog {
         movie.id(),
         MediaType.MOVIE,
         movie.title(),
-        properties.imageBaseUrl() + "/" + properties.posterSize() + movie.posterPath(),
-        LocalDate.parse(movie.releaseDate()));
+        posterUrl(movie.posterPath()),
+        StringUtils.isEmpty(movie.releaseDate()) ? null : LocalDate.parse(movie.releaseDate()));
+  }
+
+  private String posterUrl(String posterPath) {
+    return StringUtils.isEmpty(posterPath)
+        ? null
+        : properties.imageBaseUrl() + "/" + properties.posterSize() + posterPath;
   }
 }
