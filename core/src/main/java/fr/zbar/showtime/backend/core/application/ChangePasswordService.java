@@ -22,8 +22,8 @@ public class ChangePasswordService implements ChangePassword {
 
   @Override
   public void execute(ChangePasswordCommand command) {
-    RawPassword currentPassword = new RawPassword(command.currentPassword());
-    RawPassword newPassword = new RawPassword(command.newPassword());
+    RawPassword currentPassword = rawPassword(command.currentPassword(), "currentPassword");
+    RawPassword newPassword = rawPassword(command.newPassword(), "newPassword");
     User user = userRepository.findById(command.userId()).orElseThrow(UserNotFoundException::new);
     if (!passwordVerifier.matches(currentPassword, user.passwordHash())) {
       throw new InvalidCredentialsException();
@@ -33,5 +33,12 @@ public class ChangePasswordService implements ChangePassword {
           "newPassword", "New password must differ from the current one");
     }
     userRepository.save(user.changePassword(newPassword, passwordHasher, clock));
+  }
+
+  private static RawPassword rawPassword(String value, String field) {
+    if (value == null) {
+      throw new InvalidFieldException(field, "Password must be provided");
+    }
+    return new RawPassword(value);
   }
 }
