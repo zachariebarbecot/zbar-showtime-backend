@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app;
 
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.core.domain.CatalogItem;
@@ -8,16 +9,29 @@ import fr.zbar.showtime.backend.core.domain.PageNumber;
 import fr.zbar.showtime.backend.core.domain.SearchCatalog;
 import fr.zbar.showtime.backend.core.domain.SearchPage;
 import fr.zbar.showtime.backend.core.domain.SearchQuery;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+@AutoConfigureMockMvc
 class SearchIT extends AbstractIT {
 
   @MockitoBean private SearchCatalog searchCatalog;
+
+  @Autowired private JwtEncoder jwtEncoder;
 
   private RestTestClient.ResponseSpec search(String email, String uri, Object... uriVariables) {
     return restTestClient
@@ -80,5 +94,55 @@ class SearchIT extends AbstractIT {
         .expectBody()
         .jsonPath("$.page")
         .isEqualTo(3);
+  }
+
+  @Test
+  void should_return_401_and_not_call_tmdb_when_there_is_no_token() {
+    restTestClient
+        .get()
+        .uri("/search?query=matrix&type=MOVIE")
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @Test
+  void should_return_401_and_not_call_tmdb_when_the_token_is_invalid() {
+    restTestClient
+        .get()
+        .uri("/search?query=matrix&type=MOVIE")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer not.a.jwt")
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @Test
+  void should_return_401_and_not_call_tmdb_when_the_token_is_expired() {
+    Instant issuedAt = FixedClockConfiguration.NOW.minus(Duration.ofHours(3));
+    JwtClaimsSet claims =
+        JwtClaimsSet.builder()
+            .subject(UUID.randomUUID().toString())
+            .issuedAt(issuedAt)
+            .expiresAt(issuedAt.plus(Duration.ofHours(1)))
+            .build();
+    String expired =
+        jwtEncoder
+            .encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims))
+            .getTokenValue();
+
+    restTestClient
+        .get()
+        .uri("/search?query=matrix&type=MOVIE")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + expired)
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+
+    verifyNoInteractions(searchCatalog);
   }
 }
