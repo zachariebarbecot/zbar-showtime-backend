@@ -1,0 +1,31 @@
+package fr.zbar.showtime.backend.core.domain;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+
+class SearchTypeTest {
+
+  @Test
+  void should_read_known_values() {
+    assertThat(SearchType.from("MOVIE")).isEqualTo(SearchType.MOVIE);
+    assertThat(SearchType.from("TV")).isEqualTo(SearchType.TV);
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(strings = {"   ", "movie", "tv", "BOOK", "ALL"})
+  void should_refuse_value_outside_movie_and_tv(String value) {
+    assertThatThrownBy(() -> SearchType.from(value))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> {
+              assertThat(exception.field()).isEqualTo("type");
+              assertThat(exception.messages()).containsExactly("Type must be MOVIE or TV");
+            });
+  }
+}

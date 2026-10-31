@@ -88,14 +88,61 @@ class TmdbSearchAdapterTest {
                 LocalDate.of(2003, 5, 15)));
   }
 
+  @Test
+  void should_call_search_tv_and_map_name_and_first_air_date_to_title_and_release_date() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("Authorization", "Bearer secret-token"))
+        .andExpect(queryParam("query", "dark"))
+        .andExpect(queryParam("language", "fr-FR"))
+        .andExpect(queryParam("include_adult", "false"))
+        .andExpect(queryParam("page", "2"))
+        .andRespond(
+            withSuccess(
+                """
+                {"page":2,"total_pages":3,"total_results":45,"results":[
+                  {"id":70523,"name":"Dark","poster_path":"/d.jpg","first_air_date":"2017-12-01"}
+                ]}
+                """,
+                org.springframework.http.MediaType.APPLICATION_JSON));
+
+    SearchPage result = adapter.searchSeries(new SearchQuery("dark"), new PageNumber(2));
+
+    server.verify();
+    assertThat(result)
+        .isEqualTo(
+            new SearchPage(
+                2,
+                3,
+                45,
+                List.of(
+                    new CatalogItem(
+                        70523L,
+                        MediaType.TV,
+                        "Dark",
+                        "https://image.tmdb.org/t/p/w342/d.jpg",
+                        LocalDate.of(2017, 12, 1)))));
+  }
+
   private void respondWith(String json) {
     server
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
         .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
   }
 
+  private void respondWithSeries(String json) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
+  }
+
   private SearchPage search() {
     return adapter.searchMovies(new SearchQuery("matrix"), new PageNumber(1));
+  }
+
+  private SearchPage searchSeries() {
+    return adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1));
   }
 
   @ParameterizedTest
@@ -131,6 +178,39 @@ class TmdbSearchAdapterTest {
                 1L, MediaType.MOVIE, "Matrix", "https://image.tmdb.org/t/p/w342/m.jpg", null));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"\"poster_path\":null,", "\"poster_path\":\"\",", ""})
+  void should_keep_the_series_with_a_null_poster_url_when_the_poster_is_null_empty_or_absent(
+      String posterField) {
+    respondWithSeries(
+        """
+        {"page":1,"total_pages":1,"total_results":1,"results":[
+          {"id":1,%s"name":"Dark","first_air_date":"2017-12-01"}]}
+        """
+            .formatted(posterField));
+
+    assertThat(searchSeries().results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.TV, "Dark", null, LocalDate.of(2017, 12, 1)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"\"first_air_date\":null,", "\"first_air_date\":\"\",", ""})
+  void should_keep_the_series_with_a_null_release_date_when_the_date_is_null_empty_or_absent(
+      String dateField) {
+    respondWithSeries(
+        """
+        {"page":1,"total_pages":1,"total_results":1,"results":[
+          {"id":1,%s"name":"Dark","poster_path":"/d.jpg"}]}
+        """
+            .formatted(dateField));
+
+    assertThat(searchSeries().results())
+        .containsExactly(
+            new CatalogItem(
+                1L, MediaType.TV, "Dark", "https://image.tmdb.org/t/p/w342/d.jpg", null));
+  }
+
   @Test
   void should_return_an_empty_page_when_tmdb_finds_nothing() {
     respondWith("{\"page\":1,\"total_pages\":0,\"total_results\":0,\"results\":[]}");
@@ -154,6 +234,41 @@ class TmdbSearchAdapterTest {
         .andRespond(withStatus(HttpStatus.valueOf(status)));
 
     assertThatThrownBy(this::search).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {401, 429, 500, 503})
+  void should_fail_with_catalog_unavailable_for_series_when_tmdb_answers_an_error_status(
+      int status) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andRespond(withStatus(HttpStatus.valueOf(status)));
+
+    assertThatThrownBy(() -> searchSeries()).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_fail_with_catalog_unavailable_for_series_when_tmdb_times_out() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andRespond(withException(new SocketTimeoutException("Read timed out")));
+
+    assertThatThrownBy(() -> searchSeries()).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "",
+        "not json at all",
+        "{}",
+        "{\"page\":1,\"total_pages\":1,\"total_results\":1,\"results\":[{\"id\":1,\"name\":\"D\",\"first_air_date\":\"01/12/2017\"}]}"
+      })
+  void should_fail_with_catalog_unavailable_for_series_when_the_body_has_an_unexpected_format(
+      String body) {
+    respondWithSeries(body);
+
+    assertThatThrownBy(() -> searchSeries()).isInstanceOf(CatalogUnavailableException.class);
   }
 
   @Test

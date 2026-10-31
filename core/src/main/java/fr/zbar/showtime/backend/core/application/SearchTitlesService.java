@@ -4,6 +4,7 @@ import fr.zbar.showtime.backend.core.domain.PageNumber;
 import fr.zbar.showtime.backend.core.domain.SearchCatalog;
 import fr.zbar.showtime.backend.core.domain.SearchPage;
 import fr.zbar.showtime.backend.core.domain.SearchQuery;
+import fr.zbar.showtime.backend.core.domain.SearchType;
 import lombok.RequiredArgsConstructor;
 
 @CoreUseCase
@@ -14,7 +15,11 @@ public class SearchTitlesService implements SearchTitles {
 
   @Override
   public SearchPage execute(SearchTitlesCommand command) {
-    return searchCatalog.searchMovies(
-        new SearchQuery(command.query()), new PageNumber(command.page()));
+    SearchQuery query = new SearchQuery(command.query());
+    PageNumber page = new PageNumber(command.page());
+    return switch (SearchType.from(command.type())) {
+      case MOVIE -> searchCatalog.searchMovies(query, page);
+      case TV -> searchCatalog.searchSeries(query, page);
+    };
   }
 }
