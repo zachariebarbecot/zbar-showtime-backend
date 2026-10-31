@@ -24,25 +24,29 @@ class TmdbSearchAdapter implements SearchCatalog {
 
   @Override
   public SearchPage searchMovies(SearchQuery query, PageNumber page) {
+    return search("/search/movie", MediaType.MOVIE, query, page);
+  }
+
+  @Override
+  public SearchPage searchSeries(SearchQuery query, PageNumber page) {
+    return search("/search/tv", MediaType.TV, query, page);
+  }
+
+  private SearchPage search(String path, MediaType type, SearchQuery query, PageNumber page) {
     try {
-      return toPage(fetch(query, page));
+      return toPage(fetch(path, query, page), type);
     } catch (RestClientException | DateTimeParseException exception) {
       throw new CatalogUnavailableException(exception);
     }
   }
 
-  @Override
-  public SearchPage searchSeries(SearchQuery query, PageNumber page) {
-    throw new UnsupportedOperationException();
-  }
-
-  private TmdbSearchResponse fetch(SearchQuery query, PageNumber page) {
+  private TmdbSearchResponse fetch(String path, SearchQuery query, PageNumber page) {
     TmdbSearchResponse response =
         tmdbRestClient
             .get()
             .uri(
                 uri ->
-                    uri.path("/search/movie")
+                    uri.path(path)
                         .queryParam("query", "{query}")
                         .queryParam("language", properties.language())
                         .queryParam("include_adult", false)
@@ -56,21 +60,23 @@ class TmdbSearchAdapter implements SearchCatalog {
     return response;
   }
 
-  private SearchPage toPage(TmdbSearchResponse response) {
+  private SearchPage toPage(TmdbSearchResponse response, MediaType type) {
     return new SearchPage(
         response.page(),
         response.totalPages(),
         response.totalResults(),
-        response.results().stream().map(this::toItem).toList());
+        response.results().stream().map(result -> toItem(result, type)).toList());
   }
 
-  private CatalogItem toItem(TmdbSearchResponse.Movie movie) {
+  private CatalogItem toItem(TmdbSearchResponse.Result result, MediaType type) {
+    boolean movie = type == MediaType.MOVIE;
+    String date = movie ? result.releaseDate() : result.firstAirDate();
     return new CatalogItem(
-        movie.id(),
-        MediaType.MOVIE,
-        movie.title(),
-        posterUrl(movie.posterPath()),
-        StringUtils.isEmpty(movie.releaseDate()) ? null : LocalDate.parse(movie.releaseDate()));
+        result.id(),
+        type,
+        movie ? result.title() : result.name(),
+        posterUrl(result.posterPath()),
+        StringUtils.isEmpty(date) ? null : LocalDate.parse(date));
   }
 
   private String posterUrl(String posterPath) {

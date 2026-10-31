@@ -14,7 +14,10 @@ public class SearchTitlesService implements SearchTitles {
 
   @Override
   public SearchPage execute(SearchTitlesCommand command) {
-    return searchCatalog.searchMovies(
-        new SearchQuery(command.query()), new PageNumber(command.page()));
+    SearchQuery query = new SearchQuery(command.query());
+    PageNumber page = new PageNumber(command.page());
+    return "TV".equals(command.type())
+        ? searchCatalog.searchSeries(query, page)
+        : searchCatalog.searchMovies(query, page);
   }
 }
