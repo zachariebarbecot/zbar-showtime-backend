@@ -131,8 +131,18 @@ class TmdbSearchAdapterTest {
         .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
   }
 
+  private void respondWithSeries(String json) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
+  }
+
   private SearchPage search() {
     return adapter.searchMovies(new SearchQuery("matrix"), new PageNumber(1));
+  }
+
+  private SearchPage searchSeries() {
+    return adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1));
   }
 
   @ParameterizedTest
@@ -168,12 +178,6 @@ class TmdbSearchAdapterTest {
                 1L, MediaType.MOVIE, "Matrix", "https://image.tmdb.org/t/p/w342/m.jpg", null));
   }
 
-  private void respondWithSeries(String json) {
-    server
-        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
-        .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
-  }
-
   @ParameterizedTest
   @ValueSource(strings = {"\"poster_path\":null,", "\"poster_path\":\"\",", ""})
   void should_keep_the_series_with_a_null_poster_url_when_the_poster_is_null_empty_or_absent(
@@ -185,7 +189,7 @@ class TmdbSearchAdapterTest {
         """
             .formatted(posterField));
 
-    assertThat(adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)).results())
+    assertThat(searchSeries().results())
         .containsExactly(
             new CatalogItem(1L, MediaType.TV, "Dark", null, LocalDate.of(2017, 12, 1)));
   }
@@ -201,7 +205,7 @@ class TmdbSearchAdapterTest {
         """
             .formatted(dateField));
 
-    assertThat(adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)).results())
+    assertThat(searchSeries().results())
         .containsExactly(
             new CatalogItem(
                 1L, MediaType.TV, "Dark", "https://image.tmdb.org/t/p/w342/d.jpg", null));
@@ -240,8 +244,7 @@ class TmdbSearchAdapterTest {
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
         .andRespond(withStatus(HttpStatus.valueOf(status)));
 
-    assertThatThrownBy(() -> adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)))
-        .isInstanceOf(CatalogUnavailableException.class);
+    assertThatThrownBy(() -> searchSeries()).isInstanceOf(CatalogUnavailableException.class);
   }
 
   @Test
@@ -250,8 +253,7 @@ class TmdbSearchAdapterTest {
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
         .andRespond(withException(new SocketTimeoutException("Read timed out")));
 
-    assertThatThrownBy(() -> adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)))
-        .isInstanceOf(CatalogUnavailableException.class);
+    assertThatThrownBy(() -> searchSeries()).isInstanceOf(CatalogUnavailableException.class);
   }
 
   @ParameterizedTest
@@ -266,8 +268,7 @@ class TmdbSearchAdapterTest {
       String body) {
     respondWithSeries(body);
 
-    assertThatThrownBy(() -> adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)))
-        .isInstanceOf(CatalogUnavailableException.class);
+    assertThatThrownBy(() -> searchSeries()).isInstanceOf(CatalogUnavailableException.class);
   }
 
   @Test
