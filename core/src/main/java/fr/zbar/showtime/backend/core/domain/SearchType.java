@@ -5,6 +5,11 @@ public enum SearchType {
   TV;
 
   public static SearchType from(String value) {
-    return null;
+    for (SearchType type : values()) {
+      if (type.name().equals(value)) {
+        return type;
+      }
+    }
+    throw new InvalidFieldException("type", "Type must be MOVIE or TV");
   }
 }

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 class SearchController {
 
+  private static final String DEFAULT_TYPE = "MOVIE";
+
   private final SearchTitles searchTitles;
 
   @Operation(summary = "Search movies by keyword")
@@ -21,7 +23,9 @@ class SearchController {
   SearchResponse search(
       @RequestParam(required = false) String query,
       @RequestParam(defaultValue = "1") int page,
-      @RequestParam(defaultValue = "MOVIE") String type) {
-    return SearchResponse.from(searchTitles.execute(new SearchTitlesCommand(query, page, type)));
+      @RequestParam(required = false) String type) {
+    return SearchResponse.from(
+        searchTitles.execute(
+            new SearchTitlesCommand(query, page, type == null ? DEFAULT_TYPE : type)));
   }
 }
