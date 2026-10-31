@@ -16,12 +16,11 @@ public class UpdateProfileService implements UpdateProfile {
 
   @Override
   public User execute(UpdateProfileCommand command) {
-    User renamed =
-        userRepository
-            .findById(command.userId())
-            .orElseThrow(UserNotFoundException::new)
-            .rename(new FullName(command.lastName(), command.firstName()), clock);
-    userRepository.save(renamed);
+    User user = userRepository.findById(command.userId()).orElseThrow(UserNotFoundException::new);
+    User renamed = user.rename(new FullName(command.lastName(), command.firstName()), clock);
+    if (renamed != user) {
+      userRepository.save(renamed);
+    }
     return renamed;
   }
 }

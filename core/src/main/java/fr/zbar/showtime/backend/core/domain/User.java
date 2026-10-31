@@ -58,6 +58,9 @@ public class User extends AggregateRoot<UUID> {
   }
 
   public User rename(FullName newName, Clock clock) {
+    if (name.equals(newName)) {
+      return this;
+    }
     return new User(
         id(), newName, email, passwordHash, birthDate, gender, createdAt, clock.instant());
   }
