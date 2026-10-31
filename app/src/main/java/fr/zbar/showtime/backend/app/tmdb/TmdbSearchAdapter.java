@@ -9,6 +9,7 @@ import fr.zbar.showtime.backend.core.domain.SearchPage;
 import fr.zbar.showtime.backend.core.domain.SearchQuery;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -24,22 +25,26 @@ class TmdbSearchAdapter implements SearchCatalog {
 
   @Override
   public SearchPage searchMovies(SearchQuery query, PageNumber page) {
-    return search("/search/movie", MediaType.MOVIE, query, page);
+    return search("/search/movie", result -> MediaType.MOVIE, query, page);
   }
 
   @Override
   public SearchPage searchSeries(SearchQuery query, PageNumber page) {
-    return search("/search/tv", MediaType.TV, query, page);
+    return search("/search/tv", result -> MediaType.TV, query, page);
   }
 
   @Override
   public SearchPage searchAll(SearchQuery query, PageNumber page) {
-    return searchMovies(query, page);
+    return search("/search/multi", TmdbSearchResponse.Result::type, query, page);
   }
 
-  private SearchPage search(String path, MediaType type, SearchQuery query, PageNumber page) {
+  private SearchPage search(
+      String path,
+      Function<TmdbSearchResponse.Result, MediaType> typeOf,
+      SearchQuery query,
+      PageNumber page) {
     try {
-      return toPage(fetch(path, query, page), type);
+      return toPage(fetch(path, query, page), typeOf);
     } catch (RestClientException | DateTimeParseException exception) {
       throw new CatalogUnavailableException(exception);
     }
@@ -65,12 +70,13 @@ class TmdbSearchAdapter implements SearchCatalog {
     return response;
   }
 
-  private SearchPage toPage(TmdbSearchResponse response, MediaType type) {
+  private SearchPage toPage(
+      TmdbSearchResponse response, Function<TmdbSearchResponse.Result, MediaType> typeOf) {
     return new SearchPage(
         response.page(),
         response.totalPages(),
         response.totalResults(),
-        response.results().stream().map(result -> toItem(result, type)).toList());
+        response.results().stream().map(result -> toItem(result, typeOf.apply(result))).toList());
   }
 
   private CatalogItem toItem(TmdbSearchResponse.Result result, MediaType type) {
