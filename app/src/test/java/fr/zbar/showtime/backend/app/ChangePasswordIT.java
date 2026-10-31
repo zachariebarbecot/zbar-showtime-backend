@@ -2,10 +2,12 @@ package fr.zbar.showtime.backend.app;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+@AutoConfigureMockMvc
 class ChangePasswordIT extends AbstractIT {
 
   private static final String NEW_PASSWORD = "N3w!Passw0rdXyz";
