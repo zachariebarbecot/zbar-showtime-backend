@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.zbar.showtime.backend.core.domain.MediaType;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,5 +24,20 @@ record TmdbSearchResponse(
       String name,
       @JsonProperty("poster_path") String posterPath,
       @JsonProperty("release_date") String releaseDate,
-      @JsonProperty("first_air_date") String firstAirDate) {}
+      @JsonProperty("first_air_date") String firstAirDate) {
+
+    String title(MediaType type) {
+      return switch (type) {
+        case MOVIE -> title;
+        case TV -> name;
+      };
+    }
+
+    String date(MediaType type) {
+      return switch (type) {
+        case MOVIE -> releaseDate;
+        case TV -> firstAirDate;
+      };
+    }
+  }
 }

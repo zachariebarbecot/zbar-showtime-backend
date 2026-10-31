@@ -69,12 +69,11 @@ class TmdbSearchAdapter implements SearchCatalog {
   }
 
   private CatalogItem toItem(TmdbSearchResponse.Result result, MediaType type) {
-    boolean movie = type == MediaType.MOVIE;
-    String date = movie ? result.releaseDate() : result.firstAirDate();
+    String date = result.date(type);
     return new CatalogItem(
         result.id(),
         type,
-        movie ? result.title() : result.name(),
+        result.title(type),
         posterUrl(result.posterPath()),
         StringUtils.isEmpty(date) ? null : LocalDate.parse(date));
   }
