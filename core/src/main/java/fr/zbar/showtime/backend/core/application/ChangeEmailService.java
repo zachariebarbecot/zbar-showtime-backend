@@ -22,7 +22,7 @@ public class ChangeEmailService implements ChangeEmail {
   @Override
   public User execute(ChangeEmailCommand command) {
     User user = userRepository.findById(command.userId()).orElseThrow(UserNotFoundException::new);
-    Email newEmail = new Email(command.newEmail());
+    Email newEmail = newEmail(command.newEmail());
     if (command.currentPassword() == null) {
       throw new InvalidFieldException("currentPassword", "Current password must be provided");
     }
@@ -33,5 +33,13 @@ public class ChangeEmailService implements ChangeEmail {
     User changed = user.changeEmail(newEmail, clock);
     userRepository.save(changed);
     return changed;
+  }
+
+  private static Email newEmail(String value) {
+    try {
+      return new Email(value);
+    } catch (InvalidFieldException exception) {
+      throw new InvalidFieldException("newEmail", exception.messages());
+    }
   }
 }
