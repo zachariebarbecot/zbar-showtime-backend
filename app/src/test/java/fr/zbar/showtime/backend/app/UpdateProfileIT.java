@@ -27,9 +27,9 @@ class UpdateProfileIT extends AbstractIT {
     return loginToken(email);
   }
 
-  private RestTestClient.ResponseSpec patchMe(String token, Map<String, Object> body) {
+  private RestTestClient.ResponseSpec putMe(String token, Map<String, Object> body) {
     return restTestClient
-        .patch()
+        .put()
         .uri("/users/me")
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
         .contentType(MediaType.APPLICATION_JSON)
@@ -46,7 +46,7 @@ class UpdateProfileIT extends AbstractIT {
   void should_return_200_and_save_the_new_name_with_the_clock_as_update_date() {
     String token = registerAndLogin("patch-ca1@mail.fr");
 
-    patchMe(token, Map.of("lastName", "Martin", "firstName", "Paul"))
+    putMe(token, Map.of("lastName", "Martin", "firstName", "Paul"))
         .expectStatus()
         .isOk()
         .expectBody()
@@ -70,7 +70,7 @@ class UpdateProfileIT extends AbstractIT {
   void should_return_400_with_the_field_errors_and_change_nothing_when_a_name_is_invalid() {
     String token = registerAndLogin("patch-ca2@mail.fr");
 
-    patchMe(token, Map.of("lastName", "Martin", "firstName", " "))
+    putMe(token, Map.of("lastName", "Martin", "firstName", " "))
         .expectStatus()
         .isBadRequest()
         .expectBody()
@@ -89,7 +89,7 @@ class UpdateProfileIT extends AbstractIT {
   void should_return_200_and_keep_the_update_date_when_the_names_are_the_current_ones() {
     String token = registerAndLogin("patch-ca3@mail.fr");
 
-    patchMe(token, Map.of("lastName", "Dupont", "firstName", "Jean"))
+    putMe(token, Map.of("lastName", "Dupont", "firstName", "Jean"))
         .expectStatus()
         .isOk()
         .expectBody()
@@ -110,7 +110,7 @@ class UpdateProfileIT extends AbstractIT {
             String.class,
             "patch-ca4@mail.fr");
 
-    patchMe(
+    putMe(
             token,
             Map.of(
                 "id", "11111111-1111-1111-1111-111111111111",
@@ -137,20 +137,29 @@ class UpdateProfileIT extends AbstractIT {
   }
 
   @Test
-  void should_change_only_the_first_name_when_the_last_name_is_absent() {
+  void should_return_400_on_last_name_and_change_nothing_when_it_is_absent() {
     String token = registerAndLogin("patch-ca5@mail.fr");
 
-    patchMe(token, Map.of("firstName", "Paul"))
+    putMe(token, Map.of("firstName", "Paul"))
         .expectStatus()
-        .isOk()
+        .isBadRequest()
         .expectBody()
-        .jsonPath("$.lastName")
-        .isEqualTo("Dupont")
-        .jsonPath("$.firstName")
-        .isEqualTo("Paul");
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("lastName");
 
     Map<String, Object> row = row("patch-ca5@mail.fr");
-    assertThat(row.get("last_name")).isEqualTo("Dupont");
-    assertThat(row.get("first_name")).isEqualTo("Paul");
+    assertThat(row.get("first_name")).isEqualTo("Jean");
+  }
+
+  @Test
+  void should_return_400_on_first_name_when_it_is_absent() {
+    String token = registerAndLogin("patch-ca6@mail.fr");
+
+    putMe(token, Map.of("lastName", "Martin"))
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("firstName");
   }
 }
