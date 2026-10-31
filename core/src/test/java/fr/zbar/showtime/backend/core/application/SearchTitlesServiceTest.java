@@ -70,5 +70,8 @@ class SearchTitlesServiceTest {
     assertThatThrownBy(
             () -> unreachableCatalog.execute(new SearchTitlesCommand("matrix", 501, "MOVIE")))
         .isInstanceOf(InvalidFieldException.class);
+    assertThatThrownBy(
+            () -> unreachableCatalog.execute(new SearchTitlesCommand("matrix", 1, "BOOK")))
+        .isInstanceOf(InvalidFieldException.class);
   }
 }
