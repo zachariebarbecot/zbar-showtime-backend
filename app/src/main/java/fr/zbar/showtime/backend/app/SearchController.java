@@ -18,7 +18,8 @@ class SearchController {
 
   @Operation(summary = "Search movies by keyword")
   @GetMapping
-  SearchResponse search(@RequestParam String query, @RequestParam(defaultValue = "1") int page) {
+  SearchResponse search(
+      @RequestParam(required = false) String query, @RequestParam(defaultValue = "1") int page) {
     return SearchResponse.from(searchTitles.execute(new SearchTitlesCommand(query, page)));
   }
 }
