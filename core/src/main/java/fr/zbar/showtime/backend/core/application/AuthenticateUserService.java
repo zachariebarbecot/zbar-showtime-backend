@@ -1,15 +1,15 @@
 package fr.zbar.showtime.backend.core.application;
 
-import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.LoginHistory;
 import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
 import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.TokenIssuer;
-import fr.zbar.showtime.backend.core.domain.User;
-import fr.zbar.showtime.backend.core.domain.UserRepository;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.user.domain.Email;
+import fr.zbar.showtime.backend.core.user.domain.User;
+import fr.zbar.showtime.backend.core.user.domain.UserRepository;
 import java.time.Clock;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package fr.zbar.showtime.backend.app;
 
-import fr.zbar.showtime.backend.core.application.RegisterUserCommand;
+import fr.zbar.showtime.backend.core.user.application.RegisterUserCommand;
 import java.time.LocalDate;
 
 public record RegisterRequest(

@@ -5,8 +5,8 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
+import fr.zbar.showtime.backend.core.user.domain.EmailAlreadyUsedException;
 import io.micrometer.tracing.Tracer;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
