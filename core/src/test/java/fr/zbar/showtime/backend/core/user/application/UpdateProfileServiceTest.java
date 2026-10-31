@@ -1,0 +1,112 @@
+package fr.zbar.showtime.backend.core.user.application;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import fr.zbar.showtime.backend.core.domain.PasswordHash;
+import fr.zbar.showtime.backend.core.domain.PasswordHasher;
+import fr.zbar.showtime.backend.core.domain.RawPassword;
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
+import fr.zbar.showtime.backend.core.user.domain.BirthDate;
+import fr.zbar.showtime.backend.core.user.domain.Email;
+import fr.zbar.showtime.backend.core.user.domain.FullName;
+import fr.zbar.showtime.backend.core.user.domain.Gender;
+import fr.zbar.showtime.backend.core.user.domain.User;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.Test;
+
+class UpdateProfileServiceTest {
+
+  private static final Instant REGISTERED_AT = Instant.parse("2026-03-01T10:15:30Z");
+  private static final Instant NOW = Instant.parse("2026-03-02T08:00:00Z");
+  private final PasswordHasher hasher = raw -> new PasswordHash("hashed:" + raw.value());
+
+  private final InMemoryUserRepository userRepository = new InMemoryUserRepository();
+  private final UpdateProfileService updateProfileService =
+      new UpdateProfileService(userRepository, Clock.fixed(NOW, ZoneOffset.UTC));
+
+  private User registeredUser(String email) {
+    User user =
+        User.register(
+            new FullName("Dupont", "Jean"),
+            new Email(email),
+            new RawPassword("Str0ng!Passw0rd"),
+            hasher,
+            new BirthDate(LocalDate.of(1990, 5, 17)),
+            Gender.MALE,
+            Clock.fixed(REGISTERED_AT, ZoneOffset.UTC));
+    userRepository.save(user);
+    return user;
+  }
+
+  @Test
+  void should_save_and_return_the_renamed_user_when_the_name_changes() {
+    registeredUser("other@mail.fr");
+    User user = registeredUser("jean@mail.fr");
+
+    User updated =
+        updateProfileService.execute(new UpdateProfileCommand(user.id(), "Martin", "Paul"));
+
+    assertThat(updated.name()).isEqualTo(new FullName("Martin", "Paul"));
+    assertThat(updated.updatedAt()).isEqualTo(NOW);
+    assertThat(userRepository.findById(user.id()).orElseThrow().name())
+        .isEqualTo(new FullName("Martin", "Paul"));
+    assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt()).isEqualTo(NOW);
+    assertThat(userRepository.findByEmail(new Email("other@mail.fr")).orElseThrow().name())
+        .isEqualTo(new FullName("Dupont", "Jean"));
+  }
+
+  @Test
+  void should_reject_and_keep_the_user_unchanged_when_a_name_is_invalid() {
+    User user = registeredUser("jean@mail.fr");
+
+    assertThatThrownBy(
+            () -> updateProfileService.execute(new UpdateProfileCommand(user.id(), "  ", "Paul")))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("lastName"));
+    assertThatThrownBy(
+            () -> updateProfileService.execute(new UpdateProfileCommand(user.id(), "Martin", "")))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("firstName"));
+
+    User stored = userRepository.findById(user.id()).orElseThrow();
+    assertThat(stored.name()).isEqualTo(new FullName("Dupont", "Jean"));
+    assertThat(stored.updatedAt()).isEqualTo(REGISTERED_AT);
+  }
+
+  @Test
+  void should_keep_the_update_date_when_the_names_are_the_current_ones() {
+    User user = registeredUser("jean@mail.fr");
+
+    User updated =
+        updateProfileService.execute(new UpdateProfileCommand(user.id(), "Dupont", " Jean "));
+
+    assertThat(updated.updatedAt()).isEqualTo(REGISTERED_AT);
+    assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt())
+        .isEqualTo(REGISTERED_AT);
+  }
+
+  @Test
+  void should_reject_and_keep_the_user_unchanged_when_a_name_is_absent() {
+    User user = registeredUser("jean@mail.fr");
+
+    assertThatThrownBy(
+            () -> updateProfileService.execute(new UpdateProfileCommand(user.id(), null, "Paul")))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("lastName"));
+    assertThatThrownBy(
+            () -> updateProfileService.execute(new UpdateProfileCommand(user.id(), "Martin", null)))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("firstName"));
+
+    assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt())
+        .isEqualTo(REGISTERED_AT);
+  }
+}

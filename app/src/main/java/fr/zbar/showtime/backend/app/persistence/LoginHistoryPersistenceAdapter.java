@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app.persistence;
 
+import fr.zbar.showtime.backend.app.user.persistence.UserJpaRepository;
 import fr.zbar.showtime.backend.core.domain.LoginHistory;
 import java.time.Instant;
 import java.util.UUID;

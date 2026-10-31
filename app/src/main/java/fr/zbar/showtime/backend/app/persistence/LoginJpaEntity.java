@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app.persistence;
 
+import fr.zbar.showtime.backend.app.user.persistence.UserJpaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

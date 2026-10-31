@@ -1,7 +1,7 @@
 package fr.zbar.showtime.backend.app;
 
 import fr.zbar.showtime.backend.core.application.AuthenticateUser;
-import fr.zbar.showtime.backend.core.application.RegisterUser;
+import fr.zbar.showtime.backend.core.user.application.RegisterUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
