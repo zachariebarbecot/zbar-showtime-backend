@@ -33,7 +33,6 @@ class SecurityConfiguration {
                 authorize
                     .requestMatchers(
                         "/auth/**",
-                        "/hello",
                         "/actuator/**",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
