@@ -168,6 +168,45 @@ class TmdbSearchAdapterTest {
                 1L, MediaType.MOVIE, "Matrix", "https://image.tmdb.org/t/p/w342/m.jpg", null));
   }
 
+  private void respondWithSeries(String json) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"\"poster_path\":null,", "\"poster_path\":\"\",", ""})
+  void should_keep_the_series_with_a_null_poster_url_when_the_poster_is_null_empty_or_absent(
+      String posterField) {
+    respondWithSeries(
+        """
+        {"page":1,"total_pages":1,"total_results":1,"results":[
+          {"id":1,%s"name":"Dark","first_air_date":"2017-12-01"}]}
+        """
+            .formatted(posterField));
+
+    assertThat(adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)).results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.TV, "Dark", null, LocalDate.of(2017, 12, 1)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"\"first_air_date\":null,", "\"first_air_date\":\"\",", ""})
+  void should_keep_the_series_with_a_null_release_date_when_the_date_is_null_empty_or_absent(
+      String dateField) {
+    respondWithSeries(
+        """
+        {"page":1,"total_pages":1,"total_results":1,"results":[
+          {"id":1,%s"name":"Dark","poster_path":"/d.jpg"}]}
+        """
+            .formatted(dateField));
+
+    assertThat(adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)).results())
+        .containsExactly(
+            new CatalogItem(
+                1L, MediaType.TV, "Dark", "https://image.tmdb.org/t/p/w342/d.jpg", null));
+  }
+
   @Test
   void should_return_an_empty_page_when_tmdb_finds_nothing() {
     respondWith("{\"page\":1,\"total_pages\":0,\"total_results\":0,\"results\":[]}");
