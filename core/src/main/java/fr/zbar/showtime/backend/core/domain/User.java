@@ -83,6 +83,17 @@ public class User extends AggregateRoot<UUID> {
         clock.instant());
   }
 
+  public void requirePassword(RawPassword password, PasswordVerifier passwordVerifier) {}
+
+  public User changePassword(
+      RawPassword currentPassword,
+      RawPassword newPassword,
+      PasswordVerifier passwordVerifier,
+      PasswordHasher passwordHasher,
+      Clock clock) {
+    return this;
+  }
+
   private static void requireCompliant(RawPassword password, Email email, String field) {
     List<String> violations = password.violations(email);
     if (!violations.isEmpty()) {

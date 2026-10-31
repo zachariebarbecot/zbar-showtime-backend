@@ -111,4 +111,21 @@ class ChangePasswordServiceTest {
     assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt())
         .isEqualTo(REGISTERED_AT);
   }
+
+  @Test
+  void should_reject_with_the_name_of_the_missing_password() {
+    User user = registeredUser();
+
+    assertThatThrownBy(
+            () -> changePasswordService.execute(new ChangePasswordCommand(user.id(), null, NEW)))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("currentPassword"));
+    assertThatThrownBy(
+            () ->
+                changePasswordService.execute(new ChangePasswordCommand(user.id(), CURRENT, null)))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("newPassword"));
+  }
 }

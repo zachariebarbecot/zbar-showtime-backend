@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.core.application;
 import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.LoginHistory;
+import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
 import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.TokenIssuer;
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 @CoreUseCase
 @RequiredArgsConstructor
 public class AuthenticateUserService implements AuthenticateUser {
+
+  public static final PasswordHash DUMMY_HASH = new PasswordHash("");
 
   private final UserRepository userRepository;
   private final PasswordVerifier passwordVerifier;
