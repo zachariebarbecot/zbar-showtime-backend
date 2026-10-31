@@ -93,4 +93,16 @@ class ChangeEmailIT extends AbstractIT {
 
     login("chg-ca2@mail.fr").expectStatus().isOk();
   }
+
+  @Test
+  void should_return_409_and_change_nothing_when_the_email_is_used_after_normalization() {
+    register("chg-ca3@mail.fr");
+    register("chg-ca3-taken@mail.fr");
+    String token = token("chg-ca3@mail.fr");
+
+    changeEmail(token, PASSWORD, " CHG-CA3-Taken@Mail.fr ").expectStatus().isEqualTo(409);
+
+    login("chg-ca3@mail.fr").expectStatus().isOk();
+    login("chg-ca3-taken@mail.fr").expectStatus().isOk();
+  }
 }
