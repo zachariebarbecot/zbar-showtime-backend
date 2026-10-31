@@ -74,7 +74,19 @@ public class User extends AggregateRoot<UUID> {
   }
 
   public User changePassword(RawPassword newPassword, PasswordHasher passwordHasher, Clock clock) {
-    return this;
+    List<String> violations = newPassword.violations(email);
+    if (!violations.isEmpty()) {
+      throw new InvalidFieldException("newPassword", violations);
+    }
+    return new User(
+        id(),
+        name,
+        email,
+        passwordHasher.hash(newPassword),
+        birthDate,
+        gender,
+        createdAt,
+        clock.instant());
   }
 
   @Override

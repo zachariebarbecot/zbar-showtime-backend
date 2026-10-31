@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.app;
 
 import fr.zbar.showtime.backend.core.application.ChangeEmail;
+import fr.zbar.showtime.backend.core.application.ChangePassword;
 import fr.zbar.showtime.backend.core.application.GetProfile;
 import fr.zbar.showtime.backend.core.application.UpdateProfile;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +24,7 @@ class UserController {
   private final GetProfile getProfile;
   private final UpdateProfile updateProfile;
   private final ChangeEmail changeEmail;
+  private final ChangePassword changePassword;
 
   @Operation(
       summary = "Get the profile of the token owner",
@@ -47,5 +49,12 @@ class UserController {
       @AuthenticationPrincipal Jwt jwt, @RequestBody ChangeEmailRequest request) {
     return UserResponse.from(
         changeEmail.execute(request.toCommand(UUID.fromString(jwt.getSubject()))));
+  }
+
+  @Operation(summary = "Change the password of the token owner")
+  @PutMapping("/me/password")
+  void changePassword(
+      @AuthenticationPrincipal Jwt jwt, @RequestBody ChangePasswordRequest request) {
+    changePassword.execute(request.toCommand(UUID.fromString(jwt.getSubject())));
   }
 }
