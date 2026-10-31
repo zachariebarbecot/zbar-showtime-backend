@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.app;
 
 import fr.zbar.showtime.backend.core.application.GetProfile;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,6 +17,10 @@ class UserController {
 
   private final GetProfile getProfile;
 
+  @Operation(
+      summary = "Get the profile of the token owner",
+      description =
+          "Logout is client-side only: the client forgets its token, the server keeps no session.")
   @GetMapping("/me")
   UserResponse me(@AuthenticationPrincipal Jwt jwt) {
     return UserResponse.from(getProfile.execute(UUID.fromString(jwt.getSubject())));
