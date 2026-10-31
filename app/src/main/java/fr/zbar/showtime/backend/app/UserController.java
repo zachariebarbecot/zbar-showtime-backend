@@ -33,23 +33,21 @@ class UserController {
           "Logout is client-side only: the client forgets its token, the server keeps no session.")
   @GetMapping("/me")
   UserResponse me(@AuthenticationPrincipal Jwt jwt) {
-    return UserResponse.from(getProfile.execute(UUID.fromString(jwt.getSubject())));
+    return UserResponse.from(getProfile.execute(userId(jwt)));
   }
 
   @Operation(summary = "Update the name of the token owner")
   @PutMapping("/me")
   UserResponse updateMe(
       @AuthenticationPrincipal Jwt jwt, @RequestBody UpdateProfileRequest request) {
-    return UserResponse.from(
-        updateProfile.execute(request.toCommand(UUID.fromString(jwt.getSubject()))));
+    return UserResponse.from(updateProfile.execute(request.toCommand(userId(jwt))));
   }
 
   @Operation(summary = "Change the email of the token owner")
   @PutMapping("/me/email")
   UserResponse changeEmail(
       @AuthenticationPrincipal Jwt jwt, @RequestBody ChangeEmailRequest request) {
-    return UserResponse.from(
-        changeEmail.execute(request.toCommand(UUID.fromString(jwt.getSubject()))));
+    return UserResponse.from(changeEmail.execute(request.toCommand(userId(jwt))));
   }
 
   @Operation(summary = "Change the password of the token owner")
@@ -57,6 +55,10 @@ class UserController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   void changePassword(
       @AuthenticationPrincipal Jwt jwt, @RequestBody ChangePasswordRequest request) {
-    changePassword.execute(request.toCommand(UUID.fromString(jwt.getSubject())));
+    changePassword.execute(request.toCommand(userId(jwt)));
+  }
+
+  private static UUID userId(Jwt jwt) {
+    return UUID.fromString(jwt.getSubject());
   }
 }

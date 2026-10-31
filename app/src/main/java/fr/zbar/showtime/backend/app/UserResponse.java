@@ -1,6 +1,5 @@
 package fr.zbar.showtime.backend.app;
 
-import fr.zbar.showtime.backend.core.domain.Gender;
 import fr.zbar.showtime.backend.core.domain.User;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -12,7 +11,7 @@ public record UserResponse(
     String firstName,
     String email,
     LocalDate birthDate,
-    Gender gender,
+    String gender,
     Instant createdAt,
     Instant updatedAt) {
 
@@ -23,7 +22,7 @@ public record UserResponse(
         user.name().firstName(),
         user.email().value(),
         user.birthDate().value(),
-        user.gender(),
+        user.gender().name(),
         user.createdAt(),
         user.updatedAt());
   }
