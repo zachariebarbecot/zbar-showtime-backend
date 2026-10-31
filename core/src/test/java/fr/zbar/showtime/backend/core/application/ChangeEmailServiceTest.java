@@ -75,4 +75,15 @@ class ChangeEmailServiceTest {
 
     assertThat(userRepository.findById(user.id())).contains(user);
   }
+
+  @Test
+  void should_keep_the_update_date_when_the_email_is_unchanged_after_normalization() {
+    User user = registeredUser();
+
+    User unchanged =
+        changeEmailService.execute(new ChangeEmailCommand(user.id(), PASSWORD, " JEAN@mail.fr "));
+
+    assertThat(unchanged.updatedAt()).isEqualTo(REGISTERED_AT);
+    assertThat(userRepository.findById(user.id())).contains(user);
+  }
 }

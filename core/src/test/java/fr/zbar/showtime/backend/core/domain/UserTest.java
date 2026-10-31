@@ -144,4 +144,15 @@ class UserTest {
     assertThat(changed.birthDate()).isEqualTo(user.birthDate());
     assertThat(changed.gender()).isEqualTo(user.gender());
   }
+
+  @Test
+  void should_return_the_same_user_when_email_is_unchanged() {
+    User user = register();
+
+    User changed =
+        user.changeEmail(new Email(" A@B.fr "), Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC));
+
+    assertThat(changed).isSameAs(user);
+    assertThat(changed.updatedAt()).isEqualTo(NOW);
+  }
 }
