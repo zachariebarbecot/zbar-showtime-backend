@@ -27,7 +27,7 @@ public class RegisterUserService implements RegisterUser {
             new Email(command.email()),
             new RawPassword(command.password()),
             passwordHasher,
-            new BirthDate(command.birthDate(), clock),
+            BirthDate.of(command.birthDate(), clock),
             Gender.from(command.gender()),
             clock));
   }
