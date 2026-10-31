@@ -6,6 +6,7 @@ import fr.zbar.showtime.backend.core.domain.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 class InMemoryUserRepository implements UserRepository {
 
@@ -27,5 +28,10 @@ class InMemoryUserRepository implements UserRepository {
   @Override
   public Optional<User> findByEmail(Email email) {
     return users.stream().filter(user -> user.email().equals(email)).findFirst();
+  }
+
+  @Override
+  public Optional<User> findById(UUID id) {
+    return users.stream().filter(user -> user.id().equals(id)).findFirst();
   }
 }

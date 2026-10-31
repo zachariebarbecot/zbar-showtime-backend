@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.app;
 import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
+import fr.zbar.showtime.backend.core.domain.UserNotFoundException;
 import io.micrometer.tracing.Tracer;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,11 @@ class DomainExceptionHandler {
 
   @ExceptionHandler(InvalidCredentialsException.class)
   ProblemDetail handleInvalidCredentials(InvalidCredentialsException exception) {
+    return problem(HttpStatus.UNAUTHORIZED, exception.getMessage());
+  }
+
+  @ExceptionHandler(UserNotFoundException.class)
+  ProblemDetail handleUserNotFound(UserNotFoundException exception) {
     return problem(HttpStatus.UNAUTHORIZED, exception.getMessage());
   }
 

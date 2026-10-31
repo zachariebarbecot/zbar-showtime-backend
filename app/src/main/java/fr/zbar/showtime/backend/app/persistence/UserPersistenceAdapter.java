@@ -9,6 +9,7 @@ import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -47,6 +48,11 @@ class UserPersistenceAdapter implements UserRepository {
   @Override
   public Optional<User> findByEmail(Email email) {
     return userJpaRepository.findByEmail(email.value()).map(UserPersistenceAdapter::toDomain);
+  }
+
+  @Override
+  public Optional<User> findById(UUID id) {
+    return userJpaRepository.findById(id).map(UserPersistenceAdapter::toDomain);
   }
 
   private static User toDomain(UserJpaEntity entity) {
