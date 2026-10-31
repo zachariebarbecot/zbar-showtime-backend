@@ -164,6 +164,18 @@ class UsersMeIT extends AbstractIT {
   }
 
   @Test
+  void should_return_401_when_the_token_subject_matches_no_user() {
+    String unknownUser =
+        token(
+            jwtSecret,
+            UUID.randomUUID().toString(),
+            FixedClockConfiguration.NOW,
+            Duration.ofHours(1));
+
+    getMe("Bearer " + unknownUser).expectStatus().isUnauthorized();
+  }
+
+  @Test
   void should_keep_register_and_login_accessible_without_token() {
     register("me-ca5@mail.fr");
 

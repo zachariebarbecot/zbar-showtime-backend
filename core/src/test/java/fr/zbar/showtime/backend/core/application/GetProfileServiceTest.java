@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.domain.BirthDate;
 import fr.zbar.showtime.backend.core.domain.Email;
@@ -10,10 +11,12 @@ import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.User;
+import fr.zbar.showtime.backend.core.domain.UserNotFoundException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class GetProfileServiceTest {
@@ -48,5 +51,13 @@ class GetProfileServiceTest {
 
     assertThat(profile).isEqualTo(user);
     assertThat(profile.email()).isEqualTo(new Email("jean@mail.fr"));
+  }
+
+  @Test
+  void should_reject_when_no_user_has_the_id() {
+    registeredUser("jean@mail.fr");
+
+    assertThatThrownBy(() -> getProfileService.execute(UUID.randomUUID()))
+        .isInstanceOf(UserNotFoundException.class);
   }
 }
