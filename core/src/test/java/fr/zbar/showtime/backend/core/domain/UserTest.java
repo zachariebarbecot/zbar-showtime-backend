@@ -155,4 +155,18 @@ class UserTest {
     assertThat(changed).isSameAs(user);
     assertThat(changed.updatedAt()).isEqualTo(NOW);
   }
+
+  @Test
+  void should_return_user_with_new_hash_and_clock_date_when_password_is_changed() {
+    User user = register();
+    Clock later = Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC);
+
+    User changed = user.changePassword(new RawPassword("N3w!Passw0rdXyz"), HASHER, later);
+
+    assertThat(changed.passwordHash()).isEqualTo(new PasswordHash("hashed:N3w!Passw0rdXyz"));
+    assertThat(changed.updatedAt()).isEqualTo(NOW.plusSeconds(3600));
+    assertThat(changed.id()).isEqualTo(user.id());
+    assertThat(changed.createdAt()).isEqualTo(NOW);
+    assertThat(changed.email()).isEqualTo(user.email());
+  }
 }

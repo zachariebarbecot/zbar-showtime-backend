@@ -73,6 +73,10 @@ public class User extends AggregateRoot<UUID> {
         id(), name, newEmail, passwordHash, birthDate, gender, createdAt, clock.instant());
   }
 
+  public User changePassword(RawPassword newPassword, PasswordHasher passwordHasher, Clock clock) {
+    return this;
+  }
+
   @Override
   public String toString() {
     return "User[****]";
