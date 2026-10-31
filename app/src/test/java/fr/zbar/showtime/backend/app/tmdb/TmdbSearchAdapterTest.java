@@ -43,7 +43,7 @@ class TmdbSearchAdapterTest {
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
         .andExpect(method(HttpMethod.GET))
         .andExpect(header("Authorization", "Bearer secret-token"))
-        .andExpect(queryParam("query", "L'été & co"))
+        .andExpect(queryParam("query", "L%27%C3%A9t%C3%A9%20%26%20co"))
         .andExpect(queryParam("language", "fr-FR"))
         .andExpect(queryParam("include_adult", "false"))
         .andExpect(queryParam("page", "2"))
