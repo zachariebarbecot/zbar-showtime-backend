@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -214,5 +215,59 @@ class SearchIT extends AbstractIT {
         .isNotEmpty();
 
     verifyNoInteractions(searchCatalog);
+  }
+
+  @Test
+  void should_return_null_poster_and_date_and_keep_the_item_when_they_are_unknown() {
+    String email = newUserEmail();
+    when(searchCatalog.searchMovies(new SearchQuery("matrix"), new PageNumber(1)))
+        .thenReturn(
+            new SearchPage(
+                1, 1, 1, List.of(new CatalogItem(7L, MediaType.MOVIE, "Matrix", null, null))));
+
+    search(email, "/search?query=matrix")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results.length()")
+        .isEqualTo(1)
+        .jsonPath("$.results[0].title")
+        .isEqualTo("Matrix")
+        .jsonPath("$.results[0].posterUrl")
+        .value(value -> assertThat(value).isNull())
+        .jsonPath("$.results[0].releaseDate")
+        .value(value -> assertThat(value).isNull());
+  }
+
+  @Test
+  void should_return_200_with_an_empty_list_when_there_is_no_result() {
+    String email = newUserEmail();
+    when(searchCatalog.searchMovies(new SearchQuery("zzzz"), new PageNumber(1)))
+        .thenReturn(new SearchPage(1, 0, 0, List.of()));
+
+    search(email, "/search?query=zzzz")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results.length()")
+        .isEqualTo(0)
+        .jsonPath("$.totalResults")
+        .isEqualTo(0);
+  }
+
+  @Test
+  void should_return_200_with_an_empty_list_when_the_page_is_beyond_the_last_one() {
+    String email = newUserEmail();
+    when(searchCatalog.searchMovies(new SearchQuery("matrix"), new PageNumber(500)))
+        .thenReturn(new SearchPage(500, 3, 50, List.of()));
+
+    search(email, "/search?query=matrix&page=500")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results.length()")
+        .isEqualTo(0)
+        .jsonPath("$.totalPages")
+        .isEqualTo(3);
   }
 }

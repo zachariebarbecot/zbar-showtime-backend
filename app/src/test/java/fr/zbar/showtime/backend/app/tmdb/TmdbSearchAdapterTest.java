@@ -15,7 +15,10 @@ import fr.zbar.showtime.backend.core.domain.SearchPage;
 import fr.zbar.showtime.backend.core.domain.SearchQuery;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
@@ -77,5 +80,63 @@ class TmdbSearchAdapterTest {
                 "Matrix Reloaded",
                 "https://image.tmdb.org/t/p/w342/r.jpg",
                 LocalDate.of(2003, 5, 15)));
+  }
+
+  private void respondWith(String json) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
+        .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
+  }
+
+  private SearchPage search() {
+    return adapter.searchMovies(new SearchQuery("matrix"), new PageNumber(1));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"\"poster_path\":null,", "\"poster_path\":\"\",", ""})
+  void should_map_a_null_poster_url_and_keep_the_item_when_the_poster_is_null_empty_or_absent(
+      String posterField) {
+    respondWith(
+        """
+        {"page":1,"total_pages":1,"total_results":1,"results":[
+          {"id":1,%s"title":"Matrix","release_date":"1999-03-31"}]}
+        """
+            .formatted(posterField));
+
+    assertThat(search().results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.MOVIE, "Matrix", null, LocalDate.of(1999, 3, 31)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"\"release_date\":null,", "\"release_date\":\"\",", ""})
+  void should_map_a_null_release_date_and_keep_the_item_when_the_date_is_null_empty_or_absent(
+      String dateField) {
+    respondWith(
+        """
+        {"page":1,"total_pages":1,"total_results":1,"results":[
+          {"id":1,%s"title":"Matrix","poster_path":"/m.jpg"}]}
+        """
+            .formatted(dateField));
+
+    assertThat(search().results())
+        .containsExactly(
+            new CatalogItem(
+                1L, MediaType.MOVIE, "Matrix", "https://image.tmdb.org/t/p/w342/m.jpg", null));
+  }
+
+  @Test
+  void should_return_an_empty_page_when_tmdb_finds_nothing() {
+    respondWith("{\"page\":1,\"total_pages\":0,\"total_results\":0,\"results\":[]}");
+
+    assertThat(search()).isEqualTo(new SearchPage(1, 0, 0, List.of()));
+  }
+
+  @Test
+  void should_return_an_empty_page_keeping_the_totals_when_the_page_is_beyond_the_last_one() {
+    respondWith("{\"page\":9,\"total_pages\":3,\"total_results\":50,\"results\":[]}");
+
+    assertThat(adapter.searchMovies(new SearchQuery("matrix"), new PageNumber(9)))
+        .isEqualTo(new SearchPage(9, 3, 50, List.of()));
   }
 }
