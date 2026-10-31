@@ -168,6 +168,7 @@ class TmdbSearchAdapterTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
+        "",
         "not json at all",
         "[]",
         "{}",
