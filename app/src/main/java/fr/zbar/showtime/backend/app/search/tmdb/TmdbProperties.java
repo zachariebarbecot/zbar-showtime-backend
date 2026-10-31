@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app.tmdb;
+package fr.zbar.showtime.backend.app.search.tmdb;
 
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -1,7 +1,7 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.search.web;
 
-import fr.zbar.showtime.backend.core.application.SearchTitles;
-import fr.zbar.showtime.backend.core.application.SearchTitlesCommand;
+import fr.zbar.showtime.backend.core.search.application.SearchTitles;
+import fr.zbar.showtime.backend.core.search.application.SearchTitlesCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

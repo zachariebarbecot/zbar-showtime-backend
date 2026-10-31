@@ -1,9 +1,9 @@
-package fr.zbar.showtime.backend.app.tmdb;
+package fr.zbar.showtime.backend.app.search.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
-import fr.zbar.showtime.backend.core.domain.MediaType;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;

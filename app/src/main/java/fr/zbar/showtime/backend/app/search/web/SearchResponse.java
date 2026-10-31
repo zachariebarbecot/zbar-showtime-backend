@@ -1,8 +1,8 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.search.web;
 
-import fr.zbar.showtime.backend.core.domain.CatalogItem;
-import fr.zbar.showtime.backend.core.domain.MediaType;
-import fr.zbar.showtime.backend.core.domain.SearchPage;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
+import fr.zbar.showtime.backend.core.search.domain.SearchPage;
 import java.time.LocalDate;
 import java.util.List;
 

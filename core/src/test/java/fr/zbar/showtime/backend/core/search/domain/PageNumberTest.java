@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.core.domain;
+package fr.zbar.showtime.backend.core.search.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

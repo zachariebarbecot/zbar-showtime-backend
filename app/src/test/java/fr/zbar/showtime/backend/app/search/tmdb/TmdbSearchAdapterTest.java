@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app.tmdb;
+package fr.zbar.showtime.backend.app.search.tmdb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -11,12 +11,12 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import fr.zbar.showtime.backend.core.domain.CatalogItem;
-import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
-import fr.zbar.showtime.backend.core.domain.MediaType;
-import fr.zbar.showtime.backend.core.domain.PageNumber;
-import fr.zbar.showtime.backend.core.domain.SearchPage;
-import fr.zbar.showtime.backend.core.domain.SearchQuery;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
+import fr.zbar.showtime.backend.core.search.domain.PageNumber;
+import fr.zbar.showtime.backend.core.search.domain.SearchPage;
+import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.time.LocalDate;

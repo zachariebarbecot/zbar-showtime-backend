@@ -1,14 +1,14 @@
-package fr.zbar.showtime.backend.core.application;
+package fr.zbar.showtime.backend.core.search.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fr.zbar.showtime.backend.core.domain.CatalogItem;
-import fr.zbar.showtime.backend.core.domain.MediaType;
-import fr.zbar.showtime.backend.core.domain.PageNumber;
-import fr.zbar.showtime.backend.core.domain.SearchCatalog;
-import fr.zbar.showtime.backend.core.domain.SearchPage;
-import fr.zbar.showtime.backend.core.domain.SearchQuery;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
+import fr.zbar.showtime.backend.core.search.domain.PageNumber;
+import fr.zbar.showtime.backend.core.search.domain.SearchCatalog;
+import fr.zbar.showtime.backend.core.search.domain.SearchPage;
+import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
