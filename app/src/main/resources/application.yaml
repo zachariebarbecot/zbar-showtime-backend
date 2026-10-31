@@ -17,3 +17,11 @@ logging:
 app:
   jwt:
     secret: ${JWT_SECRET}
+  tmdb:
+    base-url: https://api.themoviedb.org/3
+    token: ${TMDB_API_TOKEN}
+    image-base-url: https://image.tmdb.org/t/p
+    poster-size: w342
+    language: fr-FR
+    connect-timeout: 2s
+    read-timeout: 5s

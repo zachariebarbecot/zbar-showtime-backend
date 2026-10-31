@@ -1,3 +1,10 @@
 package fr.zbar.showtime.backend.core.domain;
 
-public record SearchQuery(String value) {}
+import org.apache.commons.lang3.StringUtils;
+
+public record SearchQuery(String value) {
+
+  public SearchQuery {
+    value = StringUtils.strip(value);
+  }
+}
