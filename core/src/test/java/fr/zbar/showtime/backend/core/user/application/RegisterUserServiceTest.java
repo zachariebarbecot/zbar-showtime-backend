@@ -3,11 +3,11 @@ package fr.zbar.showtime.backend.core.user.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fr.zbar.showtime.backend.core.domain.PasswordHash;
-import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import fr.zbar.showtime.backend.core.user.domain.Email;
 import fr.zbar.showtime.backend.core.user.domain.Gender;
+import fr.zbar.showtime.backend.core.user.domain.PasswordHash;
+import fr.zbar.showtime.backend.core.user.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.user.domain.User;
 import java.time.Clock;
 import java.time.Instant;

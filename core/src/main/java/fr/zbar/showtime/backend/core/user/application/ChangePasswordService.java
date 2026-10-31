@@ -2,10 +2,10 @@ package fr.zbar.showtime.backend.core.user.application;
 
 import static fr.zbar.showtime.backend.core.shared.NamedField.named;
 
-import fr.zbar.showtime.backend.core.domain.PasswordHasher;
-import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
-import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.user.domain.PasswordHasher;
+import fr.zbar.showtime.backend.core.user.domain.PasswordVerifier;
+import fr.zbar.showtime.backend.core.user.domain.RawPassword;
 import fr.zbar.showtime.backend.core.user.domain.User;
 import fr.zbar.showtime.backend.core.user.domain.UserNotFoundException;
 import fr.zbar.showtime.backend.core.user.domain.UserRepository;
