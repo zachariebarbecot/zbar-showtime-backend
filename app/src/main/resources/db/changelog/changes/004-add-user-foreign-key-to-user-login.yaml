@@ -1,0 +1,15 @@
+databaseChangeLog:
+- changeSet:
+    id: 1793404932223-1
+    author: zbarbecot (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_id
+        baseTableName: user_login
+        constraintName: FKaeoaufjjgrjwdj4c9bxa80tw0
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users
+        validate: true
+

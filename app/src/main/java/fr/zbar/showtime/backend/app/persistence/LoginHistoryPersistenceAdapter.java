@@ -11,9 +11,12 @@ import org.springframework.stereotype.Component;
 class LoginHistoryPersistenceAdapter implements LoginHistory {
 
   private final LoginJpaRepository loginJpaRepository;
+  private final UserJpaRepository userJpaRepository;
 
   @Override
   public void record(UUID userId, Instant loggedAt) {
-    loginJpaRepository.saveAndFlush(new LoginJpaEntity(UUID.randomUUID(), userId, loggedAt));
+    loginJpaRepository.saveAndFlush(
+        new LoginJpaEntity(
+            UUID.randomUUID(), userJpaRepository.getReferenceById(userId), loggedAt));
   }
 }
