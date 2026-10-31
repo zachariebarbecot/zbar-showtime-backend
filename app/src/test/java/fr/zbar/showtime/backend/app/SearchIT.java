@@ -93,6 +93,93 @@ class SearchIT extends AbstractIT {
   }
 
   @Test
+  void should_return_200_with_the_series_page_when_searching_with_type_tv() {
+    String email = newUserEmail();
+    when(searchCatalog.searchSeries(new SearchQuery("dark"), new PageNumber(2)))
+        .thenReturn(
+            new SearchPage(
+                2,
+                3,
+                45,
+                List.of(
+                    new CatalogItem(
+                        70523L,
+                        MediaType.TV,
+                        "Dark",
+                        "https://image.tmdb.org/t/p/w342/d.jpg",
+                        LocalDate.of(2017, 12, 1)))));
+
+    search(email, "/search?query=dark&type=TV&page=2")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.page")
+        .isEqualTo(2)
+        .jsonPath("$.results[0].type")
+        .isEqualTo("TV")
+        .jsonPath("$.results[0].title")
+        .isEqualTo("Dark")
+        .jsonPath("$.results[0].releaseDate")
+        .isEqualTo("2017-12-01");
+  }
+
+  @Test
+  void should_return_401_and_not_call_tmdb_for_series_when_there_is_no_token() {
+    restTestClient
+        .get()
+        .uri("/search?query=dark&type=TV")
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"query=a", "query=dark&page=0", "query=dark&page=501", "query=dark&page=x"})
+  void should_return_400_and_not_call_tmdb_for_series_when_query_or_page_is_invalid(String params) {
+    String email = newUserEmail();
+
+    search(email, "/search?type=TV&" + params).expectStatus().isBadRequest();
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @Test
+  void should_return_200_with_an_empty_series_list_when_the_page_is_beyond_the_last_one() {
+    String email = newUserEmail();
+    when(searchCatalog.searchSeries(new SearchQuery("dark"), new PageNumber(9)))
+        .thenReturn(new SearchPage(9, 3, 50, List.of()));
+
+    search(email, "/search?query=dark&type=TV&page=9")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results.length()")
+        .isEqualTo(0)
+        .jsonPath("$.totalPages")
+        .isEqualTo(3);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"BOOK", "movie", "tv", "", "ALL"})
+  void should_return_400_on_type_and_not_call_tmdb_when_the_type_is_not_accepted(String type) {
+    String email = newUserEmail();
+
+    search(email, "/search?query=matrix&type={type}", type)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("type")
+        .jsonPath("$.errors[0].message")
+        .isEqualTo("Type must be MOVIE or TV");
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @Test
   void should_forward_the_requested_page_when_page_is_given() {
     registerUser("search-ca1-page@mail.fr");
     when(searchCatalog.searchMovies(new SearchQuery("matrix"), new PageNumber(3)))
@@ -293,5 +380,20 @@ class SearchIT extends AbstractIT {
               assertThat(body)
                   .doesNotContain("test-tmdb-token", "themoviedb", "tmdb.org", "Exception");
             });
+  }
+
+  @Test
+  void should_return_502_with_a_generic_problem_when_the_series_catalog_is_unavailable() {
+    String email = newUserEmail();
+    when(searchCatalog.searchSeries(new SearchQuery("dark"), new PageNumber(1)))
+        .thenThrow(
+            new CatalogUnavailableException(
+                new IllegalStateException("429 from https://api.themoviedb.org/3")));
+
+    search(email, "/search?query=dark&type=TV")
+        .expectStatus()
+        .isEqualTo(502)
+        .expectBody(String.class)
+        .value(body -> assertThat(body).contains("\"status\":502").doesNotContain("themoviedb"));
   }
 }
