@@ -4,10 +4,12 @@ import com.jayway.jsonpath.JsonPath;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+@AutoConfigureMockMvc
 class ChangeEmailIT extends AbstractIT {
 
   private static final String PASSWORD = "Str0ng!Passw0rd";
@@ -40,8 +42,7 @@ class ChangeEmailIT extends AbstractIT {
   }
 
   private String token(String email) {
-    byte[] body =
-        login(email).expectStatus().isOk().expectBody().returnResult().getResponseBody();
+    byte[] body = login(email).expectStatus().isOk().expectBody().returnResult().getResponseBody();
     return JsonPath.read(new String(body, StandardCharsets.UTF_8), "$.token");
   }
 
