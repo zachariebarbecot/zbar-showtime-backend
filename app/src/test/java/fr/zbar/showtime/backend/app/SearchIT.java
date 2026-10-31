@@ -19,10 +19,10 @@ class SearchIT extends AbstractIT {
 
   @MockitoBean private SearchCatalog searchCatalog;
 
-  private RestTestClient.ResponseSpec search(String email, String uri) {
+  private RestTestClient.ResponseSpec search(String email, String uri, Object... uriVariables) {
     return restTestClient
         .get()
-        .uri(uri)
+        .uri(uri, uriVariables)
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
         .exchange();
   }
@@ -44,7 +44,7 @@ class SearchIT extends AbstractIT {
                         "https://image.tmdb.org/t/p/w342/m.jpg",
                         LocalDate.of(1999, 3, 31)))));
 
-    search("search-ca1@mail.fr", "/search?query=%20L'%C3%A9t%C3%A9%20%26%20co%20&type=MOVIE")
+    search("search-ca1@mail.fr", "/search?query={query}&type=MOVIE", " L'été & co ")
         .expectStatus()
         .isOk()
         .expectBody()
