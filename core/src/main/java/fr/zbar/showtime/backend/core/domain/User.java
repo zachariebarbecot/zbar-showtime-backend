@@ -48,10 +48,7 @@ public class User extends AggregateRoot<UUID> {
       BirthDate birthDate,
       Gender gender,
       Clock clock) {
-    List<String> passwordViolations = password.violations(email);
-    if (!passwordViolations.isEmpty()) {
-      throw new InvalidFieldException("password", passwordViolations);
-    }
+    requireCompliant(password, email, "password");
     Instant now = clock.instant();
     return new User(
         UUID.randomUUID(), name, email, passwordHasher.hash(password), birthDate, gender, now, now);
@@ -71,6 +68,26 @@ public class User extends AggregateRoot<UUID> {
     }
     return new User(
         id(), name, newEmail, passwordHash, birthDate, gender, createdAt, clock.instant());
+  }
+
+  public User changePassword(RawPassword newPassword, PasswordHasher passwordHasher, Clock clock) {
+    requireCompliant(newPassword, email, "newPassword");
+    return new User(
+        id(),
+        name,
+        email,
+        passwordHasher.hash(newPassword),
+        birthDate,
+        gender,
+        createdAt,
+        clock.instant());
+  }
+
+  private static void requireCompliant(RawPassword password, Email email, String field) {
+    List<String> violations = password.violations(email);
+    if (!violations.isEmpty()) {
+      throw new InvalidFieldException(field, violations);
+    }
   }
 
   @Override

@@ -155,4 +155,42 @@ class UserTest {
     assertThat(changed).isSameAs(user);
     assertThat(changed.updatedAt()).isEqualTo(NOW);
   }
+
+  @Test
+  void should_return_user_with_new_hash_and_clock_date_when_password_is_changed() {
+    User user = register();
+    Clock later = Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC);
+
+    User changed = user.changePassword(new RawPassword("N3w!Passw0rdXyz"), HASHER, later);
+
+    assertThat(changed.passwordHash()).isEqualTo(new PasswordHash("hashed:N3w!Passw0rdXyz"));
+    assertThat(changed.updatedAt()).isEqualTo(NOW.plusSeconds(3600));
+    assertThat(changed.id()).isEqualTo(user.id());
+    assertThat(changed.createdAt()).isEqualTo(NOW);
+    assertThat(changed.email()).isEqualTo(user.email());
+  }
+
+  @Test
+  void should_refuse_new_password_when_it_violates_the_policy() {
+    User user = register();
+
+    assertThatThrownBy(() -> user.changePassword(new RawPassword("short"), HASHER, CLOCK))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> {
+              assertThat(exception.field()).isEqualTo("newPassword");
+              assertThat(exception.messages()).contains("Password must be at least 12 characters");
+            });
+  }
+
+  @Test
+  void should_refuse_new_password_when_it_contains_the_current_email() {
+    User user = register();
+
+    assertThatThrownBy(() -> user.changePassword(new RawPassword("Xx!a@b.fr-1234"), HASHER, CLOCK))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception ->
+                assertThat(exception.messages()).contains("Password must not contain the email"));
+  }
 }
