@@ -3,13 +3,13 @@ package fr.zbar.showtime.backend.core.user.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fr.zbar.showtime.backend.core.domain.PasswordHash;
-import fr.zbar.showtime.backend.core.domain.PasswordHasher;
-import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.user.domain.BirthDate;
 import fr.zbar.showtime.backend.core.user.domain.Email;
 import fr.zbar.showtime.backend.core.user.domain.FullName;
 import fr.zbar.showtime.backend.core.user.domain.Gender;
+import fr.zbar.showtime.backend.core.user.domain.PasswordHash;
+import fr.zbar.showtime.backend.core.user.domain.PasswordHasher;
+import fr.zbar.showtime.backend.core.user.domain.RawPassword;
 import fr.zbar.showtime.backend.core.user.domain.User;
 import fr.zbar.showtime.backend.core.user.domain.UserNotFoundException;
 import java.time.Clock;

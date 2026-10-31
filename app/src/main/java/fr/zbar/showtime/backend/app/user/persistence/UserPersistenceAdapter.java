@@ -1,11 +1,11 @@
 package fr.zbar.showtime.backend.app.user.persistence;
 
-import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.user.domain.BirthDate;
 import fr.zbar.showtime.backend.core.user.domain.Email;
 import fr.zbar.showtime.backend.core.user.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.user.domain.FullName;
 import fr.zbar.showtime.backend.core.user.domain.Gender;
+import fr.zbar.showtime.backend.core.user.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.user.domain.User;
 import fr.zbar.showtime.backend.core.user.domain.UserRepository;
 import java.util.Optional;

@@ -3,11 +3,6 @@ package fr.zbar.showtime.backend.core.user.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
-import fr.zbar.showtime.backend.core.domain.PasswordHash;
-import fr.zbar.showtime.backend.core.domain.PasswordHasher;
-import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
-import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.time.Clock;
 import java.time.Instant;
