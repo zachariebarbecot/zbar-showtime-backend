@@ -42,4 +42,25 @@ class EmailTest {
   void should_hide_value_when_converted_to_string() {
     assertThat(new Email("jean@mail.fr").toString()).doesNotContain("jean");
   }
+
+  @Test
+  void should_accept_an_email_of_254_characters() {
+    String value = "a".repeat(254 - "@b.fr".length()) + "@b.fr";
+
+    assertThat(new Email(value).value()).hasSize(254);
+  }
+
+  @Test
+  void should_refuse_email_when_longer_than_254_characters() {
+    String value = "a".repeat(255 - "@b.fr".length()) + "@b.fr";
+
+    assertThatThrownBy(() -> new Email(value))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> {
+              assertThat(exception.field()).isEqualTo("email");
+              assertThat(exception.messages())
+                  .containsExactly("Email must be at most 254 characters");
+            });
+  }
 }
