@@ -1,27 +1,26 @@
 databaseChangeLog:
 - changeSet:
-    id: 003-create-user-login-table
-    author: zbarbecot
+    id: 1793404774995-1
+    author: zbarbecot (generated)
     changes:
     - createTable:
-        tableName: user_login
         columns:
         - column:
-            name: id
-            type: UUID
             constraints:
               nullable: false
               primaryKey: true
               primaryKeyName: user_loginPK
-        - column:
-            name: user_id
+            name: id
             type: UUID
+        - column:
             constraints:
               nullable: false
-              foreignKeyName: FK_USER_LOGIN_USER
-              references: users(id)
-        - column:
             name: logged_at
             type: TIMESTAMP(6) WITH TIME ZONE
+        - column:
             constraints:
               nullable: false
+            name: user_id
+            type: UUID
+        tableName: user_login
+
