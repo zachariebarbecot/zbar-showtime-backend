@@ -125,6 +125,50 @@ class TmdbSearchAdapterTest {
                         LocalDate.of(2017, 12, 1)))));
   }
 
+  @Test
+  void should_call_search_multi_and_keep_the_native_order_of_movies_and_series() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/multi?")))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("Authorization", "Bearer secret-token"))
+        .andExpect(queryParam("query", "star"))
+        .andExpect(queryParam("language", "fr-FR"))
+        .andExpect(queryParam("include_adult", "false"))
+        .andExpect(queryParam("page", "2"))
+        .andRespond(
+            withSuccess(
+                """
+                {"page":2,"total_pages":5,"total_results":90,"results":[
+                  {"id":1,"media_type":"tv","name":"Star Trek","poster_path":"/s.jpg","first_air_date":"1966-09-08"},
+                  {"id":11,"media_type":"movie","title":"Star Wars","poster_path":"/w.jpg","release_date":"1977-05-25"}
+                ]}
+                """,
+                org.springframework.http.MediaType.APPLICATION_JSON));
+
+    SearchPage result = adapter.searchAll(new SearchQuery("star"), new PageNumber(2));
+
+    server.verify();
+    assertThat(result)
+        .isEqualTo(
+            new SearchPage(
+                2,
+                5,
+                90,
+                List.of(
+                    new CatalogItem(
+                        1L,
+                        MediaType.TV,
+                        "Star Trek",
+                        "https://image.tmdb.org/t/p/w342/s.jpg",
+                        LocalDate.of(1966, 9, 8)),
+                    new CatalogItem(
+                        11L,
+                        MediaType.MOVIE,
+                        "Star Wars",
+                        "https://image.tmdb.org/t/p/w342/w.jpg",
+                        LocalDate.of(1977, 5, 25)))));
+  }
+
   private void respondWith(String json) {
     server
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))

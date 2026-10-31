@@ -32,6 +32,11 @@ class TmdbSearchAdapter implements SearchCatalog {
     return search("/search/tv", MediaType.TV, query, page);
   }
 
+  @Override
+  public SearchPage searchAll(SearchQuery query, PageNumber page) {
+    return searchMovies(query, page);
+  }
+
   private SearchPage search(String path, MediaType type, SearchQuery query, PageNumber page) {
     try {
       return toPage(fetch(path, query, page), type);

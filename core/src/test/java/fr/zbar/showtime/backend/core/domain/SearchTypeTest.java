@@ -14,11 +14,12 @@ class SearchTypeTest {
   void should_read_known_values() {
     assertThat(SearchType.from("MOVIE")).isEqualTo(SearchType.MOVIE);
     assertThat(SearchType.from("TV")).isEqualTo(SearchType.TV);
+    assertThat(SearchType.from("ALL")).isEqualTo(SearchType.ALL);
   }
 
   @ParameterizedTest
   @NullAndEmptySource
-  @ValueSource(strings = {"   ", "movie", "tv", "BOOK", "ALL"})
+  @ValueSource(strings = {"   ", "movie", "tv", "BOOK", "all"})
   void should_refuse_value_outside_movie_and_tv(String value) {
     assertThatThrownBy(() -> SearchType.from(value))
         .isInstanceOfSatisfying(
