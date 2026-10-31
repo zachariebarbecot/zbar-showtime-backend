@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.domain.MediaType;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +30,9 @@ record TmdbSearchResponse(
       @JsonProperty("first_air_date") String firstAirDate) {
 
     Optional<MediaType> type() {
+      if (mediaType == null) {
+        throw new CatalogUnavailableException(new IllegalStateException("Missing media_type"));
+      }
       return switch (mediaType) {
         case "movie" -> Optional.of(MediaType.MOVIE);
         case "tv" -> Optional.of(MediaType.TV);
