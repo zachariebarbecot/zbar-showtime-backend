@@ -116,7 +116,7 @@ class ChangeEmailIT extends AbstractIT {
         .isBadRequest()
         .expectBody()
         .jsonPath("$.errors[0].field")
-        .isEqualTo("email")
+        .isEqualTo("newEmail")
         .jsonPath("$.errors[0].message")
         .isEqualTo("Email must be a valid address");
 
