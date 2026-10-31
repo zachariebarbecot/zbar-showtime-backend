@@ -1,8 +1,8 @@
 package fr.zbar.showtime.backend.core.application;
 
+import static fr.zbar.showtime.backend.core.application.NamedField.named;
+
 import fr.zbar.showtime.backend.core.domain.Email;
-import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
-import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
 import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.User;
@@ -22,24 +22,12 @@ public class ChangeEmailService implements ChangeEmail {
   @Override
   public User execute(ChangeEmailCommand command) {
     User user = userRepository.findById(command.userId()).orElseThrow(UserNotFoundException::new);
-    Email newEmail = newEmail(command.newEmail());
-    if (command.currentPassword() == null) {
-      throw new InvalidFieldException("currentPassword", "Current password must be provided");
-    }
-    if (!passwordVerifier.matches(
-        new RawPassword(command.currentPassword()), user.passwordHash())) {
-      throw new InvalidCredentialsException();
-    }
+    Email newEmail = named("newEmail", () -> new Email(command.newEmail()));
+    RawPassword currentPassword =
+        named("currentPassword", () -> new RawPassword(command.currentPassword()));
+    user.requirePassword(currentPassword, passwordVerifier);
     User changed = user.changeEmail(newEmail, clock);
     userRepository.save(changed);
     return changed;
-  }
-
-  private static Email newEmail(String value) {
-    try {
-      return new Email(value);
-    } catch (InvalidFieldException exception) {
-      throw new InvalidFieldException("newEmail", exception.messages());
-    }
   }
 }

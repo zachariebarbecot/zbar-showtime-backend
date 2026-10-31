@@ -18,6 +18,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class AuthenticateUserServiceTest {
@@ -42,7 +44,7 @@ class AuthenticateUserServiceTest {
             new Email("jean@mail.fr"),
             new RawPassword(PASSWORD),
             hasher,
-            new BirthDate(LocalDate.of(1990, 5, 17), CLOCK),
+            BirthDate.of(LocalDate.of(1990, 5, 17), CLOCK),
             Gender.MALE,
             CLOCK);
     userRepository.save(user);
@@ -68,7 +70,7 @@ class AuthenticateUserServiceTest {
                 authenticateUserService.execute(
                     new AuthenticateUserCommand("jean@mail.fr", "Wr0ng!Passw0rd")))
         .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Identifiants invalides");
+        .hasMessage("Invalid credentials");
   }
 
   @Test
@@ -78,7 +80,28 @@ class AuthenticateUserServiceTest {
                 authenticateUserService.execute(
                     new AuthenticateUserCommand("unknown@mail.fr", PASSWORD)))
         .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Identifiants invalides");
+        .hasMessage("Invalid credentials");
+  }
+
+  @Test
+  void should_verify_the_password_against_a_dummy_hash_when_no_account_has_the_email() {
+    List<PasswordHash> verified = new ArrayList<>();
+    AuthenticateUserService service =
+        new AuthenticateUserService(
+            userRepository,
+            (raw, hash) -> {
+              verified.add(hash);
+              return false;
+            },
+            TOKEN_ISSUER,
+            loginHistory,
+            CLOCK);
+
+    assertThatThrownBy(
+            () -> service.execute(new AuthenticateUserCommand("unknown@mail.fr", PASSWORD)))
+        .isInstanceOf(InvalidCredentialsException.class);
+
+    assertThat(verified).containsExactly(AuthenticateUserService.DUMMY_HASH);
   }
 
   @Test

@@ -11,8 +11,9 @@ spring:
     password: ${POSTGRES_PASSWORD}
 logging:
   level:
-    # Hibernate logs the SQL error with the inserted email on a duplicate
-    org.hibernate.orm.jdbc.error: "OFF"
+    # Hibernate logs the failed statement, with the email and the password hash, at WARN on a
+    # duplicate email. Only ERROR and above is kept.
+    org.hibernate.orm.jdbc.error: ERROR
 app:
   jwt:
     secret: ${JWT_SECRET}

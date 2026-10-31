@@ -104,7 +104,7 @@ class LoginIT extends AbstractIT {
         .isUnauthorized()
         .expectBody()
         .jsonPath("$.detail")
-        .isEqualTo("Identifiants invalides")
+        .isEqualTo("Invalid credentials")
         .jsonPath("$.token")
         .doesNotExist();
   }

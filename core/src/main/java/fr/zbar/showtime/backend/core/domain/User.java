@@ -48,7 +48,7 @@ public class User extends AggregateRoot<UUID> {
       BirthDate birthDate,
       Gender gender,
       Clock clock) {
-    requireCompliant(password, email, "password");
+    requireCompliant(password, email);
     Instant now = clock.instant();
     return new User(
         UUID.randomUUID(), name, email, passwordHasher.hash(password), birthDate, gender, now, now);
@@ -70,8 +70,23 @@ public class User extends AggregateRoot<UUID> {
         id(), name, newEmail, passwordHash, birthDate, gender, createdAt, clock.instant());
   }
 
-  public User changePassword(RawPassword newPassword, PasswordHasher passwordHasher, Clock clock) {
-    requireCompliant(newPassword, email, "newPassword");
+  public void requirePassword(RawPassword password, PasswordVerifier passwordVerifier) {
+    if (!passwordVerifier.matches(password, passwordHash)) {
+      throw new InvalidCredentialsException();
+    }
+  }
+
+  public User changePassword(
+      RawPassword currentPassword,
+      RawPassword newPassword,
+      PasswordVerifier passwordVerifier,
+      PasswordHasher passwordHasher,
+      Clock clock) {
+    requirePassword(currentPassword, passwordVerifier);
+    if (passwordVerifier.matches(newPassword, passwordHash)) {
+      throw new InvalidFieldException("password", "New password must differ from the current one");
+    }
+    requireCompliant(newPassword, email);
     return new User(
         id(),
         name,
@@ -83,10 +98,10 @@ public class User extends AggregateRoot<UUID> {
         clock.instant());
   }
 
-  private static void requireCompliant(RawPassword password, Email email, String field) {
+  private static void requireCompliant(RawPassword password, Email email) {
     List<String> violations = password.violations(email);
     if (!violations.isEmpty()) {
-      throw new InvalidFieldException(field, violations);
+      throw new InvalidFieldException("password", violations);
     }
   }
 

@@ -92,26 +92,21 @@ class UpdateProfileServiceTest {
   }
 
   @Test
-  void should_change_only_the_provided_name_when_the_other_is_absent() {
+  void should_reject_and_keep_the_user_unchanged_when_a_name_is_absent() {
     User user = registeredUser("jean@mail.fr");
 
-    User updated = updateProfileService.execute(new UpdateProfileCommand(user.id(), null, "Paul"));
+    assertThatThrownBy(
+            () -> updateProfileService.execute(new UpdateProfileCommand(user.id(), null, "Paul")))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("lastName"));
+    assertThatThrownBy(
+            () -> updateProfileService.execute(new UpdateProfileCommand(user.id(), "Martin", null)))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("firstName"));
 
-    assertThat(updated.name()).isEqualTo(new FullName("Dupont", "Paul"));
-    assertThat(userRepository.findById(user.id()).orElseThrow().name())
-        .isEqualTo(new FullName("Dupont", "Paul"));
-
-    User again = updateProfileService.execute(new UpdateProfileCommand(user.id(), "Martin", null));
-
-    assertThat(again.name()).isEqualTo(new FullName("Martin", "Paul"));
-  }
-
-  @Test
-  void should_keep_the_update_date_when_no_name_is_provided() {
-    User user = registeredUser("jean@mail.fr");
-
-    User updated = updateProfileService.execute(new UpdateProfileCommand(user.id(), null, null));
-
-    assertThat(updated.updatedAt()).isEqualTo(REGISTERED_AT);
+    assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt())
+        .isEqualTo(REGISTERED_AT);
   }
 }

@@ -8,6 +8,7 @@ import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.FullName;
 import fr.zbar.showtime.backend.core.domain.Gender;
 import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
+import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
 import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
@@ -41,7 +42,7 @@ class ChangeEmailServiceTest {
             new Email("jean@mail.fr"),
             new RawPassword(PASSWORD),
             HASHER,
-            new BirthDate(LocalDate.of(1990, 5, 17), REGISTRATION_CLOCK),
+            BirthDate.of(LocalDate.of(1990, 5, 17), REGISTRATION_CLOCK),
             Gender.MALE,
             REGISTRATION_CLOCK);
     userRepository.save(user);
@@ -92,5 +93,23 @@ class ChangeEmailServiceTest {
         .get()
         .extracting(User::email, User::updatedAt)
         .containsExactly(new Email("jean@mail.fr"), REGISTERED_AT);
+  }
+
+  @Test
+  void should_reject_with_the_name_of_the_invalid_input() {
+    User user = registeredUser();
+
+    assertThatThrownBy(
+            () ->
+                changeEmailService.execute(new ChangeEmailCommand(user.id(), PASSWORD, "invalid")))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("newEmail"));
+    assertThatThrownBy(
+            () ->
+                changeEmailService.execute(new ChangeEmailCommand(user.id(), null, "new@mail.fr")))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("currentPassword"));
   }
 }

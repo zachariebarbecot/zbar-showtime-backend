@@ -33,10 +33,12 @@ class ChangePasswordIT extends AbstractIT {
   }
 
   @Test
-  void should_return_200_and_accept_only_the_new_password_when_current_password_is_correct() {
+  void should_return_204_and_accept_only_the_new_password_when_current_password_is_correct() {
     registerUser("pwd-ca1@mail.fr");
 
-    changePassword(loginToken("pwd-ca1@mail.fr"), PASSWORD, NEW_PASSWORD).expectStatus().isOk();
+    changePassword(loginToken("pwd-ca1@mail.fr"), PASSWORD, NEW_PASSWORD)
+        .expectStatus()
+        .isNoContent();
 
     login("pwd-ca1@mail.fr", NEW_PASSWORD).expectStatus().isOk();
     login("pwd-ca1@mail.fr", PASSWORD)
@@ -44,7 +46,7 @@ class ChangePasswordIT extends AbstractIT {
         .isUnauthorized()
         .expectBody()
         .jsonPath("$.detail")
-        .isEqualTo("Identifiants invalides");
+        .isEqualTo("Invalid credentials");
   }
 
   @Test
@@ -56,7 +58,7 @@ class ChangePasswordIT extends AbstractIT {
         .isUnauthorized()
         .expectBody()
         .jsonPath("$.detail")
-        .isEqualTo("Identifiants invalides");
+        .isEqualTo("Invalid credentials");
 
     login("pwd-ca2@mail.fr", PASSWORD).expectStatus().isOk();
     login("pwd-ca2@mail.fr", NEW_PASSWORD).expectStatus().isUnauthorized();
@@ -96,7 +98,7 @@ class ChangePasswordIT extends AbstractIT {
   void should_keep_the_token_issued_before_the_change_valid() {
     registerUser("pwd-ca5@mail.fr");
     String token = loginToken("pwd-ca5@mail.fr");
-    changePassword(token, PASSWORD, NEW_PASSWORD).expectStatus().isOk();
+    changePassword(token, PASSWORD, NEW_PASSWORD).expectStatus().isNoContent();
 
     restTestClient
         .get()

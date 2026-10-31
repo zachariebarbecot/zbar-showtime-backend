@@ -156,12 +156,17 @@ class UserTest {
     assertThat(changed.updatedAt()).isEqualTo(NOW);
   }
 
+  private static final PasswordVerifier VERIFIER =
+      (raw, hash) -> hash.equals(new PasswordHash("hashed:" + raw.value()));
+  private static final RawPassword CURRENT = new RawPassword("Str0ng!Passw0rd");
+
   @Test
   void should_return_user_with_new_hash_and_clock_date_when_password_is_changed() {
     User user = register();
     Clock later = Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC);
 
-    User changed = user.changePassword(new RawPassword("N3w!Passw0rdXyz"), HASHER, later);
+    User changed =
+        user.changePassword(CURRENT, new RawPassword("N3w!Passw0rdXyz"), VERIFIER, HASHER, later);
 
     assertThat(changed.passwordHash()).isEqualTo(new PasswordHash("hashed:N3w!Passw0rdXyz"));
     assertThat(changed.updatedAt()).isEqualTo(NOW.plusSeconds(3600));
@@ -171,14 +176,44 @@ class UserTest {
   }
 
   @Test
-  void should_refuse_new_password_when_it_violates_the_policy() {
+  void should_refuse_password_change_when_current_password_is_wrong() {
     User user = register();
 
-    assertThatThrownBy(() -> user.changePassword(new RawPassword("short"), HASHER, CLOCK))
+    assertThatThrownBy(
+            () ->
+                user.changePassword(
+                    new RawPassword("Wr0ng!Passw0rd"),
+                    new RawPassword("N3w!Passw0rdXyz"),
+                    VERIFIER,
+                    HASHER,
+                    CLOCK))
+        .isInstanceOf(InvalidCredentialsException.class);
+  }
+
+  @Test
+  void should_refuse_new_password_when_it_equals_the_current_one() {
+    User user = register();
+
+    assertThatThrownBy(() -> user.changePassword(CURRENT, CURRENT, VERIFIER, HASHER, CLOCK))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,
             exception -> {
-              assertThat(exception.field()).isEqualTo("newPassword");
+              assertThat(exception.field()).isEqualTo("password");
+              assertThat(exception.messages())
+                  .contains("New password must differ from the current one");
+            });
+  }
+
+  @Test
+  void should_refuse_new_password_when_it_violates_the_policy() {
+    User user = register();
+
+    assertThatThrownBy(
+            () -> user.changePassword(CURRENT, new RawPassword("short"), VERIFIER, HASHER, CLOCK))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> {
+              assertThat(exception.field()).isEqualTo("password");
               assertThat(exception.messages()).contains("Password must be at least 12 characters");
             });
   }
@@ -187,10 +222,26 @@ class UserTest {
   void should_refuse_new_password_when_it_contains_the_current_email() {
     User user = register();
 
-    assertThatThrownBy(() -> user.changePassword(new RawPassword("Xx!a@b.fr-1234"), HASHER, CLOCK))
+    assertThatThrownBy(
+            () ->
+                user.changePassword(
+                    CURRENT, new RawPassword("Xx!a@b.fr-1234"), VERIFIER, HASHER, CLOCK))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,
             exception ->
                 assertThat(exception.messages()).contains("Password must not contain the email"));
+  }
+
+  @Test
+  void should_accept_the_password_of_the_user_when_it_is_required() {
+    register().requirePassword(CURRENT, VERIFIER);
+  }
+
+  @Test
+  void should_refuse_a_password_that_is_not_the_one_of_the_user_when_it_is_required() {
+    User user = register();
+
+    assertThatThrownBy(() -> user.requirePassword(new RawPassword("Wr0ng!Passw0rd"), VERIFIER))
+        .isInstanceOf(InvalidCredentialsException.class);
   }
 }

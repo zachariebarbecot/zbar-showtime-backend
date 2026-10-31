@@ -43,7 +43,7 @@ class ChangePasswordServiceTest {
             new Email("jean@mail.fr"),
             new RawPassword(CURRENT),
             HASHER,
-            new BirthDate(LocalDate.of(1990, 5, 17), REGISTER_CLOCK),
+            BirthDate.of(LocalDate.of(1990, 5, 17), REGISTER_CLOCK),
             Gender.MALE,
             REGISTER_CLOCK);
     userRepository.save(user);
@@ -72,7 +72,7 @@ class ChangePasswordServiceTest {
                 changePasswordService.execute(
                     new ChangePasswordCommand(user.id(), "Wr0ng!Passw0rd", NEW)))
         .isInstanceOf(InvalidCredentialsException.class)
-        .hasMessage("Identifiants invalides");
+        .hasMessage("Invalid credentials");
 
     assertThat(userRepository.findById(user.id()).orElseThrow().passwordHash())
         .isEqualTo(user.passwordHash());
@@ -110,5 +110,22 @@ class ChangePasswordServiceTest {
 
     assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt())
         .isEqualTo(REGISTERED_AT);
+  }
+
+  @Test
+  void should_reject_with_the_name_of_the_missing_password() {
+    User user = registeredUser();
+
+    assertThatThrownBy(
+            () -> changePasswordService.execute(new ChangePasswordCommand(user.id(), null, NEW)))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("currentPassword"));
+    assertThatThrownBy(
+            () ->
+                changePasswordService.execute(new ChangePasswordCommand(user.id(), CURRENT, null)))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("newPassword"));
   }
 }

@@ -75,7 +75,7 @@ class ChangeEmailIT extends AbstractIT {
         .isUnauthorized()
         .expectBody()
         .jsonPath("$.detail")
-        .isEqualTo("Identifiants invalides");
+        .isEqualTo("Invalid credentials");
   }
 
   @Test
@@ -89,7 +89,7 @@ class ChangeEmailIT extends AbstractIT {
         .isUnauthorized()
         .expectBody()
         .jsonPath("$.detail")
-        .isEqualTo("Identifiants invalides");
+        .isEqualTo("Invalid credentials");
 
     login("chg-ca2@mail.fr").expectStatus().isOk();
   }
