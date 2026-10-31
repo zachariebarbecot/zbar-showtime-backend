@@ -128,4 +128,40 @@ class UpdateProfileIT extends AbstractIT {
     assertThat(((Timestamp) row("patch-ca3@mail.fr").get("updated_at")).toInstant())
         .isEqualTo(REGISTERED_AT);
   }
+
+  @Test
+  void should_change_only_the_name_of_the_token_owner_when_the_body_has_other_fields() {
+    String token = registerAndLogin("patch-ca4@mail.fr");
+    registerAndLogin("patch-ca4-other@mail.fr");
+    String ownerId =
+        jdbcTemplate.queryForObject(
+            "select cast(id as varchar) from users where email = ?",
+            String.class,
+            "patch-ca4@mail.fr");
+
+    patchMe(
+            token,
+            Map.of(
+                "id", "11111111-1111-1111-1111-111111111111",
+                "lastName", "Martin",
+                "firstName", "Paul",
+                "email", "hacked@mail.fr",
+                "birthDate", "2000-01-01",
+                "gender", "FEMALE"))
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.id")
+        .isEqualTo(ownerId)
+        .jsonPath("$.email")
+        .isEqualTo("patch-ca4@mail.fr")
+        .jsonPath("$.birthDate")
+        .isEqualTo("1990-05-17")
+        .jsonPath("$.gender")
+        .isEqualTo("MALE");
+
+    Map<String, Object> other = row("patch-ca4-other@mail.fr");
+    assertThat(other.get("last_name")).isEqualTo("Dupont");
+    assertThat(other.get("first_name")).isEqualTo("Jean");
+  }
 }
