@@ -1,7 +1,9 @@
 package fr.zbar.showtime.backend.core.application;
 
 import fr.zbar.showtime.backend.core.domain.Email;
+import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
+import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserNotFoundException;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
@@ -19,7 +21,12 @@ public class ChangeEmailService implements ChangeEmail {
   @Override
   public User execute(ChangeEmailCommand command) {
     User user = userRepository.findById(command.userId()).orElseThrow(UserNotFoundException::new);
-    User changed = user.changeEmail(new Email(command.newEmail()), clock);
+    Email newEmail = new Email(command.newEmail());
+    if (!passwordVerifier.matches(
+        new RawPassword(command.currentPassword()), user.passwordHash())) {
+      throw new InvalidCredentialsException();
+    }
+    User changed = user.changeEmail(newEmail, clock);
     userRepository.save(changed);
     return changed;
   }
