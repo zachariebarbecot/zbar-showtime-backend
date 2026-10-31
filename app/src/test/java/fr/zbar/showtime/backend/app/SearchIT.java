@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +34,12 @@ class SearchIT extends AbstractIT {
   @MockitoBean private SearchCatalog searchCatalog;
 
   @Autowired private JwtEncoder jwtEncoder;
+
+  private String newUserEmail() {
+    String email = "search-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    return email;
+  }
 
   private RestTestClient.ResponseSpec search(String email, String uri, Object... uriVariables) {
     return restTestClient
@@ -142,6 +150,68 @@ class SearchIT extends AbstractIT {
         .exchange()
         .expectStatus()
         .isUnauthorized();
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @Test
+  void should_return_400_on_query_and_not_call_tmdb_when_the_query_is_absent() {
+    registerUser("search-ca3-absent@mail.fr");
+
+    search("search-ca3-absent@mail.fr", "/search?type=MOVIE")
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("query")
+        .jsonPath("$.errors[0].message")
+        .isEqualTo("Query must be between 2 and 100 characters");
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"", "   ", "a", " a "})
+  void should_return_400_on_query_and_not_call_tmdb_when_the_query_is_too_short(String query) {
+    String email = newUserEmail();
+
+    search(email, "/search?query={query}&type=MOVIE", query)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("query");
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @Test
+  void should_return_400_on_query_and_not_call_tmdb_when_the_query_is_too_long() {
+    registerUser("search-ca3-long@mail.fr");
+
+    search("search-ca3-long@mail.fr", "/search?query={query}", "a".repeat(101))
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("query");
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"abc", "1.5", "0", "-1", "501"})
+  void should_return_400_on_page_and_not_call_tmdb_when_the_page_is_invalid(String page) {
+    String email = newUserEmail();
+
+    search(email, "/search?query=matrix&page={page}", page)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("page")
+        .jsonPath("$.errors[0].message")
+        .isNotEmpty();
 
     verifyNoInteractions(searchCatalog);
   }
