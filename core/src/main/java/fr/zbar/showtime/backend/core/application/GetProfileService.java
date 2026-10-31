@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.core.application;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserNotFoundException;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
+import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 

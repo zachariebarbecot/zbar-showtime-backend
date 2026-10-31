@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.core.domain;
 
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;

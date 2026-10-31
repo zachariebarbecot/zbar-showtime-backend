@@ -1,5 +1,7 @@
 package fr.zbar.showtime.backend.core.domain;
 
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
+
 public enum SearchType {
   MOVIE,
   TV,

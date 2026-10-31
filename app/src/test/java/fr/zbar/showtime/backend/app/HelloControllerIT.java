@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app;
 
+import fr.zbar.showtime.backend.app.support.AbstractIT;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 

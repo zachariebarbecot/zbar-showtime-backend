@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.core.domain;
 
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;

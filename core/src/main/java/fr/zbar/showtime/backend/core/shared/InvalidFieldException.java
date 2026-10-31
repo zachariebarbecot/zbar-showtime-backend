@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.core.domain;
+package fr.zbar.showtime.backend.core.shared;
 
 import java.util.List;
 

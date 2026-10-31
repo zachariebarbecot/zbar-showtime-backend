@@ -1,13 +1,12 @@
-package fr.zbar.showtime.backend.core.application;
+package fr.zbar.showtime.backend.core.shared;
 
-import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
 import java.util.function.Supplier;
 
-final class NamedField {
+public final class NamedField {
 
   private NamedField() {}
 
-  static <T> T named(String field, Supplier<T> factory) {
+  public static <T> T named(String field, Supplier<T> factory) {
     try {
       return factory.get();
     } catch (InvalidFieldException exception) {

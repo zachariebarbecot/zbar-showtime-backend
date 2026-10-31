@@ -1,6 +1,6 @@
 package fr.zbar.showtime.backend.core.application;
 
-import static fr.zbar.showtime.backend.core.application.NamedField.named;
+import static fr.zbar.showtime.backend.core.shared.NamedField.named;
 
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
@@ -8,6 +8,7 @@ import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserNotFoundException;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
+import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 

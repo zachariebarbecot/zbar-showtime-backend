@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.app;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jayway.jsonpath.JsonPath;
+import fr.zbar.showtime.backend.app.support.AbstractIT;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;

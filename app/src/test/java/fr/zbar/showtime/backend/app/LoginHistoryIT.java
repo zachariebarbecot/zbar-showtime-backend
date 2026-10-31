@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.domain.LoginHistory;
 import java.time.Instant;
 import java.util.UUID;

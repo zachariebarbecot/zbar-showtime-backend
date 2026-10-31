@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.app;
 
 import com.jayway.jsonpath.JsonPath;
+import fr.zbar.showtime.backend.app.support.AbstractIT;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.junit.jupiter.api.Test;

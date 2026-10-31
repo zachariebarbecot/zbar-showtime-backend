@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.support;
 
 import com.jayway.jsonpath.JsonPath;
 import fr.zbar.starter.test.ZbarSpringBootTest;
@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 @AutoConfigureRestTestClient
 @Import(FixedClockConfiguration.class)
 @ActiveProfiles("test")
-abstract class AbstractIT {
+public abstract class AbstractIT {
 
   protected static final String PASSWORD = "Str0ng!Passw0rd";
 

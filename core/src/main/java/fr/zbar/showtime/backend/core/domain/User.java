@@ -1,5 +1,7 @@
 package fr.zbar.showtime.backend.core.domain;
 
+import fr.zbar.showtime.backend.core.shared.AggregateRoot;
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;

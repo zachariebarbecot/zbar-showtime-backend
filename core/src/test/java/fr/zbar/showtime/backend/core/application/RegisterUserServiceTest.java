@@ -5,10 +5,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.Gender;
-import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
 import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.User;
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;

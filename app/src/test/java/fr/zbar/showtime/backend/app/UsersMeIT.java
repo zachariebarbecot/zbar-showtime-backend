@@ -1,6 +1,8 @@
 package fr.zbar.showtime.backend.app;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
