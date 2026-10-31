@@ -113,4 +113,19 @@ class UpdateProfileIT extends AbstractIT {
     assertThat(row.get("first_name")).isEqualTo("Jean");
     assertThat(((Timestamp) row.get("updated_at")).toInstant()).isEqualTo(REGISTERED_AT);
   }
+
+  @Test
+  void should_return_200_and_keep_the_update_date_when_the_names_are_the_current_ones() {
+    String token = registerAndLogin("patch-ca3@mail.fr");
+
+    patchMe(token, Map.of("lastName", "Dupont", "firstName", "Jean"))
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.updatedAt")
+        .isEqualTo("2025-01-01T08:00:00Z");
+
+    assertThat(((Timestamp) row("patch-ca3@mail.fr").get("updated_at")).toInstant())
+        .isEqualTo(REGISTERED_AT);
+  }
 }

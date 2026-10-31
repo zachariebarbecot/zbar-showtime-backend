@@ -115,4 +115,16 @@ class UserTest {
     assertThat(renamed.birthDate()).isEqualTo(user.birthDate());
     assertThat(renamed.gender()).isEqualTo(user.gender());
   }
+
+  @Test
+  void should_return_the_same_user_when_renamed_with_the_current_name() {
+    User user = register();
+
+    User renamed =
+        user.rename(
+            new FullName("Dupont", "Jean"), Clock.fixed(NOW.plusSeconds(60), ZoneOffset.UTC));
+
+    assertThat(renamed).isSameAs(user);
+    assertThat(renamed.updatedAt()).isEqualTo(NOW);
+  }
 }

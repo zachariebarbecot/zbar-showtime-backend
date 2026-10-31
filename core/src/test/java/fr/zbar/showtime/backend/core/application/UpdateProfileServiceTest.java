@@ -78,4 +78,16 @@ class UpdateProfileServiceTest {
     assertThat(stored.name()).isEqualTo(new FullName("Dupont", "Jean"));
     assertThat(stored.updatedAt()).isEqualTo(REGISTERED_AT);
   }
+
+  @Test
+  void should_keep_the_update_date_when_the_names_are_the_current_ones() {
+    User user = registeredUser("jean@mail.fr");
+
+    User updated =
+        updateProfileService.execute(new UpdateProfileCommand(user.id(), "Dupont", " Jean "));
+
+    assertThat(updated.updatedAt()).isEqualTo(REGISTERED_AT);
+    assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt())
+        .isEqualTo(REGISTERED_AT);
+  }
 }
