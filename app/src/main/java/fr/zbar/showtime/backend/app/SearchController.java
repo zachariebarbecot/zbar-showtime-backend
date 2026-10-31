@@ -18,7 +18,7 @@ class SearchController {
 
   private final SearchTitles searchTitles;
 
-  @Operation(summary = "Search movies by keyword")
+  @Operation(summary = "Search movies or series by keyword")
   @GetMapping
   SearchResponse search(
       @RequestParam(required = false) String query,
