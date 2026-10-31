@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.core.application;
 
 import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
+import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
 import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.User;
@@ -22,6 +23,9 @@ public class ChangeEmailService implements ChangeEmail {
   public User execute(ChangeEmailCommand command) {
     User user = userRepository.findById(command.userId()).orElseThrow(UserNotFoundException::new);
     Email newEmail = new Email(command.newEmail());
+    if (command.currentPassword() == null) {
+      throw new InvalidFieldException("currentPassword", "Current password must be provided");
+    }
     if (!passwordVerifier.matches(
         new RawPassword(command.currentPassword()), user.passwordHash())) {
       throw new InvalidCredentialsException();
