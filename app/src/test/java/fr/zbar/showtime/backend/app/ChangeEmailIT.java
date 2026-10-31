@@ -105,4 +105,42 @@ class ChangeEmailIT extends AbstractIT {
     login("chg-ca3@mail.fr").expectStatus().isOk();
     login("chg-ca3-taken@mail.fr").expectStatus().isOk();
   }
+
+  @Test
+  void should_return_400_with_field_and_change_nothing_when_the_new_email_is_invalid() {
+    register("chg-ca4@mail.fr");
+    String token = token("chg-ca4@mail.fr");
+
+    changeEmail(token, PASSWORD, "not-an-email")
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("email")
+        .jsonPath("$.errors[0].message")
+        .isEqualTo("Email must be a valid address");
+
+    login("chg-ca4@mail.fr").expectStatus().isOk();
+  }
+
+  @Test
+  void should_return_400_with_field_and_change_nothing_when_the_current_password_is_absent() {
+    register("chg-ca4b@mail.fr");
+    String token = token("chg-ca4b@mail.fr");
+
+    restTestClient
+        .put()
+        .uri("/users/me/email")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Map.of("newEmail", "chg-ca4b-new@mail.fr"))
+        .exchange()
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("currentPassword");
+
+    login("chg-ca4b@mail.fr").expectStatus().isOk();
+  }
 }
