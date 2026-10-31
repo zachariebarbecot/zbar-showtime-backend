@@ -65,6 +65,14 @@ public class User extends AggregateRoot<UUID> {
         id(), newName, email, passwordHash, birthDate, gender, createdAt, clock.instant());
   }
 
+  public User changeEmail(Email newEmail, Clock clock) {
+    if (email.equals(newEmail)) {
+      return this;
+    }
+    return new User(
+        id(), name, newEmail, passwordHash, birthDate, gender, createdAt, clock.instant());
+  }
+
   @Override
   public String toString() {
     return "User[****]";

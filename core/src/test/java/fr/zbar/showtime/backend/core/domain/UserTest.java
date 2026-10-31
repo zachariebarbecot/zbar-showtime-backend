@@ -127,4 +127,32 @@ class UserTest {
     assertThat(renamed).isSameAs(user);
     assertThat(renamed.updatedAt()).isEqualTo(NOW);
   }
+
+  @Test
+  void should_replace_email_and_update_date_keeping_the_rest_when_email_differs() {
+    User user = register();
+    Instant later = NOW.plusSeconds(3600);
+
+    User changed = user.changeEmail(new Email("new@b.fr"), Clock.fixed(later, ZoneOffset.UTC));
+
+    assertThat(changed.email()).isEqualTo(new Email("new@b.fr"));
+    assertThat(changed.updatedAt()).isEqualTo(later);
+    assertThat(changed.id()).isEqualTo(user.id());
+    assertThat(changed.createdAt()).isEqualTo(NOW);
+    assertThat(changed.name()).isEqualTo(user.name());
+    assertThat(changed.passwordHash()).isEqualTo(user.passwordHash());
+    assertThat(changed.birthDate()).isEqualTo(user.birthDate());
+    assertThat(changed.gender()).isEqualTo(user.gender());
+  }
+
+  @Test
+  void should_return_the_same_user_when_email_is_unchanged() {
+    User user = register();
+
+    User changed =
+        user.changeEmail(new Email(" A@B.fr "), Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC));
+
+    assertThat(changed).isSameAs(user);
+    assertThat(changed.updatedAt()).isEqualTo(NOW);
+  }
 }
