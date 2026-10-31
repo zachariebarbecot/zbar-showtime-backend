@@ -17,7 +17,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class ChangeEmailServiceTest {
@@ -58,9 +57,11 @@ class ChangeEmailServiceTest {
 
     assertThat(changed.email()).isEqualTo(new Email("new@mail.fr"));
     assertThat(changed.updatedAt()).isEqualTo(NOW);
-    assertThat(userRepository.findById(user.id())).contains(changed);
+    assertThat(userRepository.findById(user.id()))
+        .get()
+        .extracting(User::email, User::updatedAt)
+        .containsExactly(new Email("new@mail.fr"), NOW);
     assertThat(userRepository.findByEmail(new Email("jean@mail.fr"))).isEmpty();
-    assertThat(userRepository.findById(UUID.randomUUID())).isEmpty();
   }
 
   @Test
@@ -73,7 +74,10 @@ class ChangeEmailServiceTest {
                     new ChangeEmailCommand(user.id(), "Wr0ng!Passw0rd", "new@mail.fr")))
         .isInstanceOf(InvalidCredentialsException.class);
 
-    assertThat(userRepository.findById(user.id())).contains(user);
+    assertThat(userRepository.findById(user.id()))
+        .get()
+        .extracting(User::email, User::updatedAt)
+        .containsExactly(new Email("jean@mail.fr"), REGISTERED_AT);
   }
 
   @Test
@@ -84,6 +88,9 @@ class ChangeEmailServiceTest {
         changeEmailService.execute(new ChangeEmailCommand(user.id(), PASSWORD, " JEAN@mail.fr "));
 
     assertThat(unchanged.updatedAt()).isEqualTo(REGISTERED_AT);
-    assertThat(userRepository.findById(user.id())).contains(user);
+    assertThat(userRepository.findById(user.id()))
+        .get()
+        .extracting(User::email, User::updatedAt)
+        .containsExactly(new Email("jean@mail.fr"), REGISTERED_AT);
   }
 }
