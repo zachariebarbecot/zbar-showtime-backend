@@ -232,6 +232,44 @@ class TmdbSearchAdapterTest {
     assertThatThrownBy(this::search).isInstanceOf(CatalogUnavailableException.class);
   }
 
+  @ParameterizedTest
+  @ValueSource(ints = {401, 429, 500, 503})
+  void should_fail_with_catalog_unavailable_for_series_when_tmdb_answers_an_error_status(
+      int status) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andRespond(withStatus(HttpStatus.valueOf(status)));
+
+    assertThatThrownBy(() -> adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_fail_with_catalog_unavailable_for_series_when_tmdb_times_out() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andRespond(withException(new SocketTimeoutException("Read timed out")));
+
+    assertThatThrownBy(() -> adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "",
+        "not json at all",
+        "{}",
+        "{\"page\":1,\"total_pages\":1,\"total_results\":1,\"results\":[{\"id\":1,\"name\":\"D\",\"first_air_date\":\"01/12/2017\"}]}"
+      })
+  void should_fail_with_catalog_unavailable_for_series_when_the_body_has_an_unexpected_format(
+      String body) {
+    respondWithSeries(body);
+
+    assertThatThrownBy(() -> adapter.searchSeries(new SearchQuery("dark"), new PageNumber(1)))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
   @Test
   void should_fail_with_catalog_unavailable_when_tmdb_times_out() {
     server

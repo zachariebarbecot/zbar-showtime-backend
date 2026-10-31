@@ -381,4 +381,19 @@ class SearchIT extends AbstractIT {
                   .doesNotContain("test-tmdb-token", "themoviedb", "tmdb.org", "Exception");
             });
   }
+
+  @Test
+  void should_return_502_with_a_generic_problem_when_the_series_catalog_is_unavailable() {
+    String email = newUserEmail();
+    when(searchCatalog.searchSeries(new SearchQuery("dark"), new PageNumber(1)))
+        .thenThrow(
+            new CatalogUnavailableException(
+                new IllegalStateException("429 from https://api.themoviedb.org/3")));
+
+    search(email, "/search?query=dark&type=TV")
+        .expectStatus()
+        .isEqualTo(502)
+        .expectBody(String.class)
+        .value(body -> assertThat(body).contains("\"status\":502").doesNotContain("themoviedb"));
+  }
 }
