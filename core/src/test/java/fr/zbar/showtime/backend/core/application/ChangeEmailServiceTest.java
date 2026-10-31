@@ -1,11 +1,13 @@
 package fr.zbar.showtime.backend.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.domain.BirthDate;
 import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.FullName;
 import fr.zbar.showtime.backend.core.domain.Gender;
+import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.PasswordVerifier;
@@ -59,5 +61,18 @@ class ChangeEmailServiceTest {
     assertThat(userRepository.findById(user.id())).contains(changed);
     assertThat(userRepository.findByEmail(new Email("jean@mail.fr"))).isEmpty();
     assertThat(userRepository.findById(UUID.randomUUID())).isEmpty();
+  }
+
+  @Test
+  void should_reject_and_keep_the_email_when_the_current_password_is_wrong() {
+    User user = registeredUser();
+
+    assertThatThrownBy(
+            () ->
+                changeEmailService.execute(
+                    new ChangeEmailCommand(user.id(), "Wr0ng!Passw0rd", "new@mail.fr")))
+        .isInstanceOf(InvalidCredentialsException.class);
+
+    assertThat(userRepository.findById(user.id())).contains(user);
   }
 }

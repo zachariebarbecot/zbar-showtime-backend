@@ -77,4 +77,20 @@ class ChangeEmailIT extends AbstractIT {
         .jsonPath("$.detail")
         .isEqualTo("Identifiants invalides");
   }
+
+  @Test
+  void should_return_401_and_keep_the_email_when_the_current_password_is_wrong_even_if_taken() {
+    register("chg-ca2@mail.fr");
+    register("chg-ca2-taken@mail.fr");
+    String token = token("chg-ca2@mail.fr");
+
+    changeEmail(token, "Wr0ng!Passw0rd", "chg-ca2-taken@mail.fr")
+        .expectStatus()
+        .isUnauthorized()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Identifiants invalides");
+
+    login("chg-ca2@mail.fr").expectStatus().isOk();
+  }
 }
