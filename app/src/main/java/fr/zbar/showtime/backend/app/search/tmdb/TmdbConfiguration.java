@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app.tmdb;
+package fr.zbar.showtime.backend.app.search.tmdb;
 
 import java.net.http.HttpClient;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

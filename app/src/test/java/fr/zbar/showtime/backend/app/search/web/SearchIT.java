@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.search.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -6,13 +6,13 @@ import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
-import fr.zbar.showtime.backend.core.domain.CatalogItem;
-import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
-import fr.zbar.showtime.backend.core.domain.MediaType;
-import fr.zbar.showtime.backend.core.domain.PageNumber;
-import fr.zbar.showtime.backend.core.domain.SearchCatalog;
-import fr.zbar.showtime.backend.core.domain.SearchPage;
-import fr.zbar.showtime.backend.core.domain.SearchQuery;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
+import fr.zbar.showtime.backend.core.search.domain.PageNumber;
+import fr.zbar.showtime.backend.core.search.domain.SearchCatalog;
+import fr.zbar.showtime.backend.core.search.domain.SearchPage;
+import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;

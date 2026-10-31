@@ -1,11 +1,11 @@
-package fr.zbar.showtime.backend.core.application;
+package fr.zbar.showtime.backend.core.search.application;
 
-import fr.zbar.showtime.backend.core.domain.CatalogItem;
-import fr.zbar.showtime.backend.core.domain.MediaType;
-import fr.zbar.showtime.backend.core.domain.PageNumber;
-import fr.zbar.showtime.backend.core.domain.SearchCatalog;
-import fr.zbar.showtime.backend.core.domain.SearchPage;
-import fr.zbar.showtime.backend.core.domain.SearchQuery;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
+import fr.zbar.showtime.backend.core.search.domain.PageNumber;
+import fr.zbar.showtime.backend.core.search.domain.SearchCatalog;
+import fr.zbar.showtime.backend.core.search.domain.SearchPage;
+import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
 import java.util.List;
 
 class InMemorySearchCatalog implements SearchCatalog {

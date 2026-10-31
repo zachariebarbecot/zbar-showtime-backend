@@ -1,10 +1,10 @@
-package fr.zbar.showtime.backend.core.application;
+package fr.zbar.showtime.backend.core.search.application;
 
-import fr.zbar.showtime.backend.core.domain.PageNumber;
-import fr.zbar.showtime.backend.core.domain.SearchCatalog;
-import fr.zbar.showtime.backend.core.domain.SearchPage;
-import fr.zbar.showtime.backend.core.domain.SearchQuery;
-import fr.zbar.showtime.backend.core.domain.SearchType;
+import fr.zbar.showtime.backend.core.search.domain.PageNumber;
+import fr.zbar.showtime.backend.core.search.domain.SearchCatalog;
+import fr.zbar.showtime.backend.core.search.domain.SearchPage;
+import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
+import fr.zbar.showtime.backend.core.search.domain.SearchType;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import lombok.RequiredArgsConstructor;
 

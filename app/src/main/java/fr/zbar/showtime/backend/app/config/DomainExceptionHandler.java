@@ -1,9 +1,9 @@
 package fr.zbar.showtime.backend.app.config;
 
-import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.UserNotFoundException;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import io.micrometer.tracing.Tracer;
 import java.util.List;

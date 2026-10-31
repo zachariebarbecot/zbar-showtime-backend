@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.core.domain;
+package fr.zbar.showtime.backend.core.search.domain;
 
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import org.apache.commons.lang3.StringUtils;
