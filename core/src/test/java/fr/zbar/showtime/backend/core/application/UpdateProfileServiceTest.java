@@ -1,11 +1,13 @@
 package fr.zbar.showtime.backend.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.domain.BirthDate;
 import fr.zbar.showtime.backend.core.domain.Email;
 import fr.zbar.showtime.backend.core.domain.FullName;
 import fr.zbar.showtime.backend.core.domain.Gender;
+import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
 import fr.zbar.showtime.backend.core.domain.PasswordHash;
 import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.RawPassword;
@@ -55,5 +57,25 @@ class UpdateProfileServiceTest {
     assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt()).isEqualTo(NOW);
     assertThat(userRepository.findByEmail(new Email("other@mail.fr")).orElseThrow().name())
         .isEqualTo(new FullName("Dupont", "Jean"));
+  }
+
+  @Test
+  void should_reject_and_keep_the_user_unchanged_when_a_name_is_invalid() {
+    User user = registeredUser("jean@mail.fr");
+
+    assertThatThrownBy(
+            () -> updateProfileService.execute(new UpdateProfileCommand(user.id(), "  ", "Paul")))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("lastName"));
+    assertThatThrownBy(
+            () -> updateProfileService.execute(new UpdateProfileCommand(user.id(), "Martin", "")))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("firstName"));
+
+    User stored = userRepository.findById(user.id()).orElseThrow();
+    assertThat(stored.name()).isEqualTo(new FullName("Dupont", "Jean"));
+    assertThat(stored.updatedAt()).isEqualTo(REGISTERED_AT);
   }
 }

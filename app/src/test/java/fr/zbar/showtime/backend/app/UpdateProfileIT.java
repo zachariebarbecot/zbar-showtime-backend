@@ -94,4 +94,23 @@ class UpdateProfileIT extends AbstractIT {
     assertThat(((Timestamp) row.get("updated_at")).toInstant())
         .isEqualTo(FixedClockConfiguration.NOW);
   }
+
+  @Test
+  void should_return_400_with_the_field_errors_and_change_nothing_when_a_name_is_invalid() {
+    String token = registerAndLogin("patch-ca2@mail.fr");
+
+    patchMe(token, Map.of("lastName", "Martin", "firstName", " "))
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("firstName")
+        .jsonPath("$.errors[0].message")
+        .isEqualTo("First name cannot be blank");
+
+    Map<String, Object> row = row("patch-ca2@mail.fr");
+    assertThat(row.get("last_name")).isEqualTo("Dupont");
+    assertThat(row.get("first_name")).isEqualTo("Jean");
+    assertThat(((Timestamp) row.get("updated_at")).toInstant()).isEqualTo(REGISTERED_AT);
+  }
 }
