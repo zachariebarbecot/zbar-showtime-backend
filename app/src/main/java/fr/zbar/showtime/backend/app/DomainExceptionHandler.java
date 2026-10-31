@@ -9,6 +9,7 @@ import io.micrometer.tracing.Tracer;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@Slf4j
 @RequiredArgsConstructor
 class DomainExceptionHandler {
 
@@ -51,7 +53,8 @@ class DomainExceptionHandler {
   }
 
   @ExceptionHandler(CatalogUnavailableException.class)
-  ProblemDetail handleCatalogUnavailable() {
+  ProblemDetail handleCatalogUnavailable(CatalogUnavailableException exception) {
+    log.warn("Catalog unavailable", exception);
     return problem(HttpStatus.BAD_GATEWAY, "The catalog is temporarily unavailable.");
   }
 
