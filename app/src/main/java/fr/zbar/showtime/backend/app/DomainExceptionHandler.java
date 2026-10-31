@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app;
 
+import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
@@ -47,6 +48,11 @@ class DomainExceptionHandler {
   @ExceptionHandler(UserNotFoundException.class)
   ProblemDetail handleUserNotFound(UserNotFoundException exception) {
     return problem(HttpStatus.UNAUTHORIZED, exception.getMessage());
+  }
+
+  @ExceptionHandler(CatalogUnavailableException.class)
+  ProblemDetail handleCatalogUnavailable() {
+    return problem(HttpStatus.BAD_GATEWAY, "The catalog is temporarily unavailable.");
   }
 
   private ProblemDetail problem(HttpStatus status, String detail) {

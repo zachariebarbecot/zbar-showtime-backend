@@ -1,16 +1,19 @@
 package fr.zbar.showtime.backend.app.tmdb;
 
 import fr.zbar.showtime.backend.core.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.domain.MediaType;
 import fr.zbar.showtime.backend.core.domain.PageNumber;
 import fr.zbar.showtime.backend.core.domain.SearchCatalog;
 import fr.zbar.showtime.backend.core.domain.SearchPage;
 import fr.zbar.showtime.backend.core.domain.SearchQuery;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 @Component
 @RequiredArgsConstructor
@@ -21,19 +24,29 @@ class TmdbSearchAdapter implements SearchCatalog {
 
   @Override
   public SearchPage searchMovies(SearchQuery query, PageNumber page) {
-    TmdbSearchResponse response =
-        tmdbRestClient
-            .get()
-            .uri(
-                uri ->
-                    uri.path("/search/movie")
-                        .queryParam("query", "{query}")
-                        .queryParam("language", properties.language())
-                        .queryParam("include_adult", false)
-                        .queryParam("page", page.value())
-                        .build(query.value()))
-            .retrieve()
-            .body(TmdbSearchResponse.class);
+    try {
+      return toPage(fetch(query, page));
+    } catch (RestClientException | DateTimeParseException exception) {
+      throw new CatalogUnavailableException(exception);
+    }
+  }
+
+  private TmdbSearchResponse fetch(SearchQuery query, PageNumber page) {
+    return tmdbRestClient
+        .get()
+        .uri(
+            uri ->
+                uri.path("/search/movie")
+                    .queryParam("query", "{query}")
+                    .queryParam("language", properties.language())
+                    .queryParam("include_adult", false)
+                    .queryParam("page", page.value())
+                    .build(query.value()))
+        .retrieve()
+        .body(TmdbSearchResponse.class);
+  }
+
+  private SearchPage toPage(TmdbSearchResponse response) {
     return new SearchPage(
         response.page(),
         response.totalPages(),
