@@ -118,6 +118,22 @@ class SearchIT extends AbstractIT {
   }
 
   @Test
+  void should_search_like_without_type_when_the_type_is_all() {
+    String email = newUserEmail();
+    when(searchCatalog.searchAll(new SearchQuery("star"), new PageNumber(1)))
+        .thenReturn(
+            new SearchPage(
+                1, 1, 1, List.of(new CatalogItem(11L, MediaType.MOVIE, "Star Wars", null, null))));
+
+    search(email, "/search?query=star&type=ALL")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results[0].title")
+        .isEqualTo("Star Wars");
+  }
+
+  @Test
   void should_return_200_with_the_series_page_when_searching_with_type_tv() {
     String email = newUserEmail();
     when(searchCatalog.searchSeries(new SearchQuery("dark"), new PageNumber(2)))
@@ -199,7 +215,7 @@ class SearchIT extends AbstractIT {
         .jsonPath("$.errors[0].field")
         .isEqualTo("type")
         .jsonPath("$.errors[0].message")
-        .isEqualTo("Type must be MOVIE or TV");
+        .isEqualTo("Type must be MOVIE, TV or ALL");
 
     verifyNoInteractions(searchCatalog);
   }

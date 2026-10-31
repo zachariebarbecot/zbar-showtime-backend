@@ -20,13 +20,13 @@ class SearchTypeTest {
   @ParameterizedTest
   @NullAndEmptySource
   @ValueSource(strings = {"   ", "movie", "tv", "BOOK", "all"})
-  void should_refuse_value_outside_movie_and_tv(String value) {
+  void should_refuse_value_outside_movie_tv_and_all(String value) {
     assertThatThrownBy(() -> SearchType.from(value))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,
             exception -> {
               assertThat(exception.field()).isEqualTo("type");
-              assertThat(exception.messages()).containsExactly("Type must be MOVIE or TV");
+              assertThat(exception.messages()).containsExactly("Type must be MOVIE, TV or ALL");
             });
   }
 }
