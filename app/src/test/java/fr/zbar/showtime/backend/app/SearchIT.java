@@ -123,6 +123,45 @@ class SearchIT extends AbstractIT {
         .isEqualTo("2017-12-01");
   }
 
+  @Test
+  void should_return_401_and_not_call_tmdb_for_series_when_there_is_no_token() {
+    restTestClient
+        .get()
+        .uri("/search?query=dark&type=TV")
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"query=a", "query=dark&page=0", "query=dark&page=501", "query=dark&page=x"})
+  void should_return_400_and_not_call_tmdb_for_series_when_query_or_page_is_invalid(String params) {
+    String email = newUserEmail();
+
+    search(email, "/search?type=TV&" + params).expectStatus().isBadRequest();
+
+    verifyNoInteractions(searchCatalog);
+  }
+
+  @Test
+  void should_return_200_with_an_empty_series_list_when_the_page_is_beyond_the_last_one() {
+    String email = newUserEmail();
+    when(searchCatalog.searchSeries(new SearchQuery("dark"), new PageNumber(9)))
+        .thenReturn(new SearchPage(9, 3, 50, List.of()));
+
+    search(email, "/search?query=dark&type=TV&page=9")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results.length()")
+        .isEqualTo(0)
+        .jsonPath("$.totalPages")
+        .isEqualTo(3);
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"BOOK", "movie", "tv", "", "ALL"})
   void should_return_400_on_type_and_not_call_tmdb_when_the_type_is_not_accepted(String type) {
