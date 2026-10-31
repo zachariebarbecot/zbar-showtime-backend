@@ -95,4 +95,20 @@ class ChangePasswordServiceTest {
     assertThat(userRepository.findById(user.id()).orElseThrow().passwordHash())
         .isEqualTo(user.passwordHash());
   }
+
+  @Test
+  void should_reject_and_keep_the_user_when_new_password_equals_the_current_one() {
+    User user = registeredUser();
+
+    assertThatThrownBy(
+            () ->
+                changePasswordService.execute(
+                    new ChangePasswordCommand(user.id(), CURRENT, CURRENT)))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> assertThat(exception.field()).isEqualTo("newPassword"));
+
+    assertThat(userRepository.findById(user.id()).orElseThrow().updatedAt())
+        .isEqualTo(REGISTERED_AT);
+  }
 }

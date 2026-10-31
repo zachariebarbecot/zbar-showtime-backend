@@ -77,4 +77,18 @@ class ChangePasswordIT extends AbstractIT {
 
     login("pwd-ca3@mail.fr", PASSWORD).expectStatus().isOk();
   }
+
+  @Test
+  void should_return_400_and_keep_the_password_when_new_password_equals_the_current_one() {
+    registerUser("pwd-ca4@mail.fr");
+
+    changePassword(loginToken("pwd-ca4@mail.fr"), PASSWORD, PASSWORD)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("newPassword");
+
+    login("pwd-ca4@mail.fr", PASSWORD).expectStatus().isOk();
+  }
 }
