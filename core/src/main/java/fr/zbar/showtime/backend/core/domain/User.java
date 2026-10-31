@@ -58,7 +58,8 @@ public class User extends AggregateRoot<UUID> {
   }
 
   public User rename(FullName newName, Clock clock) {
-    return this;
+    return new User(
+        id(), newName, email, passwordHash, birthDate, gender, createdAt, clock.instant());
   }
 
   @Override
