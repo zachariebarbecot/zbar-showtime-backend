@@ -255,6 +255,42 @@ class TmdbSearchAdapterTest {
             new CatalogItem(2L, MediaType.TV, "Star Trek", null, LocalDate.of(1966, 9, 8)));
   }
 
+  @ParameterizedTest
+  @ValueSource(ints = {401, 429, 500, 503})
+  void should_fail_with_catalog_unavailable_for_multi_when_tmdb_answers_an_error_status(
+      int status) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/multi?")))
+        .andRespond(withStatus(HttpStatus.valueOf(status)));
+
+    assertThatThrownBy(this::searchAll).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_fail_with_catalog_unavailable_for_multi_when_tmdb_times_out() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/multi?")))
+        .andRespond(withException(new SocketTimeoutException("Read timed out")));
+
+    assertThatThrownBy(this::searchAll).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "",
+        "not json at all",
+        "{}",
+        "{\"page\":1,\"total_pages\":1,\"total_results\":1,\"results\":[{\"id\":1,\"title\":\"S\"}]}",
+        "{\"page\":1,\"total_pages\":1,\"total_results\":1,\"results\":[{\"id\":1,\"media_type\":\"movie\",\"title\":\"S\",\"release_date\":\"25/05/1977\"}]}"
+      })
+  void should_fail_with_catalog_unavailable_for_multi_when_the_body_has_an_unexpected_format(
+      String body) {
+    respondWithMulti(body);
+
+    assertThatThrownBy(this::searchAll).isInstanceOf(CatalogUnavailableException.class);
+  }
+
   private void respondWith(String json) {
     server
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))

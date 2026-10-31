@@ -437,4 +437,19 @@ class SearchIT extends AbstractIT {
         .expectBody(String.class)
         .value(body -> assertThat(body).contains("\"status\":502").doesNotContain("themoviedb"));
   }
+
+  @Test
+  void should_return_502_with_a_generic_problem_when_the_multi_catalog_is_unavailable() {
+    String email = newUserEmail();
+    when(searchCatalog.searchAll(new SearchQuery("star"), new PageNumber(1)))
+        .thenThrow(
+            new CatalogUnavailableException(
+                new IllegalStateException("500 from https://api.themoviedb.org/3")));
+
+    search(email, "/search?query=star&type=ALL")
+        .expectStatus()
+        .isEqualTo(502)
+        .expectBody(String.class)
+        .value(body -> assertThat(body).contains("\"status\":502").doesNotContain("themoviedb"));
+  }
 }
