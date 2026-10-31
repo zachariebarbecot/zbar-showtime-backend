@@ -1,11 +1,9 @@
 package fr.zbar.showtime.backend.app;
 
-import com.jayway.jsonpath.JsonPath;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Test;
@@ -13,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -24,8 +21,6 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 
 @AutoConfigureMockMvc
 class UsersMeIT extends AbstractIT {
-
-  private static final String PASSWORD = "Str0ng!Passw0rd";
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -54,43 +49,9 @@ class UsersMeIT extends AbstractIT {
         .exchange();
   }
 
-  private void register(String email) {
-    restTestClient
-        .post()
-        .uri("/auth/register")
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(
-            Map.of(
-                "lastName", "Dupont",
-                "firstName", "Jean",
-                "email", email,
-                "password", PASSWORD,
-                "birthDate", "1990-05-17",
-                "gender", "MALE"))
-        .exchange()
-        .expectStatus()
-        .isCreated();
-  }
-
-  private String loginToken(String email) {
-    byte[] body =
-        restTestClient
-            .post()
-            .uri("/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(Map.of("email", email, "password", PASSWORD))
-            .exchange()
-            .expectStatus()
-            .isOk()
-            .expectBody()
-            .returnResult()
-            .getResponseBody();
-    return JsonPath.read(new String(body, StandardCharsets.UTF_8), "$.token");
-  }
-
   @Test
   void should_return_200_and_the_profile_without_password_when_the_token_is_valid() {
-    register("me-ca1@mail.fr");
+    registerUser("me-ca1@mail.fr");
     String userId =
         jdbcTemplate.queryForObject(
             "select cast(id as varchar) from users where email = ?",
@@ -177,7 +138,7 @@ class UsersMeIT extends AbstractIT {
 
   @Test
   void should_keep_register_and_login_accessible_without_token() {
-    register("me-ca5@mail.fr");
+    registerUser("me-ca5@mail.fr");
 
     loginToken("me-ca5@mail.fr");
   }

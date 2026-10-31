@@ -1,12 +1,15 @@
 package fr.zbar.showtime.backend.app;
 
 import fr.zbar.showtime.backend.core.application.GetProfile;
+import fr.zbar.showtime.backend.core.application.UpdateProfile;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 class UserController {
 
   private final GetProfile getProfile;
+  private final UpdateProfile updateProfile;
 
   @Operation(
       summary = "Get the profile of the token owner",
@@ -24,5 +28,13 @@ class UserController {
   @GetMapping("/me")
   UserResponse me(@AuthenticationPrincipal Jwt jwt) {
     return UserResponse.from(getProfile.execute(UUID.fromString(jwt.getSubject())));
+  }
+
+  @Operation(summary = "Update the name of the token owner")
+  @PatchMapping("/me")
+  UserResponse updateMe(
+      @AuthenticationPrincipal Jwt jwt, @RequestBody UpdateProfileRequest request) {
+    return UserResponse.from(
+        updateProfile.execute(request.toCommand(UUID.fromString(jwt.getSubject()))));
   }
 }

@@ -98,4 +98,33 @@ class UserTest {
     assertThat(sameId).isEqualTo(user).hasSameHashCodeAs(user);
     assertThat(register()).isNotEqualTo(user);
   }
+
+  @Test
+  void should_replace_the_name_and_set_update_date_to_clock_instant_when_renamed() {
+    User user = register();
+    Instant later = NOW.plusSeconds(3600);
+
+    User renamed = user.rename(new FullName("Martin", "Paul"), Clock.fixed(later, ZoneOffset.UTC));
+
+    assertThat(renamed.id()).isEqualTo(user.id());
+    assertThat(renamed.name()).isEqualTo(new FullName("Martin", "Paul"));
+    assertThat(renamed.updatedAt()).isEqualTo(later);
+    assertThat(renamed.createdAt()).isEqualTo(NOW);
+    assertThat(renamed.email()).isEqualTo(user.email());
+    assertThat(renamed.passwordHash()).isEqualTo(user.passwordHash());
+    assertThat(renamed.birthDate()).isEqualTo(user.birthDate());
+    assertThat(renamed.gender()).isEqualTo(user.gender());
+  }
+
+  @Test
+  void should_return_the_same_user_when_renamed_with_the_current_name() {
+    User user = register();
+
+    User renamed =
+        user.rename(
+            new FullName("Dupont", "Jean"), Clock.fixed(NOW.plusSeconds(60), ZoneOffset.UTC));
+
+    assertThat(renamed).isSameAs(user);
+    assertThat(renamed.updatedAt()).isEqualTo(NOW);
+  }
 }
