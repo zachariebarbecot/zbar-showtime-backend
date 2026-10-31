@@ -50,6 +50,20 @@ class SearchTitlesServiceTest {
   }
 
   @Test
+  void should_search_movies_and_series_together_when_the_type_is_all() {
+    SearchTitlesService mixed =
+        new SearchTitlesService(
+            new InMemorySearchCatalog(
+                MATRIX, new CatalogItem(1L, MediaType.TV, "Matrix", null, null)));
+
+    SearchPage page = mixed.execute(new SearchTitlesCommand("matrix", 1, "ALL"));
+
+    assertThat(page.results())
+        .extracting(CatalogItem::type)
+        .containsExactly(MediaType.MOVIE, MediaType.TV);
+  }
+
+  @Test
   void should_reject_without_calling_the_catalog_when_the_query_or_the_page_is_invalid() {
     SearchTitlesService unreachableCatalog =
         new SearchTitlesService(
@@ -61,6 +75,11 @@ class SearchTitlesServiceTest {
 
               @Override
               public SearchPage searchSeries(SearchQuery query, PageNumber page) {
+                throw new AssertionError("TMDB must not be called");
+              }
+
+              @Override
+              public SearchPage searchAll(SearchQuery query, PageNumber page) {
                 throw new AssertionError("TMDB must not be called");
               }
             });

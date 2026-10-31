@@ -26,6 +26,13 @@ class InMemorySearchCatalog implements SearchCatalog {
     return search(MediaType.TV, query, page);
   }
 
+  @Override
+  public SearchPage searchAll(SearchQuery query, PageNumber page) {
+    List<CatalogItem> matches =
+        items.stream().filter(item -> item.title().equalsIgnoreCase(query.value())).toList();
+    return new SearchPage(page.value(), 1, matches.size(), matches);
+  }
+
   private SearchPage search(MediaType type, SearchQuery query, PageNumber page) {
     List<CatalogItem> matches =
         items.stream()
