@@ -36,7 +36,9 @@ class ChangePasswordIT extends AbstractIT {
   void should_return_204_and_accept_only_the_new_password_when_current_password_is_correct() {
     registerUser("pwd-ca1@mail.fr");
 
-    changePassword(loginToken("pwd-ca1@mail.fr"), PASSWORD, NEW_PASSWORD).expectStatus().isNoContent();
+    changePassword(loginToken("pwd-ca1@mail.fr"), PASSWORD, NEW_PASSWORD)
+        .expectStatus()
+        .isNoContent();
 
     login("pwd-ca1@mail.fr", NEW_PASSWORD).expectStatus().isOk();
     login("pwd-ca1@mail.fr", PASSWORD)
