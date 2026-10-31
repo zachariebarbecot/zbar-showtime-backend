@@ -32,18 +32,23 @@ class TmdbSearchAdapter implements SearchCatalog {
   }
 
   private TmdbSearchResponse fetch(SearchQuery query, PageNumber page) {
-    return tmdbRestClient
-        .get()
-        .uri(
-            uri ->
-                uri.path("/search/movie")
-                    .queryParam("query", "{query}")
-                    .queryParam("language", properties.language())
-                    .queryParam("include_adult", false)
-                    .queryParam("page", page.value())
-                    .build(query.value()))
-        .retrieve()
-        .body(TmdbSearchResponse.class);
+    TmdbSearchResponse response =
+        tmdbRestClient
+            .get()
+            .uri(
+                uri ->
+                    uri.path("/search/movie")
+                        .queryParam("query", "{query}")
+                        .queryParam("language", properties.language())
+                        .queryParam("include_adult", false)
+                        .queryParam("page", page.value())
+                        .build(query.value()))
+            .retrieve()
+            .body(TmdbSearchResponse.class);
+    if (response == null) {
+      throw new CatalogUnavailableException(new IllegalStateException("Empty TMDB response body"));
+    }
+    return response;
   }
 
   private SearchPage toPage(TmdbSearchResponse response) {
