@@ -1,8 +1,8 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.config;
 
 import fr.zbar.showtime.backend.core.application.AuthenticateUser;
 import fr.zbar.showtime.backend.core.application.AuthenticateUserService;
-import fr.zbar.showtime.backend.core.application.CoreUseCase;
+import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;

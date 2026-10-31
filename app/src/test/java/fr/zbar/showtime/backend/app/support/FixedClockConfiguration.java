@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.support;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 @TestConfiguration(proxyBeanMethods = false)
-class FixedClockConfiguration {
+public class FixedClockConfiguration {
 
-  static final Instant NOW = Instant.parse("2025-06-15T10:00:00Z");
+  public static final Instant NOW = Instant.parse("2025-06-15T10:00:00Z");
 
   @Bean
   @Primary

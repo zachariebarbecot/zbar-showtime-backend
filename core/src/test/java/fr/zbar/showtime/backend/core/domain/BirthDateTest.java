@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.core.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;

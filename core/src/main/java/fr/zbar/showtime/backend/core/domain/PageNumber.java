@@ -1,5 +1,7 @@
 package fr.zbar.showtime.backend.core.domain;
 
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
+
 public record PageNumber(int value) {
 
   private static final int MIN = 1;

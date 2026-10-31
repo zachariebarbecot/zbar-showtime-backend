@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.core.domain;
+package fr.zbar.showtime.backend.core.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

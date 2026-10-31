@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.core.domain.EmailAlreadyUsedException;
-import fr.zbar.showtime.backend.core.domain.InvalidFieldException;
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import io.micrometer.tracing.Tracer;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 
+import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.domain.LoginHistory;
 import fr.zbar.showtime.backend.core.domain.TokenIssuer;
 import java.nio.charset.StandardCharsets;

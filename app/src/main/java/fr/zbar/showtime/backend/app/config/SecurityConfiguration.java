@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.config;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.nio.charset.StandardCharsets;

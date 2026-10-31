@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.core.domain;
 
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.time.Clock;
 import java.time.LocalDate;
 

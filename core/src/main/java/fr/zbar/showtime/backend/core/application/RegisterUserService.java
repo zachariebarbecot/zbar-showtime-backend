@@ -8,6 +8,7 @@ import fr.zbar.showtime.backend.core.domain.PasswordHasher;
 import fr.zbar.showtime.backend.core.domain.RawPassword;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
+import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 

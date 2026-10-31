@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.app;
+package fr.zbar.showtime.backend.app.config;
 
 import java.time.Clock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app;
 
+import fr.zbar.showtime.backend.app.support.AbstractIT;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;

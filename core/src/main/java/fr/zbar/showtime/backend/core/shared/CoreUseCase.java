@@ -1,4 +1,4 @@
-package fr.zbar.showtime.backend.core.application;
+package fr.zbar.showtime.backend.core.shared;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

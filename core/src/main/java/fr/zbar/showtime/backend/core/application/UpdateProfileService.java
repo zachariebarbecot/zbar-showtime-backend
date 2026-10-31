@@ -4,6 +4,7 @@ import fr.zbar.showtime.backend.core.domain.FullName;
 import fr.zbar.showtime.backend.core.domain.User;
 import fr.zbar.showtime.backend.core.domain.UserNotFoundException;
 import fr.zbar.showtime.backend.core.domain.UserRepository;
+import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
 import fr.zbar.showtime.backend.core.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.domain.MediaType;

@@ -2,6 +2,8 @@ package fr.zbar.showtime.backend.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
