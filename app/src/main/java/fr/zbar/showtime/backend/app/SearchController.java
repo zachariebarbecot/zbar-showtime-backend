@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 class SearchController {
 
-  private static final String DEFAULT_TYPE = "MOVIE";
+  private static final String DEFAULT_TYPE = "ALL";
 
   private final SearchTitles searchTitles;
 
