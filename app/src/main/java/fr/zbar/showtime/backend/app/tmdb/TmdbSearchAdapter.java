@@ -31,6 +31,11 @@ class TmdbSearchAdapter implements SearchCatalog {
     }
   }
 
+  @Override
+  public SearchPage searchSeries(SearchQuery query, PageNumber page) {
+    throw new UnsupportedOperationException();
+  }
+
   private TmdbSearchResponse fetch(SearchQuery query, PageNumber page) {
     TmdbSearchResponse response =
         tmdbRestClient

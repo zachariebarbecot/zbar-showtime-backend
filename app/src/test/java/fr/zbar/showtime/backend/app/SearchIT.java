@@ -93,6 +93,37 @@ class SearchIT extends AbstractIT {
   }
 
   @Test
+  void should_return_200_with_the_series_page_when_searching_with_type_tv() {
+    String email = newUserEmail();
+    when(searchCatalog.searchSeries(new SearchQuery("dark"), new PageNumber(2)))
+        .thenReturn(
+            new SearchPage(
+                2,
+                3,
+                45,
+                List.of(
+                    new CatalogItem(
+                        70523L,
+                        MediaType.TV,
+                        "Dark",
+                        "https://image.tmdb.org/t/p/w342/d.jpg",
+                        LocalDate.of(2017, 12, 1)))));
+
+    search(email, "/search?query=dark&type=TV&page=2")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.page")
+        .isEqualTo(2)
+        .jsonPath("$.results[0].type")
+        .isEqualTo("TV")
+        .jsonPath("$.results[0].title")
+        .isEqualTo("Dark")
+        .jsonPath("$.results[0].releaseDate")
+        .isEqualTo("2017-12-01");
+  }
+
+  @Test
   void should_forward_the_requested_page_when_page_is_given() {
     registerUser("search-ca1-page@mail.fr");
     when(searchCatalog.searchMovies(new SearchQuery("matrix"), new PageNumber(3)))
