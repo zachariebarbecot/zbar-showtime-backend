@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.zbar.showtime.backend.core.domain.MediaType;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 record TmdbSearchResponse(
@@ -28,8 +28,12 @@ record TmdbSearchResponse(
       @JsonProperty("release_date") String releaseDate,
       @JsonProperty("first_air_date") String firstAirDate) {
 
-    MediaType type() {
-      return MediaType.valueOf(mediaType.toUpperCase(Locale.ROOT));
+    Optional<MediaType> type() {
+      return switch (mediaType) {
+        case "movie" -> Optional.of(MediaType.MOVIE);
+        case "tv" -> Optional.of(MediaType.TV);
+        default -> Optional.empty();
+      };
     }
 
     String title(MediaType type) {
