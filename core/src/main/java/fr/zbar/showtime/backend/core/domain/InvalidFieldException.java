@@ -18,7 +18,7 @@ public class InvalidFieldException extends RuntimeException {
   }
 
   public InvalidFieldException onField(String field) {
-    return this;
+    return new InvalidFieldException(field, messages);
   }
 
   public String field() {
