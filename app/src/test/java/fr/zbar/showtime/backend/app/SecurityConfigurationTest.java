@@ -35,7 +35,8 @@ class SecurityConfigurationTest {
 
   @Test
   void should_accept_decoder_secret_of_32_bytes() {
-    assertThat(securityConfiguration.jwtDecoder("0123456789abcdef0123456789abcdef", Clock.systemUTC()))
+    assertThat(
+            securityConfiguration.jwtDecoder("0123456789abcdef0123456789abcdef", Clock.systemUTC()))
         .isNotNull();
   }
 }
