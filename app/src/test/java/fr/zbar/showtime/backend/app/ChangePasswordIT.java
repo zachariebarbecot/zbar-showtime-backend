@@ -46,4 +46,35 @@ class ChangePasswordIT extends AbstractIT {
         .jsonPath("$.detail")
         .isEqualTo("Identifiants invalides");
   }
+
+  @Test
+  void should_return_401_and_keep_the_password_when_current_password_is_wrong() {
+    registerUser("pwd-ca2@mail.fr");
+
+    changePassword(loginToken("pwd-ca2@mail.fr"), "Wr0ng!Passw0rd", NEW_PASSWORD)
+        .expectStatus()
+        .isUnauthorized()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Identifiants invalides");
+
+    login("pwd-ca2@mail.fr", PASSWORD).expectStatus().isOk();
+    login("pwd-ca2@mail.fr", NEW_PASSWORD).expectStatus().isUnauthorized();
+  }
+
+  @Test
+  void should_return_400_on_new_password_and_keep_the_password_when_it_is_not_compliant() {
+    registerUser("pwd-ca3@mail.fr");
+
+    changePassword(loginToken("pwd-ca3@mail.fr"), PASSWORD, "short")
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("newPassword")
+        .jsonPath("$.errors[0].message")
+        .isNotEmpty();
+
+    login("pwd-ca3@mail.fr", PASSWORD).expectStatus().isOk();
+  }
 }

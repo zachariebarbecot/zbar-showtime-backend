@@ -169,4 +169,28 @@ class UserTest {
     assertThat(changed.createdAt()).isEqualTo(NOW);
     assertThat(changed.email()).isEqualTo(user.email());
   }
+
+  @Test
+  void should_refuse_new_password_when_it_violates_the_policy() {
+    User user = register();
+
+    assertThatThrownBy(() -> user.changePassword(new RawPassword("short"), HASHER, CLOCK))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception -> {
+              assertThat(exception.field()).isEqualTo("newPassword");
+              assertThat(exception.messages()).contains("Password must be at least 12 characters");
+            });
+  }
+
+  @Test
+  void should_refuse_new_password_when_it_contains_the_current_email() {
+    User user = register();
+
+    assertThatThrownBy(() -> user.changePassword(new RawPassword("Xx!a@b.fr-1234"), HASHER, CLOCK))
+        .isInstanceOfSatisfying(
+            InvalidFieldException.class,
+            exception ->
+                assertThat(exception.messages()).contains("Password must not contain the email"));
+  }
 }
