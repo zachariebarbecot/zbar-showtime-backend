@@ -2,7 +2,8 @@ package fr.zbar.showtime.backend.core.domain;
 
 public enum SearchType {
   MOVIE,
-  TV;
+  TV,
+  ALL;
 
   public static SearchType from(String value) {
     for (SearchType type : values()) {

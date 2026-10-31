@@ -19,6 +19,7 @@ public class SearchTitlesService implements SearchTitles {
     PageNumber page = new PageNumber(command.page());
     return switch (SearchType.from(command.type())) {
       case MOVIE -> searchCatalog.searchMovies(query, page);
+      case ALL -> searchCatalog.searchMovies(query, page);
       case TV -> searchCatalog.searchSeries(query, page);
     };
   }
