@@ -88,6 +88,43 @@ class TmdbSearchAdapterTest {
                 LocalDate.of(2003, 5, 15)));
   }
 
+  @Test
+  void should_call_search_tv_and_map_name_and_first_air_date_to_title_and_release_date() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/tv?")))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("Authorization", "Bearer secret-token"))
+        .andExpect(queryParam("query", "dark"))
+        .andExpect(queryParam("language", "fr-FR"))
+        .andExpect(queryParam("include_adult", "false"))
+        .andExpect(queryParam("page", "2"))
+        .andRespond(
+            withSuccess(
+                """
+                {"page":2,"total_pages":3,"total_results":45,"results":[
+                  {"id":70523,"name":"Dark","poster_path":"/d.jpg","first_air_date":"2017-12-01"}
+                ]}
+                """,
+                org.springframework.http.MediaType.APPLICATION_JSON));
+
+    SearchPage result = adapter.searchSeries(new SearchQuery("dark"), new PageNumber(2));
+
+    server.verify();
+    assertThat(result)
+        .isEqualTo(
+            new SearchPage(
+                2,
+                3,
+                45,
+                List.of(
+                    new CatalogItem(
+                        70523L,
+                        MediaType.TV,
+                        "Dark",
+                        "https://image.tmdb.org/t/p/w342/d.jpg",
+                        LocalDate.of(2017, 12, 1)))));
+  }
+
   private void respondWith(String json) {
     server
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
