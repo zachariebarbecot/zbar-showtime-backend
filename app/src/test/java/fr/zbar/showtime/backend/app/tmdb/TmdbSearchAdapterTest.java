@@ -169,6 +169,36 @@ class TmdbSearchAdapterTest {
                         LocalDate.of(1977, 5, 25)))));
   }
 
+  private void respondWithMulti(String json) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/multi?")))
+        .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
+  }
+
+  private SearchPage searchAll() {
+    return adapter.searchAll(new SearchQuery("star"), new PageNumber(1));
+  }
+
+  @Test
+  void should_drop_people_from_multi_results_and_keep_the_tmdb_totals() {
+    respondWithMulti(
+        """
+        {"page":1,"total_pages":4,"total_results":80,"results":[
+          {"id":9,"media_type":"person","name":"Star Person","profile_path":"/p.jpg"},
+          {"id":11,"media_type":"movie","title":"Star Wars","release_date":"1977-05-25"},
+          {"id":12,"media_type":"person","name":"Other"}
+        ]}
+        """);
+
+    SearchPage result = searchAll();
+
+    assertThat(result.totalPages()).isEqualTo(4);
+    assertThat(result.totalResults()).isEqualTo(80);
+    assertThat(result.results())
+        .containsExactly(
+            new CatalogItem(11L, MediaType.MOVIE, "Star Wars", null, LocalDate.of(1977, 5, 25)));
+  }
+
   private void respondWith(String json) {
     server
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
