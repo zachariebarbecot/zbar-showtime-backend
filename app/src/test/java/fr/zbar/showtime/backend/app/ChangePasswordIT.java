@@ -91,4 +91,19 @@ class ChangePasswordIT extends AbstractIT {
 
     login("pwd-ca4@mail.fr", PASSWORD).expectStatus().isOk();
   }
+
+  @Test
+  void should_keep_the_token_issued_before_the_change_valid() {
+    registerUser("pwd-ca5@mail.fr");
+    String token = loginToken("pwd-ca5@mail.fr");
+    changePassword(token, PASSWORD, NEW_PASSWORD).expectStatus().isOk();
+
+    restTestClient
+        .get()
+        .uri("/users/me")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        .exchange()
+        .expectStatus()
+        .isOk();
+  }
 }
