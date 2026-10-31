@@ -13,6 +13,6 @@ public class GetProfileService implements GetProfile {
 
   @Override
   public User execute(UUID userId) {
-    return null;
+    return userRepository.findById(userId).orElseThrow();
   }
 }

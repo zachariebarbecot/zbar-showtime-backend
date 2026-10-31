@@ -52,7 +52,7 @@ class UserPersistenceAdapter implements UserRepository {
 
   @Override
   public Optional<User> findById(UUID id) {
-    return Optional.empty();
+    return userJpaRepository.findById(id).map(UserPersistenceAdapter::toDomain);
   }
 
   private static User toDomain(UserJpaEntity entity) {
