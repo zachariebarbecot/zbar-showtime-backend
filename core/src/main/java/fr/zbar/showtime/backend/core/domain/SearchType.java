@@ -11,6 +11,6 @@ public enum SearchType {
         return type;
       }
     }
-    throw new InvalidFieldException("type", "Type must be MOVIE or TV");
+    throw new InvalidFieldException("type", "Type must be MOVIE, TV or ALL");
   }
 }
