@@ -9,6 +9,7 @@ import fr.zbar.showtime.backend.core.domain.SearchPage;
 import fr.zbar.showtime.backend.core.domain.SearchQuery;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Optional;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -25,12 +26,12 @@ class TmdbSearchAdapter implements SearchCatalog {
 
   @Override
   public SearchPage searchMovies(SearchQuery query, PageNumber page) {
-    return search("/search/movie", result -> MediaType.MOVIE, query, page);
+    return search("/search/movie", result -> Optional.of(MediaType.MOVIE), query, page);
   }
 
   @Override
   public SearchPage searchSeries(SearchQuery query, PageNumber page) {
-    return search("/search/tv", result -> MediaType.TV, query, page);
+    return search("/search/tv", result -> Optional.of(MediaType.TV), query, page);
   }
 
   @Override
@@ -40,7 +41,7 @@ class TmdbSearchAdapter implements SearchCatalog {
 
   private SearchPage search(
       String path,
-      Function<TmdbSearchResponse.Result, MediaType> typeOf,
+      Function<TmdbSearchResponse.Result, Optional<MediaType>> typeOf,
       SearchQuery query,
       PageNumber page) {
     try {
@@ -71,12 +72,15 @@ class TmdbSearchAdapter implements SearchCatalog {
   }
 
   private SearchPage toPage(
-      TmdbSearchResponse response, Function<TmdbSearchResponse.Result, MediaType> typeOf) {
+      TmdbSearchResponse response,
+      Function<TmdbSearchResponse.Result, Optional<MediaType>> typeOf) {
     return new SearchPage(
         response.page(),
         response.totalPages(),
         response.totalResults(),
-        response.results().stream().map(result -> toItem(result, typeOf.apply(result))).toList());
+        response.results().stream()
+            .flatMap(result -> typeOf.apply(result).map(type -> toItem(result, type)).stream())
+            .toList());
   }
 
   private CatalogItem toItem(TmdbSearchResponse.Result result, MediaType type) {
