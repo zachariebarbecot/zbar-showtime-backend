@@ -93,6 +93,47 @@ class SearchIT extends AbstractIT {
   }
 
   @Test
+  void should_search_movies_and_series_together_when_no_type_is_given() {
+    String email = newUserEmail();
+    when(searchCatalog.searchAll(new SearchQuery("star"), new PageNumber(1)))
+        .thenReturn(
+            new SearchPage(
+                1,
+                1,
+                2,
+                List.of(
+                    new CatalogItem(1L, MediaType.TV, "Star Trek", null, null),
+                    new CatalogItem(11L, MediaType.MOVIE, "Star Wars", null, null))));
+
+    search(email, "/search?query=star")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results.length()")
+        .isEqualTo(2)
+        .jsonPath("$.results[0].type")
+        .isEqualTo("TV")
+        .jsonPath("$.results[1].type")
+        .isEqualTo("MOVIE");
+  }
+
+  @Test
+  void should_search_like_without_type_when_the_type_is_all() {
+    String email = newUserEmail();
+    when(searchCatalog.searchAll(new SearchQuery("star"), new PageNumber(1)))
+        .thenReturn(
+            new SearchPage(
+                1, 1, 1, List.of(new CatalogItem(11L, MediaType.MOVIE, "Star Wars", null, null))));
+
+    search(email, "/search?query=star&type=ALL")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results[0].title")
+        .isEqualTo("Star Wars");
+  }
+
+  @Test
   void should_return_200_with_the_series_page_when_searching_with_type_tv() {
     String email = newUserEmail();
     when(searchCatalog.searchSeries(new SearchQuery("dark"), new PageNumber(2)))
@@ -163,7 +204,7 @@ class SearchIT extends AbstractIT {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"BOOK", "movie", "tv", "", "ALL"})
+  @ValueSource(strings = {"BOOK", "movie", "tv", "", "all"})
   void should_return_400_on_type_and_not_call_tmdb_when_the_type_is_not_accepted(String type) {
     String email = newUserEmail();
 
@@ -174,7 +215,7 @@ class SearchIT extends AbstractIT {
         .jsonPath("$.errors[0].field")
         .isEqualTo("type")
         .jsonPath("$.errors[0].message")
-        .isEqualTo("Type must be MOVIE or TV");
+        .isEqualTo("Type must be MOVIE, TV or ALL");
 
     verifyNoInteractions(searchCatalog);
   }
@@ -313,7 +354,7 @@ class SearchIT extends AbstractIT {
             new SearchPage(
                 1, 1, 1, List.of(new CatalogItem(7L, MediaType.MOVIE, "Matrix", null, null))));
 
-    search(email, "/search?query=matrix")
+    search(email, "/search?query=matrix&type=MOVIE")
         .expectStatus()
         .isOk()
         .expectBody()
@@ -333,7 +374,7 @@ class SearchIT extends AbstractIT {
     when(searchCatalog.searchMovies(new SearchQuery("zzzz"), new PageNumber(1)))
         .thenReturn(new SearchPage(1, 0, 0, List.of()));
 
-    search(email, "/search?query=zzzz")
+    search(email, "/search?query=zzzz&type=MOVIE")
         .expectStatus()
         .isOk()
         .expectBody()
@@ -349,7 +390,7 @@ class SearchIT extends AbstractIT {
     when(searchCatalog.searchMovies(new SearchQuery("matrix"), new PageNumber(500)))
         .thenReturn(new SearchPage(500, 3, 50, List.of()));
 
-    search(email, "/search?query=matrix&page=500")
+    search(email, "/search?query=matrix&page=500&type=MOVIE")
         .expectStatus()
         .isOk()
         .expectBody()
@@ -368,7 +409,7 @@ class SearchIT extends AbstractIT {
                 new IllegalStateException(
                     "401 from https://api.themoviedb.org/3 token test-tmdb-token")));
 
-    search(email, "/search?query=matrix")
+    search(email, "/search?query=matrix&type=MOVIE")
         .expectStatus()
         .isEqualTo(502)
         .expectHeader()
@@ -391,6 +432,21 @@ class SearchIT extends AbstractIT {
                 new IllegalStateException("429 from https://api.themoviedb.org/3")));
 
     search(email, "/search?query=dark&type=TV")
+        .expectStatus()
+        .isEqualTo(502)
+        .expectBody(String.class)
+        .value(body -> assertThat(body).contains("\"status\":502").doesNotContain("themoviedb"));
+  }
+
+  @Test
+  void should_return_502_with_a_generic_problem_when_the_multi_catalog_is_unavailable() {
+    String email = newUserEmail();
+    when(searchCatalog.searchAll(new SearchQuery("star"), new PageNumber(1)))
+        .thenThrow(
+            new CatalogUnavailableException(
+                new IllegalStateException("500 from https://api.themoviedb.org/3")));
+
+    search(email, "/search?query=star&type=ALL")
         .expectStatus()
         .isEqualTo(502)
         .expectBody(String.class)

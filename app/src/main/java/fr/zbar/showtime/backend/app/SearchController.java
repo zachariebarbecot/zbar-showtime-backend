@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 class SearchController {
 
-  private static final String DEFAULT_TYPE = "MOVIE";
+  private static final String DEFAULT_TYPE = "ALL";
 
   private final SearchTitles searchTitles;
 
-  @Operation(summary = "Search movies or series by keyword")
+  @Operation(summary = "Search movies, series or both by keyword")
   @GetMapping
   SearchResponse search(
       @RequestParam(required = false) String query,

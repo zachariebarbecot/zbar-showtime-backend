@@ -14,18 +14,19 @@ class SearchTypeTest {
   void should_read_known_values() {
     assertThat(SearchType.from("MOVIE")).isEqualTo(SearchType.MOVIE);
     assertThat(SearchType.from("TV")).isEqualTo(SearchType.TV);
+    assertThat(SearchType.from("ALL")).isEqualTo(SearchType.ALL);
   }
 
   @ParameterizedTest
   @NullAndEmptySource
-  @ValueSource(strings = {"   ", "movie", "tv", "BOOK", "ALL"})
-  void should_refuse_value_outside_movie_and_tv(String value) {
+  @ValueSource(strings = {"   ", "movie", "tv", "BOOK", "all"})
+  void should_refuse_value_outside_movie_tv_and_all(String value) {
     assertThatThrownBy(() -> SearchType.from(value))
         .isInstanceOfSatisfying(
             InvalidFieldException.class,
             exception -> {
               assertThat(exception.field()).isEqualTo("type");
-              assertThat(exception.messages()).containsExactly("Type must be MOVIE or TV");
+              assertThat(exception.messages()).containsExactly("Type must be MOVIE, TV or ALL");
             });
   }
 }

@@ -125,6 +125,172 @@ class TmdbSearchAdapterTest {
                         LocalDate.of(2017, 12, 1)))));
   }
 
+  @Test
+  void should_call_search_multi_and_keep_the_native_order_of_movies_and_series() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/multi?")))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("Authorization", "Bearer secret-token"))
+        .andExpect(queryParam("query", "star"))
+        .andExpect(queryParam("language", "fr-FR"))
+        .andExpect(queryParam("include_adult", "false"))
+        .andExpect(queryParam("page", "2"))
+        .andRespond(
+            withSuccess(
+                """
+                {"page":2,"total_pages":5,"total_results":90,"results":[
+                  {"id":1,"media_type":"tv","name":"Star Trek","poster_path":"/s.jpg","first_air_date":"1966-09-08"},
+                  {"id":11,"media_type":"movie","title":"Star Wars","poster_path":"/w.jpg","release_date":"1977-05-25"}
+                ]}
+                """,
+                org.springframework.http.MediaType.APPLICATION_JSON));
+
+    SearchPage result = adapter.searchAll(new SearchQuery("star"), new PageNumber(2));
+
+    server.verify();
+    assertThat(result)
+        .isEqualTo(
+            new SearchPage(
+                2,
+                5,
+                90,
+                List.of(
+                    new CatalogItem(
+                        1L,
+                        MediaType.TV,
+                        "Star Trek",
+                        "https://image.tmdb.org/t/p/w342/s.jpg",
+                        LocalDate.of(1966, 9, 8)),
+                    new CatalogItem(
+                        11L,
+                        MediaType.MOVIE,
+                        "Star Wars",
+                        "https://image.tmdb.org/t/p/w342/w.jpg",
+                        LocalDate.of(1977, 5, 25)))));
+  }
+
+  private void respondWithMulti(String json) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/multi?")))
+        .andRespond(withSuccess(json, org.springframework.http.MediaType.APPLICATION_JSON));
+  }
+
+  private SearchPage searchAll() {
+    return adapter.searchAll(new SearchQuery("star"), new PageNumber(1));
+  }
+
+  @Test
+  void should_drop_people_from_multi_results_and_keep_the_tmdb_totals() {
+    respondWithMulti(
+        """
+        {"page":1,"total_pages":4,"total_results":80,"results":[
+          {"id":9,"media_type":"person","name":"Star Person","profile_path":"/p.jpg"},
+          {"id":11,"media_type":"movie","title":"Star Wars","release_date":"1977-05-25"},
+          {"id":12,"media_type":"person","name":"Other"}
+        ]}
+        """);
+
+    SearchPage result = searchAll();
+
+    assertThat(result.totalPages()).isEqualTo(4);
+    assertThat(result.totalResults()).isEqualTo(80);
+    assertThat(result.results())
+        .containsExactly(
+            new CatalogItem(11L, MediaType.MOVIE, "Star Wars", null, LocalDate.of(1977, 5, 25)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"\"poster_path\":null,", "\"poster_path\":\"\",", ""})
+  void should_keep_multi_results_with_a_null_poster_url_when_the_poster_is_null_empty_or_absent(
+      String posterField) {
+    respondWithMulti(
+        """
+        {"page":1,"total_pages":1,"total_results":2,"results":[
+          {"id":1,"media_type":"movie",%s"title":"Star Wars","release_date":"1977-05-25"},
+          {"id":2,"media_type":"tv",%s"name":"Star Trek","first_air_date":"1966-09-08"}]}
+        """
+            .formatted(posterField, posterField));
+
+    assertThat(searchAll().results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.MOVIE, "Star Wars", null, LocalDate.of(1977, 5, 25)),
+            new CatalogItem(2L, MediaType.TV, "Star Trek", null, LocalDate.of(1966, 9, 8)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "\"release_date\":null,\"first_air_date\":null,",
+        "\"release_date\":\"\",\"first_air_date\":\"\",",
+        ""
+      })
+  void should_keep_multi_results_with_a_null_release_date_when_the_date_is_null_empty_or_absent(
+      String dateField) {
+    respondWithMulti(
+        """
+        {"page":1,"total_pages":1,"total_results":2,"results":[
+          {"id":1,"media_type":"movie",%s"title":"Star Wars"},
+          {"id":2,"media_type":"tv",%s"name":"Star Trek"}]}
+        """
+            .formatted(dateField, dateField));
+
+    assertThat(searchAll().results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.MOVIE, "Star Wars", null, null),
+            new CatalogItem(2L, MediaType.TV, "Star Trek", null, null));
+  }
+
+  @Test
+  void should_map_each_multi_result_with_the_fields_of_its_own_media_type() {
+    respondWithMulti(
+        """
+        {"page":1,"total_pages":1,"total_results":2,"results":[
+          {"id":1,"media_type":"movie","title":"Star Wars","name":"ignored","release_date":"1977-05-25","first_air_date":"2000-01-01"},
+          {"id":2,"media_type":"tv","title":"ignored","name":"Star Trek","release_date":"2000-01-01","first_air_date":"1966-09-08"}]}
+        """);
+
+    assertThat(searchAll().results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.MOVIE, "Star Wars", null, LocalDate.of(1977, 5, 25)),
+            new CatalogItem(2L, MediaType.TV, "Star Trek", null, LocalDate.of(1966, 9, 8)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {401, 429, 500, 503})
+  void should_fail_with_catalog_unavailable_for_multi_when_tmdb_answers_an_error_status(
+      int status) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/multi?")))
+        .andRespond(withStatus(HttpStatus.valueOf(status)));
+
+    assertThatThrownBy(this::searchAll).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_fail_with_catalog_unavailable_for_multi_when_tmdb_times_out() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/multi?")))
+        .andRespond(withException(new SocketTimeoutException("Read timed out")));
+
+    assertThatThrownBy(this::searchAll).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "",
+        "not json at all",
+        "{}",
+        "{\"page\":1,\"total_pages\":1,\"total_results\":1,\"results\":[{\"id\":1,\"title\":\"S\"}]}",
+        "{\"page\":1,\"total_pages\":1,\"total_results\":1,\"results\":[{\"id\":1,\"media_type\":\"movie\",\"title\":\"S\",\"release_date\":\"25/05/1977\"}]}"
+      })
+  void should_fail_with_catalog_unavailable_for_multi_when_the_body_has_an_unexpected_format(
+      String body) {
+    respondWithMulti(body);
+
+    assertThatThrownBy(this::searchAll).isInstanceOf(CatalogUnavailableException.class);
+  }
+
   private void respondWith(String json) {
     server
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
