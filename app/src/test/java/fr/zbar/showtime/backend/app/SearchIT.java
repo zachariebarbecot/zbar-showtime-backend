@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.core.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.domain.MediaType;
 import fr.zbar.showtime.backend.core.domain.PageNumber;
 import fr.zbar.showtime.backend.core.domain.SearchCatalog;
@@ -269,5 +270,28 @@ class SearchIT extends AbstractIT {
         .isEqualTo(0)
         .jsonPath("$.totalPages")
         .isEqualTo(3);
+  }
+
+  @Test
+  void should_return_502_with_a_generic_problem_when_the_catalog_is_unavailable() {
+    String email = newUserEmail();
+    when(searchCatalog.searchMovies(new SearchQuery("matrix"), new PageNumber(1)))
+        .thenThrow(
+            new CatalogUnavailableException(
+                new IllegalStateException(
+                    "401 from https://api.themoviedb.org/3 token test-tmdb-token")));
+
+    search(email, "/search?query=matrix")
+        .expectStatus()
+        .isEqualTo(502)
+        .expectHeader()
+        .contentTypeCompatibleWith("application/problem+json")
+        .expectBody(String.class)
+        .value(
+            body -> {
+              assertThat(body).contains("\"status\":502");
+              assertThat(body)
+                  .doesNotContain("test-tmdb-token", "themoviedb", "tmdb.org", "Exception");
+            });
   }
 }

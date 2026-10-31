@@ -1,18 +1,23 @@
 package fr.zbar.showtime.backend.app.tmdb;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import fr.zbar.showtime.backend.core.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.domain.MediaType;
 import fr.zbar.showtime.backend.core.domain.PageNumber;
 import fr.zbar.showtime.backend.core.domain.SearchPage;
 import fr.zbar.showtime.backend.core.domain.SearchQuery;
+import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
@@ -20,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
@@ -138,5 +144,55 @@ class TmdbSearchAdapterTest {
 
     assertThat(adapter.searchMovies(new SearchQuery("matrix"), new PageNumber(9)))
         .isEqualTo(new SearchPage(9, 3, 50, List.of()));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {401, 403, 404, 429, 500, 502, 503})
+  void should_fail_with_catalog_unavailable_when_tmdb_answers_an_error_status(int status) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
+        .andRespond(withStatus(HttpStatus.valueOf(status)));
+
+    assertThatThrownBy(this::search).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_fail_with_catalog_unavailable_when_tmdb_times_out() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
+        .andRespond(withException(new SocketTimeoutException("Read timed out")));
+
+    assertThatThrownBy(this::search).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "not json at all",
+        "[]",
+        "{}",
+        "{\"page\":1,\"total_pages\":1,\"total_results\":1,\"results\":\"oops\"}",
+        "{\"page\":1,\"total_pages\":1,\"total_results\":1,\"results\":[{\"id\":1,\"title\":\"M\",\"release_date\":\"31/03/1999\"}]}"
+      })
+  void should_fail_with_catalog_unavailable_when_the_tmdb_body_has_an_unexpected_format(
+      String body) {
+    respondWith(body);
+
+    assertThatThrownBy(this::search).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_not_leak_the_token_or_the_url_in_the_failure_message() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
+        .andRespond(withStatus(HttpStatus.UNAUTHORIZED));
+
+    assertThatThrownBy(this::search)
+        .isInstanceOfSatisfying(
+            CatalogUnavailableException.class,
+            exception -> {
+              assertThat(exception.getMessage()).isNull();
+              assertThat(exception.toString()).doesNotContain("secret-token", "api.tmdb.test");
+            });
   }
 }
