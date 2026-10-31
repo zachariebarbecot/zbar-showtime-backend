@@ -199,6 +199,62 @@ class TmdbSearchAdapterTest {
             new CatalogItem(11L, MediaType.MOVIE, "Star Wars", null, LocalDate.of(1977, 5, 25)));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"\"poster_path\":null,", "\"poster_path\":\"\",", ""})
+  void should_keep_multi_results_with_a_null_poster_url_when_the_poster_is_null_empty_or_absent(
+      String posterField) {
+    respondWithMulti(
+        """
+        {"page":1,"total_pages":1,"total_results":2,"results":[
+          {"id":1,"media_type":"movie",%s"title":"Star Wars","release_date":"1977-05-25"},
+          {"id":2,"media_type":"tv",%s"name":"Star Trek","first_air_date":"1966-09-08"}]}
+        """
+            .formatted(posterField, posterField));
+
+    assertThat(searchAll().results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.MOVIE, "Star Wars", null, LocalDate.of(1977, 5, 25)),
+            new CatalogItem(2L, MediaType.TV, "Star Trek", null, LocalDate.of(1966, 9, 8)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "\"release_date\":null,\"first_air_date\":null,",
+        "\"release_date\":\"\",\"first_air_date\":\"\",",
+        ""
+      })
+  void should_keep_multi_results_with_a_null_release_date_when_the_date_is_null_empty_or_absent(
+      String dateField) {
+    respondWithMulti(
+        """
+        {"page":1,"total_pages":1,"total_results":2,"results":[
+          {"id":1,"media_type":"movie",%s"title":"Star Wars"},
+          {"id":2,"media_type":"tv",%s"name":"Star Trek"}]}
+        """
+            .formatted(dateField, dateField));
+
+    assertThat(searchAll().results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.MOVIE, "Star Wars", null, null),
+            new CatalogItem(2L, MediaType.TV, "Star Trek", null, null));
+  }
+
+  @Test
+  void should_map_each_multi_result_with_the_fields_of_its_own_media_type() {
+    respondWithMulti(
+        """
+        {"page":1,"total_pages":1,"total_results":2,"results":[
+          {"id":1,"media_type":"movie","title":"Star Wars","name":"ignored","release_date":"1977-05-25","first_air_date":"2000-01-01"},
+          {"id":2,"media_type":"tv","title":"ignored","name":"Star Trek","release_date":"2000-01-01","first_air_date":"1966-09-08"}]}
+        """);
+
+    assertThat(searchAll().results())
+        .containsExactly(
+            new CatalogItem(1L, MediaType.MOVIE, "Star Wars", null, LocalDate.of(1977, 5, 25)),
+            new CatalogItem(2L, MediaType.TV, "Star Trek", null, LocalDate.of(1966, 9, 8)));
+  }
+
   private void respondWith(String json) {
     server
         .expect(requestTo(startsWith("https://api.tmdb.test/3/search/movie?")))
