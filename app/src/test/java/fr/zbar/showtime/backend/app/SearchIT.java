@@ -123,6 +123,23 @@ class SearchIT extends AbstractIT {
         .isEqualTo("2017-12-01");
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"BOOK", "movie", "tv", "", "ALL"})
+  void should_return_400_on_type_and_not_call_tmdb_when_the_type_is_not_accepted(String type) {
+    String email = newUserEmail();
+
+    search(email, "/search?query=matrix&type={type}", type)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("type")
+        .jsonPath("$.errors[0].message")
+        .isEqualTo("Type must be MOVIE or TV");
+
+    verifyNoInteractions(searchCatalog);
+  }
+
   @Test
   void should_forward_the_requested_page_when_page_is_given() {
     registerUser("search-ca1-page@mail.fr");
