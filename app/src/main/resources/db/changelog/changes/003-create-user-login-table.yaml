@@ -1,0 +1,26 @@
+databaseChangeLog:
+- changeSet:
+    id: 1793404774995-1
+    author: zbarbecot (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: user_loginPK
+            name: id
+            type: UUID
+        - column:
+            constraints:
+              nullable: false
+            name: logged_at
+            type: TIMESTAMP(6) WITH TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: user_id
+            type: UUID
+        tableName: user_login
+

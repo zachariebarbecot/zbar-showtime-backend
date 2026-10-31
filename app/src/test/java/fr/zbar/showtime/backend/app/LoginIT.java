@@ -6,7 +6,9 @@ import com.jayway.jsonpath.JsonPath;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,13 @@ class LoginIT extends AbstractIT {
   private String userId(String email) {
     return jdbcTemplate.queryForObject(
         "select cast(id as varchar) from users where email = ?", String.class, email);
+  }
+
+  private List<Object> loggedAts(String userId) {
+    return jdbcTemplate.queryForList(
+        "select logged_at from user_login where user_id = ? order by logged_at",
+        Object.class,
+        UUID.fromString(userId));
   }
 
   private RestTestClient.ResponseSpec login(String email, String password) {
@@ -144,5 +153,38 @@ class LoginIT extends AbstractIT {
         .doesNotExist()
         .jsonPath("$.length()")
         .isEqualTo(1);
+  }
+
+  @Test
+  void should_store_a_login_of_the_user_when_login_succeeds() {
+    register("trace-ca1@mail.fr");
+    String userId = userId("trace-ca1@mail.fr");
+
+    login("trace-ca1@mail.fr", PASSWORD).expectStatus().isOk();
+
+    assertThat(loggedAts(userId)).hasSize(1).doesNotContainNull();
+  }
+
+  @Test
+  void should_store_two_distinct_logins_when_the_user_logs_in_twice() {
+    register("trace-ca2@mail.fr");
+    String userId = userId("trace-ca2@mail.fr");
+
+    login("trace-ca2@mail.fr", PASSWORD).expectStatus().isOk();
+    List<Object> first = loggedAts(userId);
+    login("trace-ca2@mail.fr", PASSWORD).expectStatus().isOk();
+
+    assertThat(loggedAts(userId)).hasSize(2).startsWith(first.getFirst());
+  }
+
+  @Test
+  void should_store_no_login_when_credentials_are_wrong() {
+    login("nobody-trace-ca3@mail.fr", PASSWORD).expectStatus().isUnauthorized();
+    register("trace-ca3@mail.fr");
+    String userId = userId("trace-ca3@mail.fr");
+
+    login("trace-ca3@mail.fr", "Wr0ng!Passw0rd").expectStatus().isUnauthorized();
+
+    assertThat(loggedAts(userId)).isEmpty();
   }
 }
