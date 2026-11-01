@@ -7,6 +7,6 @@ public enum SeriesStatus {
   DROPPED;
 
   public static SeriesStatus from(String value) {
-    return null;
+    return valueOf(value);
   }
 }

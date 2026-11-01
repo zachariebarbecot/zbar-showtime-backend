@@ -15,6 +15,12 @@ public class ChangeSeriesStatusService implements ChangeSeriesStatus {
 
   @Override
   public WatchlistSeries execute(ChangeSeriesStatusCommand command) {
-    return null;
+    WatchlistSeries series =
+        watchlistSeriesRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .orElseThrow();
+    WatchlistSeries changed = series.changeStatus(command.status(), clock);
+    watchlistSeriesRepository.save(changed);
+    return changed;
   }
 }

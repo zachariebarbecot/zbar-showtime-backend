@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app.watchlist.persistence;
 
 import fr.zbar.showtime.backend.app.user.persistence.UserJpaRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.AlreadyInWatchlistException;
+import fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
 import java.util.Optional;
@@ -41,7 +42,19 @@ class WatchlistSeriesPersistenceAdapter implements WatchlistSeriesRepository {
 
   @Override
   public Optional<WatchlistSeries> findByUserIdAndTmdbId(UUID userId, long tmdbId) {
-    return Optional.empty();
+    return watchlistSeriesJpaRepository
+        .findByUserIdAndTmdbId(userId, tmdbId)
+        .map(WatchlistSeriesPersistenceAdapter::toDomain);
+  }
+
+  private static WatchlistSeries toDomain(WatchlistSeriesJpaEntity entity) {
+    return new WatchlistSeries(
+        entity.getId(),
+        entity.getUser().getId(),
+        entity.getTmdbId(),
+        SeriesStatus.valueOf(entity.getStatus()),
+        entity.getAddedAt(),
+        entity.getWatchedAt());
   }
 
   private static boolean violatesUniqueness(DataIntegrityViolationException exception) {
