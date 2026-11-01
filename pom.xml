@@ -4,7 +4,7 @@
   <parent>
     <groupId>fr.zbar</groupId>
     <artifactId>zbar-parent</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <relativePath/>
   </parent>
   <artifactId>zbar-showtime-backend</artifactId>

@@ -3,9 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>fr.zbar</groupId>
-    <artifactId>zbar-parent</artifactId>
-    <version>0.0.4</version>
-    <relativePath/>
+    <artifactId>zbar-showtime-backend</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>fr.zbar</groupId>
   <artifactId>zbar-showtime-backend-core</artifactId>
