@@ -5,6 +5,7 @@ import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import fr.zbar.showtime.backend.core.user.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.user.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.user.domain.UserNotFoundException;
+import fr.zbar.showtime.backend.core.watchlist.domain.AlreadyInWatchlistException;
 import io.micrometer.tracing.Tracer;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,11 @@ class DomainExceptionHandler {
 
   @ExceptionHandler(EmailAlreadyUsedException.class)
   ProblemDetail handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
+    return problem(HttpStatus.CONFLICT, exception.getMessage());
+  }
+
+  @ExceptionHandler(AlreadyInWatchlistException.class)
+  ProblemDetail handleAlreadyInWatchlist(AlreadyInWatchlistException exception) {
     return problem(HttpStatus.CONFLICT, exception.getMessage());
   }
 
