@@ -1,8 +1,10 @@
 package fr.zbar.showtime.backend.core.watchlist.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
 import java.time.Clock;
 import java.time.Instant;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test;
 class ChangeSeriesStatusServiceTest {
 
   private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+  private static final UUID OTHER_USER_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
   private static final Instant NOW = Instant.parse("2026-04-02T08:00:00Z");
   private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
 
@@ -45,5 +48,21 @@ class ChangeSeriesStatusServiceTest {
     assertThat(entries).containsExactly(changed);
     assertThat(changed.status()).isEqualTo(SeriesStatus.WATCHING);
     assertThat(changed.watchedAt()).isNull();
+  }
+
+  @Test
+  void should_leave_the_entry_of_another_user_unchanged_when_it_is_not_in_the_watchlist() {
+    WatchlistSeries other = WatchlistSeries.add(OTHER_USER_ID, 1399L, CLOCK);
+    entries.add(other);
+
+    assertThatThrownBy(
+            () ->
+                service.execute(
+                    new ChangeSeriesStatusCommand(USER_ID, 1399L, SeriesStatus.WATCHED)))
+        .isInstanceOf(WatchlistEntryNotFoundException.class)
+        .hasMessage("Watchlist entry not found");
+
+    assertThat(entries).containsExactly(other);
+    assertThat(other.status()).isEqualTo(SeriesStatus.TO_WATCH);
   }
 }

@@ -130,4 +130,37 @@ class ChangeSeriesStatusIT extends AbstractIT {
         .isEqualTo("Status must be TO_WATCH, WATCHING, WATCHED or DROPPED");
     assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
   }
+
+  @Test
+  void
+      should_return_404_and_keep_the_entry_of_another_user_when_the_series_is_not_in_my_watchlist() {
+    String owner = newUserWithGot();
+    String other = "watchlist-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(other);
+
+    changeStatus(other, 1399L, "WATCHED")
+        .expectStatus()
+        .isNotFound()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Watchlist entry not found");
+
+    assertThat(row(owner)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
+
+  @Test
+  void should_return_401_and_keep_the_entry_when_the_request_is_not_authenticated() {
+    String email = newUserWithGot();
+
+    restTestClient
+        .patch()
+        .uri("/watchlist/series/{tmdbId}", 1399L)
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("status", "WATCHED"))
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+
+    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
 }
