@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.app.watchlist.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.user.persistence.UserJpaEntity;
@@ -52,5 +53,16 @@ class WatchlistMoviePersistenceAdapterTest {
         .containsExactly(
             new WatchlistMovie(entryId, userId, 550L, MovieStatus.WATCHED, addedAt, watchedAt));
     assertThat(found.get(0).status()).isEqualTo(MovieStatus.WATCHED);
+  }
+
+  @Test
+  void should_delete_the_entry_by_its_id() {
+    UUID entryId = UUID.randomUUID();
+
+    adapter.delete(
+        new WatchlistMovie(
+            entryId, UUID.randomUUID(), 550L, MovieStatus.TO_WATCH, Instant.now(), null));
+
+    verify(jpaRepository).deleteById(entryId);
   }
 }

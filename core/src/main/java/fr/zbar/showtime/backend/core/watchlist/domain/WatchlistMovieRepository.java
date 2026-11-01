@@ -9,6 +9,8 @@ public interface WatchlistMovieRepository {
 
   void save(WatchlistMovie movie);
 
+  void delete(WatchlistMovie movie);
+
   Optional<WatchlistMovie> findByUserIdAndTmdbId(UUID userId, long tmdbId);
 
   List<WatchlistMovie> findByUserIdAndTmdbIdIn(UUID userId, Collection<Long> tmdbIds);

@@ -43,6 +43,9 @@ class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
   }
 
   @Override
+  public void delete(WatchlistMovie movie) {}
+
+  @Override
   public Optional<WatchlistMovie> findByUserIdAndTmdbId(UUID userId, long tmdbId) {
     return watchlistMovieJpaRepository
         .findByUserIdAndTmdbId(userId, tmdbId)
