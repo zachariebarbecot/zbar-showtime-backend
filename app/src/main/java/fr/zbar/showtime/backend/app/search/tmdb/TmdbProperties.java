@@ -4,4 +4,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("app.tmdb")
 public record TmdbProperties(
-    String baseUrl, String token, String imageBaseUrl, String posterSize, String language) {}
+    String baseUrl,
+    String token,
+    String imageBaseUrl,
+    String posterSize,
+    String profileSize,
+    String language) {}

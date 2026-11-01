@@ -27,7 +27,12 @@ class TmdbTitleAdapterTest {
 
   private static final TmdbProperties PROPERTIES =
       new TmdbProperties(
-          "https://api.tmdb.test/3", "secret-token", "https://image.tmdb.org/t/p", "w342", "fr-FR");
+          "https://api.tmdb.test/3",
+          "secret-token",
+          "https://image.tmdb.org/t/p",
+          "w342",
+          "w185",
+          "fr-FR");
 
   private static final String MOVIE_1_URL = "https://api.tmdb.test/3/movie/1?language=fr-FR";
 

@@ -32,7 +32,12 @@ class TmdbSearchAdapterTest {
 
   private static final TmdbProperties PROPERTIES =
       new TmdbProperties(
-          "https://api.tmdb.test/3", "secret-token", "https://image.tmdb.org/t/p", "w342", "fr-FR");
+          "https://api.tmdb.test/3",
+          "secret-token",
+          "https://image.tmdb.org/t/p",
+          "w342",
+          "w185",
+          "fr-FR");
 
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
