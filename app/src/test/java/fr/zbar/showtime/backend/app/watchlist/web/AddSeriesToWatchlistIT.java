@@ -134,4 +134,25 @@ class AddSeriesToWatchlistIT extends AbstractIT {
 
     assertThat(entryIds(email)).isEmpty();
   }
+
+  @Test
+  void should_return_201_when_a_movie_with_the_same_id_is_in_the_movie_watchlist() {
+    String email = newUserEmail();
+    when(titleCatalog.findMovie(1399L))
+        .thenReturn(new CatalogItem(1399L, MediaType.MOVIE, "Movie", null, null));
+    when(titleCatalog.findSeries(1399L)).thenReturn(GOT);
+    restTestClient
+        .post()
+        .uri("/watchlist/movies")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("tmdbId", 1399L))
+        .exchange()
+        .expectStatus()
+        .isCreated();
+
+    addSeries(email, 1399L).expectStatus().isCreated();
+
+    assertThat(entryIds(email)).hasSize(1);
+  }
 }
