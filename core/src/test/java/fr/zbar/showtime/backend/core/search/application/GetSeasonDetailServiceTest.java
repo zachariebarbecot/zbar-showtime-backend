@@ -1,12 +1,16 @@
 package fr.zbar.showtime.backend.core.search.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
+import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class GetSeasonDetailServiceTest {
 
@@ -43,5 +47,25 @@ class GetSeasonDetailServiceTest {
         new GetSeasonDetailService(new InMemorySeasonCatalog(1396L, SPECIALS));
 
     assertThat(specials.execute(new GetSeasonDetailCommand(1396L, 0))).isEqualTo(SPECIALS);
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "0,1,tmdbId: TMDB id must be greater than 0",
+    "-1,1,tmdbId: TMDB id must be greater than 0",
+    "1396,-1,seasonNumber: Season number must not be negative"
+  })
+  void should_throw_invalid_field_without_calling_the_catalog_when_the_ids_are_invalid(
+      long tmdbId, int seasonNumber, String message) {
+    GetSeasonDetailService unreachableCatalog =
+        new GetSeasonDetailService(
+            (seriesId, number) -> {
+              throw new AssertionError("catalog must not be called");
+            });
+
+    assertThatThrownBy(
+            () -> unreachableCatalog.execute(new GetSeasonDetailCommand(tmdbId, seasonNumber)))
+        .isInstanceOf(InvalidFieldException.class)
+        .hasMessage(message);
   }
 }
