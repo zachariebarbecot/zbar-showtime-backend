@@ -9,11 +9,14 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
+  mvc:
+    log-resolved-exception: true
 logging:
   level:
     # Hibernate logs the failed statement, with the email and the password hash, at WARN on a
     # duplicate email. Only ERROR and above is kept.
     org.hibernate.orm.jdbc.error: ERROR
+    fr.zbar: INFO
 app:
   jwt:
     secret: ${JWT_SECRET}

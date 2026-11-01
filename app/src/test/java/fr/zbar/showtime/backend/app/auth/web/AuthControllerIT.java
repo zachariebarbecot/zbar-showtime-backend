@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
+import fr.zbar.showtime.backend.core.user.domain.EmailAlreadyUsedException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -15,13 +16,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+@ExtendWith(OutputCaptureExtension.class)
 class AuthControllerIT extends AbstractIT {
 
   private static final String PASSWORD = "Str0ng!Passw0rd";
@@ -110,6 +115,19 @@ class AuthControllerIT extends AbstractIT {
         .jsonPath("$.detail")
         .isEqualTo("Email already used");
     assertThat(countAccounts("ca3@b.fr")).isEqualTo(1);
+  }
+
+  @Test
+  void should_log_the_resolved_exception_without_the_email_when_email_is_already_used(
+      CapturedOutput output) {
+    register(registration("ca3-log@b.fr")).expectStatus().isCreated();
+
+    register(registration("ca3-log@b.fr")).expectStatus().isEqualTo(409);
+
+    assertThat(output)
+        .contains(
+            "Resolved [" + EmailAlreadyUsedException.class.getName() + ": Email already used]")
+        .doesNotContain("ca3-log@b.fr");
   }
 
   @Test
