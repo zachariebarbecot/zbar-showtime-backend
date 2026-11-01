@@ -56,9 +56,7 @@ record TmdbSearchResponse(
           id,
           type,
           title(type),
-          StringUtils.isEmpty(posterPath)
-              ? null
-              : properties.imageBaseUrl() + "/" + properties.posterSize() + posterPath,
+          properties.imageUrl(properties.posterSize(), posterPath),
           StringUtils.isEmpty(date) ? null : LocalDate.parse(date));
     }
 
