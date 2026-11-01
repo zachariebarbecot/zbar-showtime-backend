@@ -1,6 +1,8 @@
 package fr.zbar.showtime.backend.core.watchlist.application;
 
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -12,8 +14,10 @@ public class RemoveSeriesFromWatchlistService implements RemoveSeriesFromWatchli
 
   @Override
   public void execute(RemoveSeriesFromWatchlistCommand command) {
-    watchlistSeriesRepository
-        .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
-        .ifPresent(watchlistSeriesRepository::delete);
+    WatchlistSeries series =
+        watchlistSeriesRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .orElseThrow(WatchlistEntryNotFoundException::new);
+    watchlistSeriesRepository.delete(series);
   }
 }
