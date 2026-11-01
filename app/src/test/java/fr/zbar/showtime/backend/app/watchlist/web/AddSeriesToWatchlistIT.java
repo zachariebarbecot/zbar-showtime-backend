@@ -8,6 +8,7 @@ import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -66,5 +67,43 @@ class AddSeriesToWatchlistIT extends AbstractIT {
                 + " join users u on u.id = s.user_id where u.email = ? and s.tmdb_id = 1399",
             email);
     assertThat(row).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
+
+  private List<UUID> entryIds(String email) {
+    return jdbcTemplate.queryForList(
+        "select s.id from watchlist_series s join users u on u.id = s.user_id"
+            + " where u.email = ? and s.tmdb_id = 1399",
+        UUID.class,
+        email);
+  }
+
+  @Test
+  void should_return_409_and_keep_the_existing_entry_when_the_series_is_already_in_the_watchlist() {
+    String email = newUserEmail();
+    when(titleCatalog.findSeries(1399L)).thenReturn(GOT);
+    addSeries(email, 1399L).expectStatus().isCreated();
+    List<UUID> existing = entryIds(email);
+
+    addSeries(email, 1399L)
+        .expectStatus()
+        .isEqualTo(409)
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Title already in watchlist");
+
+    assertThat(entryIds(email)).isEqualTo(existing).hasSize(1);
+  }
+
+  @Test
+  void should_return_201_for_each_user_when_two_users_add_the_same_series() {
+    String first = newUserEmail();
+    String second = newUserEmail();
+    when(titleCatalog.findSeries(1399L)).thenReturn(GOT);
+    addSeries(first, 1399L).expectStatus().isCreated();
+
+    addSeries(second, 1399L).expectStatus().isCreated();
+
+    assertThat(entryIds(first)).hasSize(1);
+    assertThat(entryIds(second)).hasSize(1);
   }
 }
