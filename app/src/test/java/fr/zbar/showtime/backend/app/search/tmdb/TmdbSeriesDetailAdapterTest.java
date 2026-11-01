@@ -14,6 +14,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
+import fr.zbar.showtime.backend.core.search.domain.SeasonSummary;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
@@ -88,6 +89,7 @@ class TmdbSeriesDetailAdapterTest {
                 "https://image.tmdb.org/t/p/w342/b.jpg",
                 5,
                 62,
+                List.of(),
                 List.of(),
                 List.of(),
                 List.of()));
@@ -216,6 +218,71 @@ class TmdbSeriesDetailAdapterTest {
 
     assertThat(adapter.findSeriesDetail(1396L).cast())
         .containsExactly(new CastMember("Bryan Cranston", "Walter White", null));
+  }
+
+  @Test
+  void should_list_the_seasons_in_tmdb_order_with_the_specials_season_at_its_position() {
+    respondWith(
+        """
+        {"id":1396,"name":"Breaking Bad","seasons":[
+          {"season_number":0,"name":"Épisodes spéciaux","episode_count":2,
+           "air_date":"2009-02-17","poster_path":"/s0.jpg"},
+          {"season_number":1,"name":"Saison 1","episode_count":7,
+           "air_date":"2008-01-20","poster_path":"/s1.jpg"}]}
+        """);
+
+    assertThat(adapter.findSeriesDetail(1396L).seasons())
+        .containsExactly(
+            new SeasonSummary(
+                0,
+                "Épisodes spéciaux",
+                2,
+                LocalDate.of(2009, 2, 17),
+                "https://image.tmdb.org/t/p/w342/s0.jpg"),
+            new SeasonSummary(
+                1,
+                "Saison 1",
+                7,
+                LocalDate.of(2008, 1, 20),
+                "https://image.tmdb.org/t/p/w342/s1.jpg"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        """
+        {"id":1396,"name":"Breaking Bad"}
+        """,
+        """
+        {"id":1396,"name":"Breaking Bad","seasons":null}
+        """,
+        """
+        {"id":1396,"name":"Breaking Bad","seasons":[]}
+        """
+      })
+  void should_return_no_seasons_when_tmdb_lists_none(String json) {
+    respondWith(json);
+
+    assertThat(adapter.findSeriesDetail(1396L).seasons()).isEmpty();
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        """
+        {"id":1396,"name":"Breaking Bad","seasons":[
+          {"season_number":3,"name":"Saison 3","episode_count":0,"air_date":"","poster_path":null}]}
+        """,
+        """
+        {"id":1396,"name":"Breaking Bad","seasons":[
+          {"season_number":3,"name":"Saison 3","episode_count":0}]}
+        """
+      })
+  void should_keep_a_season_with_a_null_date_and_poster_when_tmdb_has_none(String json) {
+    respondWith(json);
+
+    assertThat(adapter.findSeriesDetail(1396L).seasons())
+        .containsExactly(new SeasonSummary(3, "Saison 3", 0, null, null));
   }
 
   @Test

@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app.search.web;
 
 import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
+import fr.zbar.showtime.backend.core.search.domain.SeasonSummary;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
 import java.time.LocalDate;
@@ -21,7 +22,8 @@ public record SeriesDetailResponse(
     Integer numberOfEpisodes,
     List<String> creators,
     List<Crew> crew,
-    List<Cast> cast) {
+    List<Cast> cast,
+    List<Season> seasons) {
 
   static SeriesDetailResponse from(SeriesDetail series) {
     return new SeriesDetailResponse(
@@ -38,7 +40,8 @@ public record SeriesDetailResponse(
         series.numberOfEpisodes(),
         series.creators(),
         series.crew().stream().map(Crew::from).toList(),
-        series.cast().stream().map(Cast::from).toList());
+        series.cast().stream().map(Cast::from).toList(),
+        series.seasons().stream().map(Season::from).toList());
   }
 
   public record Crew(String name, List<String> jobs) {
@@ -52,6 +55,19 @@ public record SeriesDetailResponse(
 
     static Cast from(CastMember member) {
       return new Cast(member.name(), member.character(), member.photoUrl());
+    }
+  }
+
+  public record Season(
+      int seasonNumber, String name, int episodeCount, LocalDate airDate, String posterUrl) {
+
+    static Season from(SeasonSummary season) {
+      return new Season(
+          season.seasonNumber(),
+          season.name(),
+          season.episodeCount(),
+          season.airDate(),
+          season.posterUrl());
     }
   }
 }
