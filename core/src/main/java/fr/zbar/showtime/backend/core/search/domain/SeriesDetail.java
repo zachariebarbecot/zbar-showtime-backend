@@ -13,8 +13,8 @@ public record SeriesDetail(
     SeriesStatus status,
     String overview,
     String posterUrl,
-    int numberOfSeasons,
-    int numberOfEpisodes,
+    Integer numberOfSeasons,
+    Integer numberOfEpisodes,
     List<String> creators,
     List<CrewMember> crew,
     List<CastMember> cast) {}

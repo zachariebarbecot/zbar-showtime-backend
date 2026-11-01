@@ -15,8 +15,8 @@ public record SeriesDetailResponse(
     List<String> genres,
     String overview,
     SeriesStatus status,
-    int numberOfSeasons,
-    int numberOfEpisodes) {
+    Integer numberOfSeasons,
+    Integer numberOfEpisodes) {
 
   static SeriesDetailResponse from(SeriesDetail series) {
     return new SeriesDetailResponse(
