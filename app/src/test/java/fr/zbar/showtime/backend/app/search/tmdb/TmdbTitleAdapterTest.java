@@ -108,4 +108,13 @@ class TmdbTitleAdapterTest {
 
     assertThatThrownBy(() -> adapter.findMovie(1L)).isInstanceOf(CatalogUnavailableException.class);
   }
+
+  @Test
+  void should_throw_catalog_unavailable_when_tmdb_answers_an_empty_body() {
+    server
+        .expect(requestTo(MOVIE_1_URL))
+        .andRespond(withSuccess("", org.springframework.http.MediaType.APPLICATION_JSON));
+
+    assertThatThrownBy(() -> adapter.findMovie(1L)).isInstanceOf(CatalogUnavailableException.class);
+  }
 }
