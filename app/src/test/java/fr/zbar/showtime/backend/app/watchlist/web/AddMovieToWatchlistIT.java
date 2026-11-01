@@ -10,7 +10,7 @@ import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
-import java.time.OffsetDateTime;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -60,7 +60,7 @@ class AddMovieToWatchlistIT extends AbstractIT {
             "select m.status, m.added_at, m.watched_at from watchlist_movie m"
                 + " join users u on u.id = m.user_id where u.email = ? and m.tmdb_id = 603",
             email);
-    assertThat(((OffsetDateTime) row.get("added_at")).toInstant())
+    assertThat(((Timestamp) row.get("added_at")).toInstant())
         .isEqualTo(FixedClockConfiguration.NOW);
     assertThat(row).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
   }
