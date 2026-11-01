@@ -17,6 +17,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -176,5 +177,30 @@ class TmdbMovieDetailAdapterTest {
 
     assertThat(adapter.findMovieDetail(603L).cast())
         .containsExactly(new CastMember("Keanu Reeves", "Neo", null));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        """
+        {"id":603,"title":"Matrix","runtime":0,"release_date":"","overview":""}
+        """,
+        """
+        {"id":603,"title":"Matrix","release_date":null,"overview":null,"credits":{}}
+        """
+      })
+  void should_return_null_fields_and_empty_lists_when_tmdb_has_no_data(String json) {
+    respondWith(json);
+
+    MovieDetail movie = adapter.findMovieDetail(603L);
+
+    assertThat(movie.runtime()).isNull();
+    assertThat(movie.releaseDate()).isNull();
+    assertThat(movie.overview()).isNull();
+    assertThat(movie.posterUrl()).isNull();
+    assertThat(movie.genres()).isEmpty();
+    assertThat(movie.directors()).isEmpty();
+    assertThat(movie.crew()).isEmpty();
+    assertThat(movie.cast()).isEmpty();
   }
 }

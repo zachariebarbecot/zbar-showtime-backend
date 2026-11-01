@@ -140,4 +140,41 @@ class MovieDetailIT extends AbstractIT {
         .jsonPath("$.cast[0].photoUrl")
         .isEqualTo("https://image.tmdb.org/t/p/w185/k.jpg");
   }
+
+  @Test
+  void should_return_200_with_null_fields_and_empty_lists_when_the_movie_has_no_data() {
+    registerUser("movie-ca4@mail.fr");
+    when(movieDetailCatalog.findMovieDetail(603L))
+        .thenReturn(
+            new MovieDetail(
+                603L,
+                "Matrix",
+                "The Matrix",
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                List.of()));
+
+    detail("movie-ca4@mail.fr", "603")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.runtime")
+        .isEqualTo(null)
+        .jsonPath("$.releaseDate")
+        .isEqualTo(null)
+        .jsonPath("$.overview")
+        .isEqualTo(null)
+        .jsonPath("$.directors")
+        .isEmpty()
+        .jsonPath("$.crew")
+        .isEmpty()
+        .jsonPath("$.cast")
+        .isEmpty();
+  }
 }
