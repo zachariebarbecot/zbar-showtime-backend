@@ -13,6 +13,6 @@ public class GetSeriesDetailService implements GetSeriesDetail {
 
   @Override
   public SeriesDetail execute(GetSeriesDetailCommand command) {
-    return null;
+    return seriesDetailCatalog.findSeriesDetail(command.tmdbId());
   }
 }

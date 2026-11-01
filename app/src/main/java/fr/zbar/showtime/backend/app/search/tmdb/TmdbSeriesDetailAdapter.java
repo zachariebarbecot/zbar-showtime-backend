@@ -17,6 +17,8 @@ class TmdbSeriesDetailAdapter implements SeriesDetailCatalog {
 
   @Override
   public SeriesDetail findSeriesDetail(long id) {
-    return null;
+    return TmdbCalls.fetch(
+        () -> seriesApi.seriesDetail(id, properties.language()),
+        response -> response.toSeriesDetail(properties));
   }
 }
