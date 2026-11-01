@@ -17,6 +17,8 @@ class TmdbSeasonAdapter implements SeasonCatalog {
 
   @Override
   public SeasonDetail findSeason(long seriesId, int seasonNumber) {
-    return null;
+    return TmdbCalls.fetch(
+        () -> seriesApi.seasonDetail(seriesId, seasonNumber, properties.language()),
+        response -> response.toSeasonDetail(properties));
   }
 }

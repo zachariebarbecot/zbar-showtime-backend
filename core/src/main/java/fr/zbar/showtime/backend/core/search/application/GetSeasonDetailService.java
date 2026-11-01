@@ -13,6 +13,6 @@ public class GetSeasonDetailService implements GetSeasonDetail {
 
   @Override
   public SeasonDetail execute(GetSeasonDetailCommand command) {
-    return null;
+    return seasonCatalog.findSeason(command.tmdbId(), command.seasonNumber());
   }
 }
