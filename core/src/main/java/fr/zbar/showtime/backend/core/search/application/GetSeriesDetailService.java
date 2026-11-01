@@ -1,9 +1,9 @@
 package fr.zbar.showtime.backend.core.search.application;
 
-import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
 import lombok.RequiredArgsConstructor;
 
 @CoreUseCase
@@ -11,12 +11,19 @@ import lombok.RequiredArgsConstructor;
 public class GetSeriesDetailService implements GetSeriesDetail {
 
   private final SeriesDetailCatalog seriesDetailCatalog;
+  private final WatchlistSeriesRepository watchlistSeriesRepository;
 
   @Override
-  public SeriesDetail execute(GetSeriesDetailCommand command) {
+  public SeriesDetailView execute(GetSeriesDetailCommand command) {
     if (command.tmdbId() <= 0) {
       throw new InvalidFieldException("tmdbId", "TMDB id must be greater than 0");
     }
-    return seriesDetailCatalog.findSeriesDetail(command.tmdbId());
+    String watchlistStatus =
+        watchlistSeriesRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .map(series -> series.status().name())
+            .orElse(null);
+    return new SeriesDetailView(
+        seriesDetailCatalog.findSeriesDetail(command.tmdbId()), watchlistStatus);
   }
 }

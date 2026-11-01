@@ -6,15 +6,19 @@ import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CastMember;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.SeasonSummary;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
+import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,6 +32,8 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 class SeriesDetailIT extends AbstractIT {
 
   @MockitoBean private SeriesDetailCatalog seriesDetailCatalog;
+
+  @MockitoBean private TitleCatalog titleCatalog;
 
   private RestTestClient.ResponseSpec detail(String email, String id) {
     return restTestClient
@@ -331,5 +337,114 @@ class SeriesDetailIT extends AbstractIT {
                 assertThat(body)
                     .contains("\"status\":502")
                     .doesNotContain("test-tmdb-token", "themoviedb", "Exception"));
+  }
+
+  private static SeriesDetail breakingBad() {
+    return new SeriesDetail(
+        1396L,
+        "Breaking Bad",
+        "Breaking Bad VO",
+        List.of(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of());
+  }
+
+  private void addSeriesToWatchlist(String email) {
+    when(titleCatalog.findSeries(1396L))
+        .thenReturn(new CatalogItem(1396L, MediaType.TV, "Breaking Bad", null, null));
+    restTestClient
+        .post()
+        .uri("/watchlist/series")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("tmdbId", 1396L))
+        .exchange()
+        .expectStatus()
+        .isCreated();
+  }
+
+  private void changeSeriesStatus(String email, String status) {
+    restTestClient
+        .patch()
+        .uri("/watchlist/series/{tmdbId}", 1396L)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("status", status))
+        .exchange()
+        .expectStatus()
+        .isOk();
+  }
+
+  @Test
+  void should_expose_the_watchlist_status_when_the_series_is_in_my_watchlist() {
+    String email = "series-us3-ca1-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    when(seriesDetailCatalog.findSeriesDetail(1396L)).thenReturn(breakingBad());
+    addSeriesToWatchlist(email);
+
+    detail(email, "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo("TO_WATCH");
+  }
+
+  @Test
+  void should_expose_a_null_watchlist_status_and_the_rest_of_the_detail_when_not_in_my_watchlist() {
+    String email = "series-us3-ca2-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    when(seriesDetailCatalog.findSeriesDetail(1396L)).thenReturn(breakingBad());
+
+    detail(email, "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo(null)
+        .jsonPath("$.name")
+        .isEqualTo("Breaking Bad");
+  }
+
+  @Test
+  void should_expose_a_null_watchlist_status_when_only_another_user_has_the_series() {
+    String owner = "series-us3-ca3-owner-" + UUID.randomUUID() + "@mail.fr";
+    String other = "series-us3-ca3-other-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(owner);
+    registerUser(other);
+    when(seriesDetailCatalog.findSeriesDetail(1396L)).thenReturn(breakingBad());
+    addSeriesToWatchlist(owner);
+
+    detail(other, "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo(null);
+  }
+
+  @Test
+  void should_expose_the_new_watchlist_status_when_it_was_changed() {
+    String email = "series-us3-ca4-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    when(seriesDetailCatalog.findSeriesDetail(1396L)).thenReturn(breakingBad());
+    addSeriesToWatchlist(email);
+    changeSeriesStatus(email, "WATCHING");
+
+    detail(email, "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo("WATCHING");
   }
 }
