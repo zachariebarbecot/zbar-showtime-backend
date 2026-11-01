@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.app.config;
 
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
+import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import fr.zbar.showtime.backend.core.user.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.user.domain.InvalidCredentialsException;
@@ -56,6 +57,11 @@ class DomainExceptionHandler {
   @ExceptionHandler(UserNotFoundException.class)
   ProblemDetail handleUserNotFound(UserNotFoundException exception) {
     return problem(HttpStatus.UNAUTHORIZED, exception.getMessage());
+  }
+
+  @ExceptionHandler(TitleNotFoundException.class)
+  ProblemDetail handleTitleNotFound(TitleNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, exception.getMessage());
   }
 
   @ExceptionHandler(CatalogUnavailableException.class)
