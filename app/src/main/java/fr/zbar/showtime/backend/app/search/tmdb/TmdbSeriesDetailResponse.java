@@ -2,10 +2,14 @@ package fr.zbar.showtime.backend.app.search.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,14 +24,38 @@ record TmdbSeriesDetailResponse(
     @JsonProperty("number_of_episodes") Integer numberOfEpisodes,
     String status,
     List<Genre> genres,
-    String overview) {
+    String overview,
+    @JsonProperty("created_by") List<Creator> createdBy,
+    @JsonProperty("aggregate_credits") Credits aggregateCredits) {
+
+  private static final Set<String> KEY_JOBS =
+      Set.of("Writer", "Screenplay", "Producer", "Composer");
 
   TmdbSeriesDetailResponse {
     genres = genres == null ? List.of() : genres;
+    createdBy = createdBy == null ? List.of() : createdBy;
+    aggregateCredits = aggregateCredits == null ? new Credits(List.of()) : aggregateCredits;
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   record Genre(String name) {}
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record Creator(String name) {}
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record Credits(List<Crew> crew) {
+
+    Credits {
+      crew = crew == null ? List.of() : crew;
+    }
+  }
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record Crew(long id, String name, List<Job> jobs) {}
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record Job(String job) {}
 
   SeriesDetail toSeriesDetail(TmdbProperties properties) {
     return new SeriesDetail(
@@ -42,10 +70,29 @@ record TmdbSeriesDetailResponse(
         properties.imageUrl(properties.posterSize(), posterPath),
         numberOfSeasons,
         numberOfEpisodes,
-        List.of(),
-        List.of(),
+        createdBy.stream().map(Creator::name).toList(),
+        keyCrew(),
         List.of());
   }
+
+  private List<CrewMember> keyCrew() {
+    return aggregateCredits.crew().stream()
+        .flatMap(
+            member ->
+                member.jobs().stream()
+                    .filter(job -> KEY_JOBS.contains(job.job()))
+                    .map(job -> new KeyJob(member.id(), member.name(), job.job())))
+        .collect(Collectors.groupingBy(KeyJob::id, LinkedHashMap::new, Collectors.toList()))
+        .values()
+        .stream()
+        .map(
+            jobs ->
+                new CrewMember(
+                    jobs.getFirst().name(), jobs.stream().map(KeyJob::job).distinct().toList()))
+        .toList();
+  }
+
+  private record KeyJob(long id, String name, String job) {}
 
   private static LocalDate date(String value) {
     return StringUtils.isEmpty(value) ? null : LocalDate.parse(value);

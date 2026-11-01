@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app.search.web;
 
+import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
 import java.time.LocalDate;
@@ -16,7 +17,9 @@ public record SeriesDetailResponse(
     String overview,
     SeriesStatus status,
     Integer numberOfSeasons,
-    Integer numberOfEpisodes) {
+    Integer numberOfEpisodes,
+    List<String> creators,
+    List<Crew> crew) {
 
   static SeriesDetailResponse from(SeriesDetail series) {
     return new SeriesDetailResponse(
@@ -30,6 +33,15 @@ public record SeriesDetailResponse(
         series.overview(),
         series.status(),
         series.numberOfSeasons(),
-        series.numberOfEpisodes());
+        series.numberOfEpisodes(),
+        series.creators(),
+        series.crew().stream().map(Crew::from).toList());
+  }
+
+  public record Crew(String name, List<String> jobs) {
+
+    static Crew from(CrewMember member) {
+      return new Crew(member.name(), member.jobs());
+    }
   }
 }
