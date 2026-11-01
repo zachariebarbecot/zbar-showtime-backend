@@ -30,6 +30,7 @@ public class WatchlistSeries extends AggregateRoot<UUID> {
   }
 
   public static WatchlistSeries add(UUID userId, long tmdbId, Clock clock) {
-    return null;
+    return new WatchlistSeries(
+        UUID.randomUUID(), userId, tmdbId, SeriesStatus.TO_WATCH, clock.instant(), null);
   }
 }

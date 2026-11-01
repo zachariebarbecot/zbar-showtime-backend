@@ -17,6 +17,9 @@ public class AddSeriesToWatchlistService implements AddSeriesToWatchlist {
 
   @Override
   public WatchlistSeries execute(AddSeriesToWatchlistCommand command) {
-    return null;
+    titleCatalog.findSeries(command.tmdbId());
+    WatchlistSeries series = WatchlistSeries.add(command.userId(), command.tmdbId(), clock);
+    watchlistSeriesRepository.save(series);
+    return series;
   }
 }

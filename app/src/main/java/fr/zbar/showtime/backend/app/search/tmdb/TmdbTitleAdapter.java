@@ -18,13 +18,14 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 class TmdbTitleAdapter implements TitleCatalog {
 
   private final TmdbMovieApi movieApi;
+  private final TmdbSeriesApi seriesApi;
   private final TmdbProperties properties;
 
   TmdbTitleAdapter(RestClient tmdbRestClient, TmdbProperties properties) {
-    this.movieApi =
-        HttpServiceProxyFactory.builderFor(RestClientAdapter.create(tmdbRestClient))
-            .build()
-            .createClient(TmdbMovieApi.class);
+    HttpServiceProxyFactory factory =
+        HttpServiceProxyFactory.builderFor(RestClientAdapter.create(tmdbRestClient)).build();
+    this.movieApi = factory.createClient(TmdbMovieApi.class);
+    this.seriesApi = factory.createClient(TmdbSeriesApi.class);
     this.properties = properties;
   }
 
@@ -44,7 +45,7 @@ class TmdbTitleAdapter implements TitleCatalog {
 
   @Override
   public CatalogItem findSeries(long id) {
-    return null;
+    return seriesApi.series(id, properties.language()).toItem(MediaType.TV, properties);
   }
 
   private TmdbSearchResponse.Result fetchMovie(long id) {
