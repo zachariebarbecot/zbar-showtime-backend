@@ -10,6 +10,7 @@ import fr.zbar.showtime.backend.core.search.domain.SearchType;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,6 +23,7 @@ public class SearchTitlesService implements SearchTitles {
 
   private final SearchCatalog searchCatalog;
   private final WatchlistMovieRepository watchlistMovieRepository;
+  private final WatchlistSeriesRepository watchlistSeriesRepository;
 
   @Override
   public SearchResultPage execute(SearchTitlesCommand command) {

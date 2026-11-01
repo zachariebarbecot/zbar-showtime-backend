@@ -556,4 +556,96 @@ class SearchIT extends AbstractIT {
         .jsonPath("$.results[0].watchlistStatus")
         .isEqualTo("TO_WATCH");
   }
+
+  private void addSeriesToWatchlist(String email, long tmdbId, String status) {
+    when(titleCatalog.findSeries(tmdbId))
+        .thenReturn(new CatalogItem(tmdbId, MediaType.TV, "Game of Thrones", null, null));
+    restTestClient
+        .post()
+        .uri("/watchlist/series")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("tmdbId", tmdbId))
+        .exchange()
+        .expectStatus()
+        .isCreated();
+    restTestClient
+        .patch()
+        .uri("/watchlist/series/{tmdbId}", tmdbId)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("status", status))
+        .exchange()
+        .expectStatus()
+        .isOk();
+  }
+
+  private void catalogReturnsSeries1399And70523() {
+    when(searchCatalog.searchSeries(new SearchQuery("thrones"), new PageNumber(1)))
+        .thenReturn(
+            new SearchPage(
+                1,
+                1,
+                2,
+                List.of(
+                    new CatalogItem(1399L, MediaType.TV, "Game of Thrones", null, null),
+                    new CatalogItem(70523L, MediaType.TV, "Dark", null, null))));
+  }
+
+  @Test
+  void should_expose_the_watchlist_status_of_the_caller_and_null_for_other_series() {
+    String email = newUserEmail();
+    addSeriesToWatchlist(email, 1399L, "WATCHING");
+    catalogReturnsSeries1399And70523();
+
+    search(email, "/search?query=thrones&type=TV")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results[0].watchlistStatus")
+        .isEqualTo("WATCHING")
+        .jsonPath("$.results[1].watchlistStatus")
+        .value(value -> assertThat(value).isNull())
+        .jsonPath("$.results[1].watchlistStatus")
+        .hasJsonPath();
+  }
+
+  @Test
+  void should_expose_no_watchlist_status_to_a_user_who_did_not_add_the_series() {
+    String owner = newUserEmail();
+    String other = newUserEmail();
+    addSeriesToWatchlist(owner, 1399L, "WATCHING");
+    catalogReturnsSeries1399And70523();
+
+    search(other, "/search?query=thrones&type=TV")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results[0].watchlistStatus")
+        .value(value -> assertThat(value).isNull());
+  }
+
+  @Test
+  void should_not_cross_the_status_of_a_movie_and_a_series_sharing_an_id_when_the_type_is_all() {
+    String email = newUserEmail();
+    addMovieToWatchlist(email, 550L);
+    when(searchCatalog.searchAll(new SearchQuery("club"), new PageNumber(1)))
+        .thenReturn(
+            new SearchPage(
+                1,
+                1,
+                2,
+                List.of(
+                    new CatalogItem(550L, MediaType.MOVIE, "Fight Club", null, null),
+                    new CatalogItem(550L, MediaType.TV, "Club", null, null))));
+
+    search(email, "/search?query=club&type=ALL")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results[0].watchlistStatus")
+        .isEqualTo("TO_WATCH")
+        .jsonPath("$.results[1].watchlistStatus")
+        .value(value -> assertThat(value).isNull());
+  }
 }
