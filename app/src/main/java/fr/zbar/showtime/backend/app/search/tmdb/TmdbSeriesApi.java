@@ -13,4 +13,8 @@ interface TmdbSeriesApi {
 
   @GetExchange("/tv/{id}?append_to_response=aggregate_credits")
   TmdbSeriesDetailResponse seriesDetail(@PathVariable long id, @RequestParam String language);
+
+  @GetExchange("/tv/{id}/season/{seasonNumber}")
+  TmdbSeasonResponse seasonDetail(
+      @PathVariable long id, @PathVariable int seasonNumber, @RequestParam String language);
 }
