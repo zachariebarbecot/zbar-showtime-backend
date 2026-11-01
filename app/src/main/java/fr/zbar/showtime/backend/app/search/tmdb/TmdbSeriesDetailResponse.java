@@ -2,15 +2,11 @@ package fr.zbar.showtime.backend.app.search.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.zbar.showtime.backend.core.search.domain.CastMember;
-import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,7 +25,6 @@ record TmdbSeriesDetailResponse(
     @JsonProperty("created_by") List<Creator> createdBy,
     @JsonProperty("aggregate_credits") Credits aggregateCredits) {
 
-  private static final int MAX_CAST = 15;
   private static final Set<String> KEY_JOBS =
       Set.of("Writer", "Screenplay", "Producer", "Composer");
 
@@ -81,40 +76,28 @@ record TmdbSeriesDetailResponse(
         numberOfSeasons,
         numberOfEpisodes,
         createdBy.stream().map(Creator::name).toList(),
-        keyCrew(),
-        cast(properties));
+        TmdbCredits.keyCrew(contributions(), KEY_JOBS),
+        TmdbCredits.cast(actors(), properties));
   }
 
-  private List<CastMember> cast(TmdbProperties properties) {
-    return aggregateCredits.cast().stream()
-        .limit(MAX_CAST)
-        .map(
-            actor ->
-                new CastMember(
-                    actor.name(),
-                    actor.roles().getFirst().character(),
-                    properties.imageUrl(properties.profileSize(), actor.profilePath())))
-        .toList();
-  }
-
-  private List<CrewMember> keyCrew() {
+  private List<TmdbCredits.Contribution> contributions() {
     return aggregateCredits.crew().stream()
         .flatMap(
             member ->
                 member.jobs().stream()
-                    .filter(job -> KEY_JOBS.contains(job.job()))
-                    .map(job -> new KeyJob(member.id(), member.name(), job.job())))
-        .collect(Collectors.groupingBy(KeyJob::id, LinkedHashMap::new, Collectors.toList()))
-        .values()
-        .stream()
-        .map(
-            jobs ->
-                new CrewMember(
-                    jobs.getFirst().name(), jobs.stream().map(KeyJob::job).distinct().toList()))
+                    .map(
+                        job -> new TmdbCredits.Contribution(member.id(), member.name(), job.job())))
         .toList();
   }
 
-  private record KeyJob(long id, String name, String job) {}
+  private List<TmdbCredits.Actor> actors() {
+    return aggregateCredits.cast().stream()
+        .map(
+            actor ->
+                new TmdbCredits.Actor(
+                    actor.name(), actor.roles().getFirst().character(), actor.profilePath()))
+        .toList();
+  }
 
   private static LocalDate date(String value) {
     return StringUtils.isEmpty(value) ? null : LocalDate.parse(value);
