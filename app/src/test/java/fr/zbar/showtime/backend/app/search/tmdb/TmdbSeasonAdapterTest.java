@@ -13,6 +13,8 @@ import java.time.LocalDate;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -88,5 +90,45 @@ class TmdbSeasonAdapterTest {
                         48,
                         LocalDate.of(2008, 1, 27),
                         "https://image.tmdb.org/t/p/w300/e2.jpg"))));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        """
+        {"season_number":1,"episodes":[{"episode_number":3,"name":"Sans rien","overview":"",
+         "runtime":0,"air_date":"","still_path":""}]}
+        """,
+        """
+        {"season_number":1,"episodes":[{"episode_number":3,"name":"Sans rien","overview":null,
+         "runtime":null,"air_date":null,"still_path":null}]}
+        """,
+        """
+        {"season_number":1,"episodes":[{"episode_number":3,"name":"Sans rien"}]}
+        """
+      })
+  void should_keep_the_episode_with_null_fields_when_tmdb_has_no_data_for_it(String json) {
+    respondWith(1, json);
+
+    assertThat(adapter.findSeason(1396L, 1).episodes())
+        .containsExactly(new Episode(3, "Sans rien", null, null, null, null));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        """
+        {"season_number":1,"name":"Saison 1","overview":"","air_date":"","poster_path":""}
+        """,
+        """
+        {"season_number":1,"name":"Saison 1","overview":null,"air_date":null,
+         "poster_path":null,"episodes":null}
+        """
+      })
+  void should_return_a_season_with_null_fields_and_no_episodes_when_tmdb_has_no_data(String json) {
+    respondWith(1, json);
+
+    assertThat(adapter.findSeason(1396L, 1))
+        .isEqualTo(new SeasonDetail(1, "Saison 1", null, null, null, List.of()));
   }
 }
