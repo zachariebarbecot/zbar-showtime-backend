@@ -131,4 +131,20 @@ class ChangeMovieStatusIT extends AbstractIT {
 
     assertThat(row(owner)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
   }
+
+  @Test
+  void should_return_401_and_keep_the_entry_when_the_request_is_not_authenticated() {
+    String email = newUserWithMatrix();
+
+    restTestClient
+        .patch()
+        .uri("/watchlist/movies/{tmdbId}", 603L)
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("status", "WATCHED"))
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+
+    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
 }
