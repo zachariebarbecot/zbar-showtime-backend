@@ -5,9 +5,10 @@ import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
+import fr.zbar.starter.restclient.RestClientClientErrorException;
 import java.time.format.DateTimeParseException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.support.RestClientAdapter;
@@ -31,8 +32,11 @@ class TmdbTitleAdapter implements TitleCatalog {
   public CatalogItem findMovie(long id) {
     try {
       return fetchMovie(id).toItem(MediaType.MOVIE, properties);
-    } catch (HttpClientErrorException.NotFound exception) {
-      throw new TitleNotFoundException();
+    } catch (RestClientClientErrorException exception) {
+      if (HttpStatus.NOT_FOUND.equals(exception.statusCode())) {
+        throw new TitleNotFoundException();
+      }
+      throw new CatalogUnavailableException(exception);
     } catch (RestClientException | DateTimeParseException exception) {
       throw new CatalogUnavailableException(exception);
     }
