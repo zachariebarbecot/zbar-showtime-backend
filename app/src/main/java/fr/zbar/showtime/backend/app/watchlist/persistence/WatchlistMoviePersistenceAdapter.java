@@ -4,6 +4,8 @@ import fr.zbar.showtime.backend.app.user.persistence.UserJpaRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.AlreadyInWatchlistException;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,6 +37,11 @@ class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
       }
       throw exception;
     }
+  }
+
+  @Override
+  public Optional<WatchlistMovie> findByUserIdAndTmdbId(UUID userId, long tmdbId) {
+    return Optional.empty();
   }
 
   private static boolean violatesUniqueness(DataIntegrityViolationException exception) {
