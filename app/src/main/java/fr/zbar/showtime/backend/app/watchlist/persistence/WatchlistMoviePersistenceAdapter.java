@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app.watchlist.persistence;
 
+import fr.zbar.showtime.backend.app.user.persistence.UserJpaRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.AlreadyInWatchlistException;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
@@ -15,6 +16,7 @@ class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
   private static final String UNIQUE_CONSTRAINT = "UC_watchlist_movie_user_tmdb";
 
   private final WatchlistMovieJpaRepository watchlistMovieJpaRepository;
+  private final UserJpaRepository userJpaRepository;
 
   @Override
   public void save(WatchlistMovie movie) {
@@ -22,7 +24,7 @@ class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
       watchlistMovieJpaRepository.saveAndFlush(
           new WatchlistMovieJpaEntity(
               movie.id(),
-              movie.userId(),
+              userJpaRepository.getReferenceById(movie.userId()),
               movie.tmdbId(),
               movie.status().name(),
               movie.addedAt(),
