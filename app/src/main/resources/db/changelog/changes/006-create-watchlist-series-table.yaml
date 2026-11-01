@@ -1,46 +1,60 @@
 databaseChangeLog:
 - changeSet:
-    id: 006-create-watchlist-series-table
-    author: zbarbecot
+    id: 1793546949507-1
+    author: zbarbecot (generated)
     changes:
     - createTable:
-        tableName: watchlist_series
         columns:
         - column:
-            name: id
-            type: UUID
             constraints:
               nullable: false
               primaryKey: true
               primaryKeyName: watchlist_seriesPK
-        - column:
-            name: user_id
+            name: id
             type: UUID
+        - column:
             constraints:
               nullable: false
-              foreignKeyName: FK_watchlist_series_user
-              references: users(id)
-        - column:
-            name: tmdb_id
-            type: BIGINT
-            constraints:
-              nullable: false
-        - column:
-            name: status
-            type: VARCHAR(16)
-            constraints:
-              nullable: false
-        - column:
             name: added_at
             type: TIMESTAMP(6) WITH TIME ZONE
+        - column:
             constraints:
               nullable: false
+            name: status
+            type: VARCHAR(16)
+        - column:
+            constraints:
+              nullable: false
+            name: tmdb_id
+            type: BIGINT
         - column:
             name: watched_at
             type: TIMESTAMP(6) WITH TIME ZONE
-    - addUniqueConstraint:
+        - column:
+            constraints:
+              nullable: false
+            name: user_id
+            type: UUID
         tableName: watchlist_series
+- changeSet:
+    id: 1793546949507-2
+    author: zbarbecot (generated)
+    changes:
+    - addUniqueConstraint:
         columnNames: user_id, tmdb_id
         constraintName: UC_watchlist_series_user_tmdb
-    - sql:
-        sql: ALTER TABLE watchlist_series ADD CONSTRAINT CK_watchlist_series_status CHECK (status IN ('TO_WATCH', 'WATCHING', 'WATCHED', 'DROPPED'))
+        tableName: watchlist_series
+- changeSet:
+    id: 1793546949507-3
+    author: zbarbecot (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_id
+        baseTableName: watchlist_series
+        constraintName: FK8vjwoq7u26rpbjoh727yi2w9s
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users
+        validate: true
+

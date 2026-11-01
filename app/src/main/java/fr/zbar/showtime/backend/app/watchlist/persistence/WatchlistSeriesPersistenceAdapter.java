@@ -24,7 +24,7 @@ class WatchlistSeriesPersistenceAdapter implements WatchlistSeriesRepository {
       watchlistSeriesJpaRepository.saveAndFlush(
           new WatchlistSeriesJpaEntity(
               series.id(),
-              series.userId(),
+              userJpaRepository.getReferenceById(series.userId()),
               series.tmdbId(),
               series.status().name(),
               series.addedAt(),
