@@ -22,6 +22,11 @@ public class InMemoryWatchlistMovieRepository implements WatchlistMovieRepositor
   }
 
   @Override
+  public void delete(WatchlistMovie movie) {
+    movies.removeIf(existing -> existing.id().equals(movie.id()));
+  }
+
+  @Override
   public Optional<WatchlistMovie> findByUserIdAndTmdbId(UUID userId, long tmdbId) {
     return movies.stream()
         .filter(movie -> movie.userId().equals(userId) && movie.tmdbId() == tmdbId)
