@@ -43,7 +43,9 @@ class WatchlistSeriesPersistenceAdapter implements WatchlistSeriesRepository {
   }
 
   @Override
-  public void delete(WatchlistSeries series) {}
+  public void delete(WatchlistSeries series) {
+    watchlistSeriesJpaRepository.deleteById(series.id());
+  }
 
   @Override
   public Optional<WatchlistSeries> findByUserIdAndTmdbId(UUID userId, long tmdbId) {

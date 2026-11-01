@@ -22,7 +22,9 @@ public class InMemoryWatchlistSeriesRepository implements WatchlistSeriesReposit
   }
 
   @Override
-  public void delete(WatchlistSeries entry) {}
+  public void delete(WatchlistSeries entry) {
+    series.removeIf(existing -> existing.id().equals(entry.id()));
+  }
 
   @Override
   public Optional<WatchlistSeries> findByUserIdAndTmdbId(UUID userId, long tmdbId) {

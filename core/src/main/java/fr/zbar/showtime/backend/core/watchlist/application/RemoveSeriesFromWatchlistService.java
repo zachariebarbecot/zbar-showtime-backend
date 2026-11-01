@@ -11,5 +11,9 @@ public class RemoveSeriesFromWatchlistService implements RemoveSeriesFromWatchli
   private final WatchlistSeriesRepository watchlistSeriesRepository;
 
   @Override
-  public void execute(RemoveSeriesFromWatchlistCommand command) {}
+  public void execute(RemoveSeriesFromWatchlistCommand command) {
+    watchlistSeriesRepository
+        .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+        .ifPresent(watchlistSeriesRepository::delete);
+  }
 }
