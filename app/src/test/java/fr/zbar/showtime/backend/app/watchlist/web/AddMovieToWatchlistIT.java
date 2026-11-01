@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
@@ -60,7 +61,7 @@ class AddMovieToWatchlistIT extends AbstractIT {
         .jsonPath("$.status")
         .isEqualTo("TO_WATCH")
         .jsonPath("$.addedAt")
-        .isEqualTo("2025-06-15T10:00:00Z")
+        .isEqualTo(FixedClockConfiguration.NOW.toString())
         .jsonPath("$.watchedAt")
         .doesNotExist();
     Map<String, Object> row =
