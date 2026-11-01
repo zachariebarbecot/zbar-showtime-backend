@@ -42,6 +42,11 @@ class TmdbTitleAdapter implements TitleCatalog {
     }
   }
 
+  @Override
+  public CatalogItem findSeries(long id) {
+    return null;
+  }
+
   private TmdbSearchResponse.Result fetchMovie(long id) {
     TmdbSearchResponse.Result result = movieApi.movie(id, properties.language());
     if (result == null) {

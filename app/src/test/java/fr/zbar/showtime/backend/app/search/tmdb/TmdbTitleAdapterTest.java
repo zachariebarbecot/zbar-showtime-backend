@@ -63,6 +63,32 @@ class TmdbTitleAdapterTest {
   }
 
   @Test
+  void should_return_the_series_when_tmdb_knows_the_id() {
+    server
+        .expect(requestTo("https://api.tmdb.test/3/tv/1399?language=fr-FR"))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("Authorization", "Bearer secret-token"))
+        .andRespond(
+            withSuccess(
+                """
+                {"id":1399,"name":"GoT","poster_path":"/g.jpg","first_air_date":"2011-04-17"}
+                """,
+                org.springframework.http.MediaType.APPLICATION_JSON));
+
+    CatalogItem series = adapter.findSeries(1399L);
+
+    server.verify();
+    assertThat(series)
+        .isEqualTo(
+            new CatalogItem(
+                1399L,
+                MediaType.TV,
+                "GoT",
+                "https://image.tmdb.org/t/p/w342/g.jpg",
+                LocalDate.of(2011, 4, 17)));
+  }
+
+  @Test
   void should_throw_title_not_found_when_tmdb_answers_404() {
     server.expect(requestTo(MOVIE_1_URL)).andRespond(withStatus(HttpStatus.NOT_FOUND));
 
