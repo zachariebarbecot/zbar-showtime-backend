@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app.search.web;
 
+import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
@@ -19,7 +20,8 @@ public record SeriesDetailResponse(
     Integer numberOfSeasons,
     Integer numberOfEpisodes,
     List<String> creators,
-    List<Crew> crew) {
+    List<Crew> crew,
+    List<Cast> cast) {
 
   static SeriesDetailResponse from(SeriesDetail series) {
     return new SeriesDetailResponse(
@@ -35,13 +37,21 @@ public record SeriesDetailResponse(
         series.numberOfSeasons(),
         series.numberOfEpisodes(),
         series.creators(),
-        series.crew().stream().map(Crew::from).toList());
+        series.crew().stream().map(Crew::from).toList(),
+        series.cast().stream().map(Cast::from).toList());
   }
 
   public record Crew(String name, List<String> jobs) {
 
     static Crew from(CrewMember member) {
       return new Crew(member.name(), member.jobs());
+    }
+  }
+
+  public record Cast(String name, String character, String photoUrl) {
+
+    static Cast from(CastMember member) {
+      return new Cast(member.name(), member.character(), member.photoUrl());
     }
   }
 }

@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app.search.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
@@ -28,13 +29,15 @@ record TmdbSeriesDetailResponse(
     @JsonProperty("created_by") List<Creator> createdBy,
     @JsonProperty("aggregate_credits") Credits aggregateCredits) {
 
+  private static final int MAX_CAST = 15;
   private static final Set<String> KEY_JOBS =
       Set.of("Writer", "Screenplay", "Producer", "Composer");
 
   TmdbSeriesDetailResponse {
     genres = genres == null ? List.of() : genres;
     createdBy = createdBy == null ? List.of() : createdBy;
-    aggregateCredits = aggregateCredits == null ? new Credits(List.of()) : aggregateCredits;
+    aggregateCredits =
+        aggregateCredits == null ? new Credits(List.of(), List.of()) : aggregateCredits;
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
@@ -44,12 +47,19 @@ record TmdbSeriesDetailResponse(
   record Creator(String name) {}
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  record Credits(List<Crew> crew) {
+  record Credits(List<Cast> cast, List<Crew> crew) {
 
     Credits {
+      cast = cast == null ? List.of() : cast;
       crew = crew == null ? List.of() : crew;
     }
   }
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record Cast(String name, List<Role> roles, @JsonProperty("profile_path") String profilePath) {}
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record Role(String character) {}
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   record Crew(long id, String name, List<Job> jobs) {}
@@ -72,7 +82,19 @@ record TmdbSeriesDetailResponse(
         numberOfEpisodes,
         createdBy.stream().map(Creator::name).toList(),
         keyCrew(),
-        List.of());
+        cast(properties));
+  }
+
+  private List<CastMember> cast(TmdbProperties properties) {
+    return aggregateCredits.cast().stream()
+        .limit(MAX_CAST)
+        .map(
+            actor ->
+                new CastMember(
+                    actor.name(),
+                    actor.roles().getFirst().character(),
+                    properties.imageUrl(properties.profileSize(), actor.profilePath())))
+        .toList();
   }
 
   private List<CrewMember> keyCrew() {
