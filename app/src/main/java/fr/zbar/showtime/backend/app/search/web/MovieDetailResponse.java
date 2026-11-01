@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app.search.web;
 
+import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
 import java.time.LocalDate;
@@ -14,7 +15,9 @@ public record MovieDetailResponse(
     Integer runtime,
     List<String> genres,
     String overview,
-    MovieStatus status) {
+    MovieStatus status,
+    List<String> directors,
+    List<CrewMember> crew) {
 
   static MovieDetailResponse from(MovieDetail movie) {
     return new MovieDetailResponse(
@@ -26,6 +29,8 @@ public record MovieDetailResponse(
         movie.runtime(),
         movie.genres(),
         movie.overview(),
-        movie.status());
+        movie.status(),
+        movie.directors(),
+        movie.crew());
   }
 }
