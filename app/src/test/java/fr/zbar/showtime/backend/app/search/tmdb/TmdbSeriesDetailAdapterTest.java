@@ -258,4 +258,20 @@ class TmdbSeriesDetailAdapterTest {
     assertThatThrownBy(() -> adapter.findSeriesDetail(1396L))
         .isInstanceOf(CatalogUnavailableException.class);
   }
+
+  @Test
+  void should_tolerate_a_cast_member_without_roles_and_a_crew_member_without_jobs() {
+    respondWith(
+        """
+        {"id":1396,"name":"Breaking Bad","aggregate_credits":{
+          "cast":[{"name":"A","roles":[]},{"name":"B"}],
+          "crew":[{"id":1,"name":"No Jobs"},{"id":2,"name":"Dave Porter","jobs":[{"job":"Composer"}]}]}}
+        """);
+
+    SeriesDetail series = adapter.findSeriesDetail(1396L);
+
+    assertThat(series.cast())
+        .containsExactly(new CastMember("A", null, null), new CastMember("B", null, null));
+    assertThat(series.crew()).containsExactly(new CrewMember("Dave Porter", List.of("Composer")));
+  }
 }
