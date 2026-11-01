@@ -155,4 +155,20 @@ class AddSeriesToWatchlistIT extends AbstractIT {
 
     assertThat(entryIds(email)).hasSize(1);
   }
+
+  @Test
+  void should_return_401_and_create_no_entry_when_the_request_is_not_authenticated() {
+    String email = newUserEmail();
+
+    restTestClient
+        .post()
+        .uri("/watchlist/series")
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("tmdbId", 1399L))
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+
+    assertThat(entryIds(email)).isEmpty();
+  }
 }
