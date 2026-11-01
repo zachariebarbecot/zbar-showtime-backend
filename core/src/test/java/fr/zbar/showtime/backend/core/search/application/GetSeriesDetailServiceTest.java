@@ -29,6 +29,7 @@ class GetSeriesDetailServiceTest {
           62,
           List.of("Vince Gilligan"),
           List.of(),
+          List.of(),
           List.of());
 
   private final GetSeriesDetailService service =

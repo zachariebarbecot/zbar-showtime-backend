@@ -8,6 +8,7 @@ import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
+import fr.zbar.showtime.backend.core.search.domain.SeasonSummary;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
@@ -53,6 +54,7 @@ class SeriesDetailIT extends AbstractIT {
                 "https://image.tmdb.org/t/p/w342/b.jpg",
                 5,
                 62,
+                List.of(),
                 List.of(),
                 List.of(),
                 List.of()));
@@ -109,6 +111,7 @@ class SeriesDetailIT extends AbstractIT {
                 0,
                 List.of(),
                 List.of(),
+                List.of(),
                 List.of()));
 
     detail("series-ca2@mail.fr", "1396")
@@ -146,6 +149,7 @@ class SeriesDetailIT extends AbstractIT {
                 null,
                 List.of("Vince Gilligan"),
                 List.of(new CrewMember("Vince Gilligan", List.of("Writer", "Producer"))),
+                List.of(),
                 List.of()));
 
     detail("series-ca3@mail.fr", "1396")
@@ -181,9 +185,8 @@ class SeriesDetailIT extends AbstractIT {
                 List.of(),
                 List.of(
                     new CastMember(
-                        "Bryan Cranston",
-                        "Walter White",
-                        "https://image.tmdb.org/t/p/w185/b.jpg"))));
+                        "Bryan Cranston", "Walter White", "https://image.tmdb.org/t/p/w185/b.jpg")),
+                List.of()));
 
     detail("series-ca4@mail.fr", "1396")
         .expectStatus()
@@ -197,6 +200,85 @@ class SeriesDetailIT extends AbstractIT {
         .isEqualTo("https://image.tmdb.org/t/p/w185/b.jpg")
         .jsonPath("$.runtime")
         .doesNotExist();
+  }
+
+  @Test
+  void should_return_the_seasons_when_the_series_has_seasons() {
+    registerUser("series-seasons@mail.fr");
+    when(seriesDetailCatalog.findSeriesDetail(1396L))
+        .thenReturn(
+            new SeriesDetail(
+                1396L,
+                "Breaking Bad",
+                "Breaking Bad",
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(
+                    new SeasonSummary(0, "Épisodes spéciaux", 2, null, null),
+                    new SeasonSummary(
+                        1,
+                        "Saison 1",
+                        7,
+                        LocalDate.of(2008, 1, 20),
+                        "https://image.tmdb.org/t/p/w342/s1.jpg"))));
+
+    detail("series-seasons@mail.fr", "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.seasons[0].seasonNumber")
+        .isEqualTo(0)
+        .jsonPath("$.seasons[0].airDate")
+        .isEqualTo(null)
+        .jsonPath("$.seasons[0].posterUrl")
+        .isEqualTo(null)
+        .jsonPath("$.seasons[1].name")
+        .isEqualTo("Saison 1")
+        .jsonPath("$.seasons[1].episodeCount")
+        .isEqualTo(7)
+        .jsonPath("$.seasons[1].airDate")
+        .isEqualTo("2008-01-20")
+        .jsonPath("$.seasons[1].posterUrl")
+        .isEqualTo("https://image.tmdb.org/t/p/w342/s1.jpg");
+  }
+
+  @Test
+  void should_return_empty_seasons_when_the_series_has_none() {
+    registerUser("series-noseasons@mail.fr");
+    when(seriesDetailCatalog.findSeriesDetail(1396L))
+        .thenReturn(
+            new SeriesDetail(
+                1396L,
+                "Breaking Bad",
+                "Breaking Bad",
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of()));
+
+    detail("series-noseasons@mail.fr", "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.seasons")
+        .isEmpty();
   }
 
   @ParameterizedTest

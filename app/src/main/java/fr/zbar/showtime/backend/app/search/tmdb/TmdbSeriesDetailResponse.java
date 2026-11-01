@@ -91,7 +91,8 @@ record TmdbSeriesDetailResponse(
         numberOfEpisodes,
         createdBy.stream().map(Creator::name).toList(),
         TmdbCredits.keyCrew(contributions(), KEY_JOBS),
-        TmdbCredits.cast(actors(), properties));
+        TmdbCredits.cast(actors(), properties),
+        List.of());
   }
 
   private List<TmdbCredits.Contribution> contributions() {
