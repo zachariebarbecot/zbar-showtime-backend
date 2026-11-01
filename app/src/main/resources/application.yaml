@@ -29,4 +29,5 @@ app:
     image-base-url: https://image.tmdb.org/t/p
     poster-size: w342
     profile-size: w185
+    still-size: w300
     language: fr-FR

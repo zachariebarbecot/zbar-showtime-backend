@@ -1,5 +1,7 @@
 package fr.zbar.showtime.backend.app.search.web;
 
+import fr.zbar.showtime.backend.core.search.application.GetSeasonDetail;
+import fr.zbar.showtime.backend.core.search.application.GetSeasonDetailCommand;
 import fr.zbar.showtime.backend.core.search.application.GetSeriesDetail;
 import fr.zbar.showtime.backend.core.search.application.GetSeriesDetailCommand;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 class SeriesController {
 
   private final GetSeriesDetail getSeriesDetail;
+  private final GetSeasonDetail getSeasonDetail;
 
   @Operation(summary = "Get the detail of a series")
   @GetMapping("/{tmdbId}")
@@ -26,5 +29,12 @@ class SeriesController {
     return SeriesDetailResponse.from(
         getSeriesDetail.execute(
             new GetSeriesDetailCommand(UUID.fromString(jwt.getSubject()), tmdbId)));
+  }
+
+  @Operation(summary = "Get the episodes of a season")
+  @GetMapping("/{tmdbId}/seasons/{seasonNumber}")
+  SeasonDetailResponse season(@PathVariable long tmdbId, @PathVariable int seasonNumber) {
+    return SeasonDetailResponse.from(
+        getSeasonDetail.execute(new GetSeasonDetailCommand(tmdbId, seasonNumber)));
   }
 }

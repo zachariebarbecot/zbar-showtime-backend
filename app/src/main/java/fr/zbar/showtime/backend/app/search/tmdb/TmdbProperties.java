@@ -10,6 +10,7 @@ public record TmdbProperties(
     String imageBaseUrl,
     String posterSize,
     String profileSize,
+    String stillSize,
     String language) {
 
   String imageUrl(String size, String path) {

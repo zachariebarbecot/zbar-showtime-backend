@@ -42,6 +42,7 @@ class TmdbSeriesDetailAdapterTest {
           "https://image.tmdb.org/t/p",
           "w342",
           "w185",
+          "w300",
           "fr-FR");
 
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();

@@ -32,6 +32,7 @@ class TmdbTitleAdapterTest {
           "https://image.tmdb.org/t/p",
           "w342",
           "w185",
+          "w300",
           "fr-FR");
 
   private static final String MOVIE_1_URL = "https://api.tmdb.test/3/movie/1?language=fr-FR";
