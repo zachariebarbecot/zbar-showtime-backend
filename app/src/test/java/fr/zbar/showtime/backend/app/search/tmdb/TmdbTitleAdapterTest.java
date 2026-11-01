@@ -14,7 +14,6 @@ import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.net.SocketTimeoutException;
-import java.time.Duration;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,13 +27,7 @@ class TmdbTitleAdapterTest {
 
   private static final TmdbProperties PROPERTIES =
       new TmdbProperties(
-          "https://api.tmdb.test/3",
-          "secret-token",
-          "https://image.tmdb.org/t/p",
-          "w342",
-          "fr-FR",
-          Duration.ofSeconds(1),
-          Duration.ofSeconds(2));
+          "https://api.tmdb.test/3", "secret-token", "https://image.tmdb.org/t/p", "w342", "fr-FR");
 
   private static final String MOVIE_1_URL = "https://api.tmdb.test/3/movie/1?language=fr-FR";
 

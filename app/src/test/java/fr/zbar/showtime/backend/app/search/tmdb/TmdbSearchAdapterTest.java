@@ -18,7 +18,6 @@ import fr.zbar.showtime.backend.core.search.domain.PageNumber;
 import fr.zbar.showtime.backend.core.search.domain.SearchPage;
 import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
 import java.net.SocketTimeoutException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -33,13 +32,7 @@ class TmdbSearchAdapterTest {
 
   private static final TmdbProperties PROPERTIES =
       new TmdbProperties(
-          "https://api.tmdb.test/3",
-          "secret-token",
-          "https://image.tmdb.org/t/p",
-          "w342",
-          "fr-FR",
-          Duration.ofSeconds(1),
-          Duration.ofSeconds(2));
+          "https://api.tmdb.test/3", "secret-token", "https://image.tmdb.org/t/p", "w342", "fr-FR");
 
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
