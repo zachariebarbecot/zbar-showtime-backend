@@ -9,6 +9,9 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
+  http:
+    clients:
+      read-timeout: 5s
   mvc:
     log-resolved-exception: true
 logging:
@@ -26,5 +29,3 @@ app:
     image-base-url: https://image.tmdb.org/t/p
     poster-size: w342
     language: fr-FR
-    connect-timeout: 2s
-    read-timeout: 5s

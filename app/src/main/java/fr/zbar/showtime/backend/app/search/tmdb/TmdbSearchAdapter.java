@@ -1,18 +1,15 @@
 package fr.zbar.showtime.backend.app.search.tmdb;
 
-import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.PageNumber;
 import fr.zbar.showtime.backend.core.search.domain.SearchCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SearchPage;
 import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
-import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -79,23 +76,9 @@ class TmdbSearchAdapter implements SearchCatalog {
         response.totalPages(),
         response.totalResults(),
         response.results().stream()
-            .flatMap(result -> typeOf.apply(result).map(type -> toItem(result, type)).stream())
+            .flatMap(
+                result ->
+                    typeOf.apply(result).map(type -> result.toItem(type, properties)).stream())
             .toList());
-  }
-
-  private CatalogItem toItem(TmdbSearchResponse.Result result, MediaType type) {
-    String date = result.date(type);
-    return new CatalogItem(
-        result.id(),
-        type,
-        result.title(type),
-        posterUrl(result.posterPath()),
-        StringUtils.isEmpty(date) ? null : LocalDate.parse(date));
-  }
-
-  private String posterUrl(String posterPath) {
-    return StringUtils.isEmpty(posterPath)
-        ? null
-        : properties.imageBaseUrl() + "/" + properties.posterSize() + posterPath;
   }
 }

@@ -1,11 +1,9 @@
 package fr.zbar.showtime.backend.app.search.tmdb;
 
-import java.net.http.HttpClient;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 @Configuration
@@ -13,12 +11,8 @@ import org.springframework.web.client.RestClient;
 class TmdbConfiguration {
 
   @Bean
-  RestClient tmdbRestClient(TmdbProperties properties) {
-    HttpClient httpClient =
-        HttpClient.newBuilder().connectTimeout(properties.connectTimeout()).build();
-    JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-    requestFactory.setReadTimeout(properties.readTimeout());
-    return authenticated(RestClient.builder().requestFactory(requestFactory), properties);
+  RestClient tmdbRestClient(RestClient.Builder builder, TmdbProperties properties) {
+    return authenticated(builder, properties);
   }
 
   static RestClient authenticated(RestClient.Builder builder, TmdbProperties properties) {

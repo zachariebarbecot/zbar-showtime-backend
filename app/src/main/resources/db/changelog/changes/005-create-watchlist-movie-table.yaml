@@ -1,0 +1,60 @@
+databaseChangeLog:
+- changeSet:
+    id: 1793532298806-1
+    author: zbarbecot (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: watchlist_moviePK
+            name: id
+            type: UUID
+        - column:
+            constraints:
+              nullable: false
+            name: added_at
+            type: TIMESTAMP(6) WITH TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: status
+            type: VARCHAR(16)
+        - column:
+            constraints:
+              nullable: false
+            name: tmdb_id
+            type: BIGINT
+        - column:
+            name: watched_at
+            type: TIMESTAMP(6) WITH TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: user_id
+            type: UUID
+        tableName: watchlist_movie
+- changeSet:
+    id: 1793532298806-2
+    author: zbarbecot (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: user_id, tmdb_id
+        constraintName: UC_watchlist_movie_user_tmdb
+        tableName: watchlist_movie
+- changeSet:
+    id: 1793532298806-3
+    author: zbarbecot (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_id
+        baseTableName: watchlist_movie
+        constraintName: FK2osjfs7nxxqv6n7g5osf3g12m
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users
+        validate: true
+

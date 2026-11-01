@@ -2,11 +2,14 @@ package fr.zbar.showtime.backend.app.search.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 record TmdbSearchResponse(
@@ -45,6 +48,18 @@ record TmdbSearchResponse(
         case MOVIE -> title;
         case TV -> name;
       };
+    }
+
+    CatalogItem toItem(MediaType type, TmdbProperties properties) {
+      String date = date(type);
+      return new CatalogItem(
+          id,
+          type,
+          title(type),
+          StringUtils.isEmpty(posterPath)
+              ? null
+              : properties.imageBaseUrl() + "/" + properties.posterSize() + posterPath,
+          StringUtils.isEmpty(date) ? null : LocalDate.parse(date));
     }
 
     String date(MediaType type) {

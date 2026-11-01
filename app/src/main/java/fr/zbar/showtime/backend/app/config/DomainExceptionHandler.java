@@ -1,10 +1,12 @@
 package fr.zbar.showtime.backend.app.config;
 
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
+import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import fr.zbar.showtime.backend.core.user.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.user.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.user.domain.UserNotFoundException;
+import fr.zbar.showtime.backend.core.watchlist.domain.AlreadyInWatchlistException;
 import io.micrometer.tracing.Tracer;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,11 @@ class DomainExceptionHandler {
     return problem(HttpStatus.CONFLICT, exception.getMessage());
   }
 
+  @ExceptionHandler(AlreadyInWatchlistException.class)
+  ProblemDetail handleAlreadyInWatchlist(AlreadyInWatchlistException exception) {
+    return problem(HttpStatus.CONFLICT, exception.getMessage());
+  }
+
   @ExceptionHandler(InvalidCredentialsException.class)
   ProblemDetail handleInvalidCredentials(InvalidCredentialsException exception) {
     return problem(HttpStatus.UNAUTHORIZED, exception.getMessage());
@@ -50,6 +57,11 @@ class DomainExceptionHandler {
   @ExceptionHandler(UserNotFoundException.class)
   ProblemDetail handleUserNotFound(UserNotFoundException exception) {
     return problem(HttpStatus.UNAUTHORIZED, exception.getMessage());
+  }
+
+  @ExceptionHandler(TitleNotFoundException.class)
+  ProblemDetail handleTitleNotFound(TitleNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, exception.getMessage());
   }
 
   @ExceptionHandler(CatalogUnavailableException.class)
