@@ -18,6 +18,12 @@ public class GetSeriesDetailService implements GetSeriesDetail {
     if (command.tmdbId() <= 0) {
       throw new InvalidFieldException("tmdbId", "TMDB id must be greater than 0");
     }
-    return new SeriesDetailView(seriesDetailCatalog.findSeriesDetail(command.tmdbId()), null);
+    String watchlistStatus =
+        watchlistSeriesRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .map(series -> series.status().name())
+            .orElse(null);
+    return new SeriesDetailView(
+        seriesDetailCatalog.findSeriesDetail(command.tmdbId()), watchlistStatus);
   }
 }
