@@ -6,18 +6,26 @@ import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.time.format.DateTimeParseException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.support.RestClientAdapter;
+import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Component
-@RequiredArgsConstructor
 class TmdbTitleAdapter implements TitleCatalog {
 
-  private final RestClient tmdbRestClient;
+  private final TmdbMovieApi movieApi;
   private final TmdbProperties properties;
+
+  TmdbTitleAdapter(RestClient tmdbRestClient, TmdbProperties properties) {
+    this.movieApi =
+        HttpServiceProxyFactory.builderFor(RestClientAdapter.create(tmdbRestClient))
+            .build()
+            .createClient(TmdbMovieApi.class);
+    this.properties = properties;
+  }
 
   @Override
   public CatalogItem findMovie(long id) {
@@ -31,14 +39,7 @@ class TmdbTitleAdapter implements TitleCatalog {
   }
 
   private TmdbSearchResponse.Result fetchMovie(long id) {
-    TmdbSearchResponse.Result result =
-        tmdbRestClient
-            .get()
-            .uri(
-                uri ->
-                    uri.path("/movie/{id}").queryParam("language", properties.language()).build(id))
-            .retrieve()
-            .body(TmdbSearchResponse.Result.class);
+    TmdbSearchResponse.Result result = movieApi.movie(id, properties.language());
     if (result == null) {
       throw new CatalogUnavailableException(new IllegalStateException("Empty TMDB response body"));
     }
