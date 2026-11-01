@@ -63,6 +63,10 @@ class ChangeMovieStatusIT extends AbstractIT {
         email);
   }
 
+  private void assertToWatchWithoutWatchedDate(String email) {
+    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
+
   @Test
   void should_return_200_with_a_watched_entry_when_the_movie_is_marked_as_watched() {
     String email = newUserWithMatrix();
@@ -96,7 +100,7 @@ class ChangeMovieStatusIT extends AbstractIT {
         .isEqualTo("TO_WATCH")
         .jsonPath("$.watchedAt")
         .doesNotExist();
-    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+    assertToWatchWithoutWatchedDate(email);
   }
 
   @ParameterizedTest
@@ -112,7 +116,7 @@ class ChangeMovieStatusIT extends AbstractIT {
         .isEqualTo("status")
         .jsonPath("$.errors[0].message")
         .isEqualTo("Status must be TO_WATCH or WATCHED");
-    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+    assertToWatchWithoutWatchedDate(email);
   }
 
   @Test
@@ -129,7 +133,7 @@ class ChangeMovieStatusIT extends AbstractIT {
         .jsonPath("$.detail")
         .isEqualTo("Watchlist entry not found");
 
-    assertThat(row(owner)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+    assertToWatchWithoutWatchedDate(owner);
   }
 
   @Test
@@ -145,6 +149,6 @@ class ChangeMovieStatusIT extends AbstractIT {
         .expectStatus()
         .isUnauthorized();
 
-    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+    assertToWatchWithoutWatchedDate(email);
   }
 }
