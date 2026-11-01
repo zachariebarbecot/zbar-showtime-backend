@@ -10,4 +10,7 @@ interface TmdbMovieApi {
 
   @GetExchange("/movie/{id}")
   TmdbSearchResponse.Result movie(@PathVariable long id, @RequestParam String language);
+
+  @GetExchange("/movie/{id}?append_to_response=credits")
+  TmdbMovieDetailResponse movieDetail(@PathVariable long id, @RequestParam String language);
 }

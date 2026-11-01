@@ -27,7 +27,12 @@ class TmdbTitleAdapterTest {
 
   private static final TmdbProperties PROPERTIES =
       new TmdbProperties(
-          "https://api.tmdb.test/3", "secret-token", "https://image.tmdb.org/t/p", "w342", "fr-FR");
+          "https://api.tmdb.test/3",
+          "secret-token",
+          "https://image.tmdb.org/t/p",
+          "w342",
+          "w185",
+          "fr-FR");
 
   private static final String MOVIE_1_URL = "https://api.tmdb.test/3/movie/1?language=fr-FR";
 
@@ -35,8 +40,12 @@ class TmdbTitleAdapterTest {
 
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+  private final RestClient restClient = TmdbConfiguration.authenticated(builder, PROPERTIES);
   private final TmdbTitleAdapter adapter =
-      new TmdbTitleAdapter(TmdbConfiguration.authenticated(builder, PROPERTIES), PROPERTIES);
+      new TmdbTitleAdapter(
+          TmdbConfiguration.movieApi(restClient),
+          TmdbConfiguration.seriesApi(restClient),
+          PROPERTIES);
 
   @Test
   void should_return_the_movie_when_tmdb_knows_the_id() {
