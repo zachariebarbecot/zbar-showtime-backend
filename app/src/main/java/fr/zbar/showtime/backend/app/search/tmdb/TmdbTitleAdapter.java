@@ -1,13 +1,16 @@
 package fr.zbar.showtime.backend.app.search.tmdb;
 
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
+import java.time.format.DateTimeParseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 @Component
 @RequiredArgsConstructor
@@ -22,6 +25,8 @@ class TmdbTitleAdapter implements TitleCatalog {
       return fetchMovie(id).toItem(MediaType.MOVIE, properties);
     } catch (HttpClientErrorException.NotFound exception) {
       throw new TitleNotFoundException();
+    } catch (RestClientException | DateTimeParseException exception) {
+      throw new CatalogUnavailableException(exception);
     }
   }
 
