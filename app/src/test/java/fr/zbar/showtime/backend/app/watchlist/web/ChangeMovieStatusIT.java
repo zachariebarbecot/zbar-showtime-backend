@@ -11,6 +11,8 @@ import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
@@ -94,6 +96,22 @@ class ChangeMovieStatusIT extends AbstractIT {
         .isEqualTo("TO_WATCH")
         .jsonPath("$.watchedAt")
         .doesNotExist();
+    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"WATCHING", "unknown"})
+  void should_return_400_and_keep_the_entry_when_the_status_is_not_allowed(String status) {
+    String email = newUserWithMatrix();
+
+    changeStatus(email, 603L, status)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("status")
+        .jsonPath("$.errors[0].message")
+        .isEqualTo("Status must be TO_WATCH or WATCHED");
     assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
   }
 }
