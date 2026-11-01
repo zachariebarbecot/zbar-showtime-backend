@@ -70,4 +70,40 @@ class RemoveMovieFromWatchlistIT extends AbstractIT {
 
     assertThat(movieCount(email, 550L)).isZero();
   }
+
+  @Test
+  void should_return_404_when_the_movie_is_not_in_my_watchlist() {
+    String email = newUser();
+
+    remove(email, 550L)
+        .expectStatus()
+        .isNotFound()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Watchlist entry not found");
+  }
+
+  @Test
+  void should_return_404_and_keep_the_movie_of_another_user_when_only_they_have_it() {
+    String owner = newUser();
+    String other = newUser();
+    addMovie(owner, 550L);
+
+    remove(other, 550L).expectStatus().isNotFound();
+
+    assertThat(movieCount(owner, 550L)).isEqualTo(1);
+  }
+
+  @Test
+  void should_keep_the_movie_of_the_other_user_when_both_have_it() {
+    String first = newUser();
+    String second = newUser();
+    addMovie(first, 550L);
+    addMovie(second, 550L);
+
+    remove(first, 550L).expectStatus().isNoContent();
+
+    assertThat(movieCount(first, 550L)).isZero();
+    assertThat(movieCount(second, 550L)).isEqualTo(1);
+  }
 }
