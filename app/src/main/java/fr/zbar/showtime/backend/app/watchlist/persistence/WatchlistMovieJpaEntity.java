@@ -1,8 +1,6 @@
 package fr.zbar.showtime.backend.app.watchlist.persistence;
 
 import fr.zbar.showtime.backend.app.user.persistence.UserJpaEntity;
-import fr.zbar.showtime.backend.core.watchlist.domain.MovieStatus;
-import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,6 +13,7 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -25,6 +24,7 @@ import lombok.NoArgsConstructor;
             name = "UC_watchlist_movie_user_tmdb",
             columnNames = {"user_id", "tmdb_id"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 @AllArgsConstructor
 public class WatchlistMovieJpaEntity {
 
@@ -47,9 +47,4 @@ public class WatchlistMovieJpaEntity {
 
   @Column(name = "watched_at")
   private Instant watchedAt;
-
-  WatchlistMovie toDomain() {
-    return new WatchlistMovie(
-        id, user.getId(), tmdbId, MovieStatus.valueOf(status), addedAt, watchedAt);
-  }
 }
