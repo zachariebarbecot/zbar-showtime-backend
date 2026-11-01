@@ -82,4 +82,27 @@ class SeasonDetailIT extends AbstractIT {
   void should_return_401_when_there_is_no_token() {
     restTestClient.get().uri("/series/1396/seasons/1").exchange().expectStatus().isUnauthorized();
   }
+
+  @Test
+  void should_return_200_with_the_specials_when_the_season_number_is_zero() {
+    registerUser("season-ca3@mail.fr");
+    when(seasonCatalog.findSeason(1396L, 0))
+        .thenReturn(
+            new SeasonDetail(
+                0,
+                "Épisodes spéciaux",
+                null,
+                null,
+                null,
+                List.of(new Episode(1, "À venir", null, null, LocalDate.of(2999, 12, 31), null))));
+
+    season("season-ca3@mail.fr", "1396", "0")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.name")
+        .isEqualTo("Épisodes spéciaux")
+        .jsonPath("$.episodes[0].airDate")
+        .isEqualTo("2999-12-31");
+  }
 }

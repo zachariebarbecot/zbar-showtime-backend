@@ -26,11 +26,22 @@ class GetSeasonDetailServiceTest {
                   LocalDate.of(2008, 1, 20),
                   "https://image.tmdb.org/t/p/w300/e1.jpg")));
 
+  private static final SeasonDetail SPECIALS =
+      new SeasonDetail(0, "Épisodes spéciaux", null, null, null, List.of());
+
   private final GetSeasonDetailService service =
       new GetSeasonDetailService(new InMemorySeasonCatalog(1396L, SEASON_1));
 
   @Test
   void should_return_the_season_when_the_series_and_the_season_are_known() {
     assertThat(service.execute(new GetSeasonDetailCommand(1396L, 1))).isEqualTo(SEASON_1);
+  }
+
+  @Test
+  void should_return_the_specials_when_the_season_number_is_zero() {
+    GetSeasonDetailService specials =
+        new GetSeasonDetailService(new InMemorySeasonCatalog(1396L, SPECIALS));
+
+    assertThat(specials.execute(new GetSeasonDetailCommand(1396L, 0))).isEqualTo(SPECIALS);
   }
 }

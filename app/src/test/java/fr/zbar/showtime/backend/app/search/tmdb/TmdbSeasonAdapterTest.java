@@ -131,4 +131,24 @@ class TmdbSeasonAdapterTest {
     assertThat(adapter.findSeason(1396L, 1))
         .isEqualTo(new SeasonDetail(1, "Saison 1", null, null, null, List.of()));
   }
+
+  @Test
+  void should_keep_the_episodes_with_their_future_air_date_when_the_season_is_the_specials() {
+    respondWith(
+        0,
+        """
+        {"season_number":0,"name":"Épisodes spéciaux","episodes":[
+          {"episode_number":1,"name":"À venir","air_date":"2999-12-31"}]}
+        """);
+
+    assertThat(adapter.findSeason(1396L, 0))
+        .isEqualTo(
+            new SeasonDetail(
+                0,
+                "Épisodes spéciaux",
+                null,
+                null,
+                null,
+                List.of(new Episode(1, "À venir", null, null, LocalDate.of(2999, 12, 31), null))));
+  }
 }
