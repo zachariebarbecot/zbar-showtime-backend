@@ -191,7 +191,14 @@ class MovieDetailIT extends AbstractIT {
     String email = "movie-ca5a-" + UUID.randomUUID() + "@mail.fr";
     registerUser(email);
 
-    detail(email, id).expectStatus().isBadRequest();
+    detail(email, id)
+        .expectStatus()
+        .isBadRequest()
+        .expectHeader()
+        .contentTypeCompatibleWith("application/problem+json")
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("tmdbId");
 
     verifyNoInteractions(movieDetailCatalog);
   }
@@ -201,7 +208,11 @@ class MovieDetailIT extends AbstractIT {
     registerUser("movie-ca5b@mail.fr");
     when(movieDetailCatalog.findMovieDetail(999L)).thenThrow(new TitleNotFoundException());
 
-    detail("movie-ca5b@mail.fr", "999").expectStatus().isNotFound();
+    detail("movie-ca5b@mail.fr", "999")
+        .expectStatus()
+        .isNotFound()
+        .expectHeader()
+        .contentTypeCompatibleWith("application/problem+json");
   }
 
   @Test
