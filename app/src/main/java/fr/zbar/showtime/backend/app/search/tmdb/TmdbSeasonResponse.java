@@ -6,6 +6,7 @@ import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
 import java.time.LocalDate;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 record TmdbSeasonResponse(
@@ -15,6 +16,10 @@ record TmdbSeasonResponse(
     @JsonProperty("air_date") String airDate,
     @JsonProperty("poster_path") String posterPath,
     List<TmdbEpisode> episodes) {
+
+  TmdbSeasonResponse {
+    episodes = episodes == null ? List.of() : episodes;
+  }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   record TmdbEpisode(
@@ -29,9 +34,9 @@ record TmdbSeasonResponse(
       return new Episode(
           episodeNumber,
           name,
-          overview,
-          runtime,
-          LocalDate.parse(airDate),
+          StringUtils.defaultIfEmpty(overview, null),
+          runtime == null || runtime == 0 ? null : runtime,
+          date(airDate),
           properties.imageUrl(properties.stillSize(), stillPath));
     }
   }
@@ -40,9 +45,13 @@ record TmdbSeasonResponse(
     return new SeasonDetail(
         seasonNumber,
         name,
-        overview,
-        LocalDate.parse(airDate),
+        StringUtils.defaultIfEmpty(overview, null),
+        date(airDate),
         properties.imageUrl(properties.posterSize(), posterPath),
         episodes.stream().map(episode -> episode.toEpisode(properties)).toList());
+  }
+
+  private static LocalDate date(String value) {
+    return StringUtils.isEmpty(value) ? null : LocalDate.parse(value);
   }
 }
