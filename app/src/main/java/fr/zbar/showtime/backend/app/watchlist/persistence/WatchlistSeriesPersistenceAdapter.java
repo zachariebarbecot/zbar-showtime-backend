@@ -51,7 +51,9 @@ class WatchlistSeriesPersistenceAdapter implements WatchlistSeriesRepository {
 
   @Override
   public List<WatchlistSeries> findByUserIdAndTmdbIdIn(UUID userId, Collection<Long> tmdbIds) {
-    return List.of();
+    return watchlistSeriesJpaRepository.findByUserIdAndTmdbIdIn(userId, tmdbIds).stream()
+        .map(WatchlistSeriesPersistenceAdapter::toDomain)
+        .toList();
   }
 
   private static WatchlistSeries toDomain(WatchlistSeriesJpaEntity entity) {
