@@ -13,10 +13,12 @@ import fr.zbar.showtime.backend.core.search.domain.PageNumber;
 import fr.zbar.showtime.backend.core.search.domain.SearchCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SearchPage;
 import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
+import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,6 +38,8 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 class SearchIT extends AbstractIT {
 
   @MockitoBean private SearchCatalog searchCatalog;
+
+  @MockitoBean private TitleCatalog titleCatalog;
 
   @Autowired private JwtEncoder jwtEncoder;
 
@@ -453,5 +457,103 @@ class SearchIT extends AbstractIT {
         .isEqualTo(502)
         .expectBody(String.class)
         .value(body -> assertThat(body).contains("\"status\":502").doesNotContain("themoviedb"));
+  }
+
+  private void addMovieToWatchlist(String email, long tmdbId) {
+    when(titleCatalog.findMovie(tmdbId))
+        .thenReturn(new CatalogItem(tmdbId, MediaType.MOVIE, "Fight Club", null, null));
+    restTestClient
+        .post()
+        .uri("/watchlist/movies")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("tmdbId", tmdbId))
+        .exchange()
+        .expectStatus()
+        .isCreated();
+  }
+
+  private void changeMovieStatus(String email, long tmdbId, String status) {
+    restTestClient
+        .patch()
+        .uri("/watchlist/movies/{tmdbId}", tmdbId)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("status", status))
+        .exchange()
+        .expectStatus()
+        .isOk();
+  }
+
+  private void catalogReturnsFightClubAndMatrix() {
+    when(searchCatalog.searchMovies(new SearchQuery("club"), new PageNumber(1)))
+        .thenReturn(
+            new SearchPage(
+                1,
+                1,
+                2,
+                List.of(
+                    new CatalogItem(550L, MediaType.MOVIE, "Fight Club", null, null),
+                    new CatalogItem(603L, MediaType.MOVIE, "Matrix", null, null))));
+  }
+
+  @Test
+  void should_expose_the_watchlist_status_of_the_caller_and_null_for_other_movies() {
+    String email = newUserEmail();
+    addMovieToWatchlist(email, 550L);
+    changeMovieStatus(email, 550L, "WATCHED");
+    catalogReturnsFightClubAndMatrix();
+
+    search(email, "/search?query=club&type=MOVIE")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.totalResults")
+        .isEqualTo(2)
+        .jsonPath("$.results[0].id")
+        .isEqualTo(550)
+        .jsonPath("$.results[0].watchlistStatus")
+        .isEqualTo("WATCHED")
+        .jsonPath("$.results[1].id")
+        .isEqualTo(603)
+        .jsonPath("$.results[1].watchlistStatus")
+        .value(value -> assertThat(value).isNull())
+        .jsonPath("$.results[1].watchlistStatus")
+        .hasJsonPath();
+  }
+
+  @Test
+  void should_expose_no_watchlist_status_to_a_user_who_did_not_add_the_movie() {
+    String owner = newUserEmail();
+    String other = newUserEmail();
+    addMovieToWatchlist(owner, 550L);
+    catalogReturnsFightClubAndMatrix();
+
+    search(other, "/search?query=club&type=MOVIE")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results[0].watchlistStatus")
+        .value(value -> assertThat(value).isNull());
+  }
+
+  @Test
+  void should_expose_the_status_of_movies_when_the_type_is_all() {
+    String email = newUserEmail();
+    addMovieToWatchlist(email, 550L);
+    when(searchCatalog.searchAll(new SearchQuery("club"), new PageNumber(1)))
+        .thenReturn(
+            new SearchPage(
+                1,
+                1,
+                1,
+                List.of(new CatalogItem(550L, MediaType.MOVIE, "Fight Club", null, null))));
+
+    search(email, "/search?query=club&type=ALL")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.results[0].watchlistStatus")
+        .isEqualTo("TO_WATCH");
   }
 }

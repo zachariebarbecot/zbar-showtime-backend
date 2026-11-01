@@ -1,3 +1,5 @@
 package fr.zbar.showtime.backend.core.search.application;
 
-public record SearchTitlesCommand(String query, int page, String type) {}
+import java.util.UUID;
+
+public record SearchTitlesCommand(UUID userId, String query, int page, String type) {}
