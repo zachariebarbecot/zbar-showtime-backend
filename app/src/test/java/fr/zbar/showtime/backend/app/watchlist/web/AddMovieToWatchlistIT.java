@@ -7,6 +7,7 @@ import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -64,5 +65,45 @@ class AddMovieToWatchlistIT extends AbstractIT {
                 + " join users u on u.id = m.user_id where u.email = ? and m.tmdb_id = 603",
             email);
     assertThat(row).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
+
+  private List<UUID> entryIds(String email) {
+    return jdbcTemplate.queryForList(
+        "select m.id from watchlist_movie m join users u on u.id = m.user_id"
+            + " where u.email = ? and m.tmdb_id = 603",
+        UUID.class,
+        email);
+  }
+
+  @Test
+  void should_return_409_and_keep_the_existing_entry_when_the_movie_is_already_in_the_watchlist() {
+    String email = newUserEmail();
+    when(titleCatalog.findMovie(603L))
+        .thenReturn(new CatalogItem(603L, MediaType.MOVIE, "Matrix", null, null));
+    addMovie(email, 603L).expectStatus().isCreated();
+    List<UUID> existing = entryIds(email);
+
+    addMovie(email, 603L)
+        .expectStatus()
+        .isEqualTo(409)
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Title already in watchlist");
+
+    assertThat(entryIds(email)).isEqualTo(existing).hasSize(1);
+  }
+
+  @Test
+  void should_return_201_for_each_user_when_two_users_add_the_same_movie() {
+    String first = newUserEmail();
+    String second = newUserEmail();
+    when(titleCatalog.findMovie(603L))
+        .thenReturn(new CatalogItem(603L, MediaType.MOVIE, "Matrix", null, null));
+    addMovie(first, 603L).expectStatus().isCreated();
+
+    addMovie(second, 603L).expectStatus().isCreated();
+
+    assertThat(entryIds(first)).hasSize(1);
+    assertThat(entryIds(second)).hasSize(1);
   }
 }
