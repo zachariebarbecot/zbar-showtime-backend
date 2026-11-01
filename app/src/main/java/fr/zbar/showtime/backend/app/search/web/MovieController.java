@@ -19,6 +19,6 @@ class MovieController {
   @Operation(summary = "Get the detail of a movie")
   @GetMapping("/{tmdbId}")
   MovieDetailResponse detail(@PathVariable long tmdbId) {
-    return null;
+    return MovieDetailResponse.from(getMovieDetail.execute(tmdbId));
   }
 }

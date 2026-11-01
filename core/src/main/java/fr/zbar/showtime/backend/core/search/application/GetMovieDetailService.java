@@ -13,6 +13,6 @@ public class GetMovieDetailService implements GetMovieDetail {
 
   @Override
   public MovieDetail execute(long tmdbId) {
-    return null;
+    return movieDetailCatalog.findMovieDetail(tmdbId);
   }
 }
