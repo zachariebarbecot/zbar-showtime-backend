@@ -14,8 +14,10 @@ import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
 import fr.zbar.showtime.backend.core.watchlist.application.InMemoryWatchlistMovieRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.MovieStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +43,8 @@ class SearchTitlesServiceTest {
 
   private static final UUID USER = UUID.fromString("11111111-1111-1111-1111-111111111111");
   private static final UUID OTHER_USER = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+  private static final Clock CLOCK = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC);
 
   private final List<WatchlistMovie> watchlist = new ArrayList<>();
 
@@ -138,16 +142,19 @@ class SearchTitlesServiceTest {
 
   @Test
   void should_expose_the_new_status_when_the_status_of_the_movie_changed() {
-    WatchlistMovie entry = inWatchlist(USER, 603L, MovieStatus.TO_WATCH);
-    watchlist.add(entry);
-    watchlist.removeIf(existing -> existing.id().equals(entry.id()));
-    watchlist.add(
-        new WatchlistMovie(
-            entry.id(), USER, 603L, MovieStatus.WATCHED, entry.addedAt(), Instant.EPOCH));
+    WatchlistMovie entry = WatchlistMovie.add(USER, 603L, CLOCK);
+    InMemoryWatchlistMovieRepository repository = new InMemoryWatchlistMovieRepository(watchlist);
+    repository.save(entry);
+    SearchTitlesCommand command = new SearchTitlesCommand(USER, "Matrix", 1, "MOVIE");
 
-    SearchResultPage page = service.execute(new SearchTitlesCommand(USER, "Matrix", 1, "MOVIE"));
+    SearchResultPage before = service.execute(command);
+    repository.save(entry.changeStatus(MovieStatus.WATCHED, CLOCK));
+    SearchResultPage after = service.execute(command);
 
-    assertThat(page.results())
+    assertThat(before.results())
+        .extracting(SearchResultItem::watchlistStatus)
+        .containsExactly("TO_WATCH");
+    assertThat(after.results())
         .extracting(SearchResultItem::watchlistStatus)
         .containsExactly("WATCHED");
   }
