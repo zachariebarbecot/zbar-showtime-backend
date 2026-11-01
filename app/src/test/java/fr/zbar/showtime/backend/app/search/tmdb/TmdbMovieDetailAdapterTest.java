@@ -1,24 +1,33 @@
 package fr.zbar.showtime.backend.app.search.tmdb;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import fr.zbar.showtime.backend.core.search.domain.CastMember;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
+import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
+import java.net.SocketTimeoutException;
 import java.time.LocalDate;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
@@ -202,5 +211,46 @@ class TmdbMovieDetailAdapterTest {
     assertThat(movie.directors()).isEmpty();
     assertThat(movie.crew()).isEmpty();
     assertThat(movie.cast()).isEmpty();
+  }
+
+  @Test
+  void should_throw_title_not_found_when_tmdb_answers_404() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/movie/603?")))
+        .andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+    assertThatThrownBy(() -> adapter.findMovieDetail(603L))
+        .isInstanceOf(TitleNotFoundException.class);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = HttpStatus.class,
+      names = {"INTERNAL_SERVER_ERROR", "BAD_GATEWAY", "TOO_MANY_REQUESTS", "UNAUTHORIZED"})
+  void should_throw_catalog_unavailable_when_tmdb_answers_an_error(HttpStatus status) {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/movie/603?")))
+        .andRespond(withStatus(status));
+
+    assertThatThrownBy(() -> adapter.findMovieDetail(603L))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_throw_catalog_unavailable_when_tmdb_times_out() {
+    server
+        .expect(requestTo(startsWith("https://api.tmdb.test/3/movie/603?")))
+        .andRespond(withException(new SocketTimeoutException("read timed out")));
+
+    assertThatThrownBy(() -> adapter.findMovieDetail(603L))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_throw_catalog_unavailable_when_tmdb_answers_an_empty_body() {
+    respondWith("");
+
+    assertThatThrownBy(() -> adapter.findMovieDetail(603L))
+        .isInstanceOf(CatalogUnavailableException.class);
   }
 }

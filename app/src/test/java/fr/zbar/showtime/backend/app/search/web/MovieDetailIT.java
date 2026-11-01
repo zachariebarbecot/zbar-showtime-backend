@@ -1,16 +1,23 @@
 package fr.zbar.showtime.backend.app.search.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CastMember;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
+import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -176,5 +183,46 @@ class MovieDetailIT extends AbstractIT {
         .isEmpty()
         .jsonPath("$.cast")
         .isEmpty();
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"0", "-1", "abc"})
+  void should_return_400_without_calling_tmdb_when_the_id_is_invalid(String id) {
+    String email = "movie-ca5a-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+
+    detail(email, id).expectStatus().isBadRequest();
+
+    verifyNoInteractions(movieDetailCatalog);
+  }
+
+  @Test
+  void should_return_404_when_tmdb_does_not_know_the_movie() {
+    registerUser("movie-ca5b@mail.fr");
+    when(movieDetailCatalog.findMovieDetail(999L)).thenThrow(new TitleNotFoundException());
+
+    detail("movie-ca5b@mail.fr", "999").expectStatus().isNotFound();
+  }
+
+  @Test
+  void should_return_502_without_technical_detail_when_the_catalog_is_unavailable() {
+    registerUser("movie-ca5c@mail.fr");
+    when(movieDetailCatalog.findMovieDetail(603L))
+        .thenThrow(
+            new CatalogUnavailableException(
+                new IllegalStateException(
+                    "401 from https://api.themoviedb.org/3 test-tmdb-token")));
+
+    detail("movie-ca5c@mail.fr", "603")
+        .expectStatus()
+        .isEqualTo(502)
+        .expectHeader()
+        .contentTypeCompatibleWith("application/problem+json")
+        .expectBody(String.class)
+        .value(
+            body ->
+                assertThat(body)
+                    .contains("\"status\":502")
+                    .doesNotContain("test-tmdb-token", "themoviedb", "Exception"));
   }
 }
