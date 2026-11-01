@@ -80,4 +80,20 @@ class ChangeMovieStatusIT extends AbstractIT {
         .extractingByKey("watched_at")
         .isNotNull();
   }
+
+  @Test
+  void should_return_200_without_watched_date_when_a_watched_movie_goes_back_to_to_watch() {
+    String email = newUserWithMatrix();
+    changeStatus(email, 603L, "WATCHED").expectStatus().isOk();
+
+    changeStatus(email, 603L, "TO_WATCH")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.status")
+        .isEqualTo("TO_WATCH")
+        .jsonPath("$.watchedAt")
+        .doesNotExist();
+    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
 }
