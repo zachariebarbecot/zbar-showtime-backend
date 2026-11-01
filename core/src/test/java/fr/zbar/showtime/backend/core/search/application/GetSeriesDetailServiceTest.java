@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -99,6 +100,27 @@ class GetSeriesDetailServiceTest {
             new InMemoryWatchlistSeriesRepository(watchlist));
 
     assertThatThrownBy(() -> unreachableCatalog.execute(new GetSeriesDetailCommand(USER, tmdbId)))
+        .isInstanceOf(InvalidFieldException.class)
+        .hasMessage("tmdbId: TMDB id must be greater than 0");
+  }
+
+  @ParameterizedTest
+  @ValueSource(longs = {0L, -1L})
+  void should_throw_invalid_field_without_calling_the_watchlist_when_the_id_is_not_positive(
+      long tmdbId) {
+    GetSeriesDetailService unreachableWatchlist =
+        new GetSeriesDetailService(
+            id -> {
+              throw new AssertionError("catalog must not be called");
+            },
+            new InMemoryWatchlistSeriesRepository(watchlist) {
+              @Override
+              public Optional<WatchlistSeries> findByUserIdAndTmdbId(UUID userId, long tmdbId) {
+                throw new AssertionError("watchlist must not be called");
+              }
+            });
+
+    assertThatThrownBy(() -> unreachableWatchlist.execute(new GetSeriesDetailCommand(USER, tmdbId)))
         .isInstanceOf(InvalidFieldException.class)
         .hasMessage("tmdbId: TMDB id must be greater than 0");
   }

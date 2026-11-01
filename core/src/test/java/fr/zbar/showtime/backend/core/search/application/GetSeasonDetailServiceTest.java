@@ -68,4 +68,11 @@ class GetSeasonDetailServiceTest {
         .isInstanceOf(InvalidFieldException.class)
         .hasMessage(message);
   }
+
+  @Test
+  void should_report_the_tmdb_id_first_when_both_ids_are_invalid() {
+    assertThatThrownBy(() -> service.execute(new GetSeasonDetailCommand(0, -1)))
+        .isInstanceOf(InvalidFieldException.class)
+        .hasMessage("tmdbId: TMDB id must be greater than 0");
+  }
 }
