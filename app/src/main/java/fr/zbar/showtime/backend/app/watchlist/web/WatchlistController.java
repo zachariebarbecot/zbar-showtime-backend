@@ -4,6 +4,8 @@ import fr.zbar.showtime.backend.core.watchlist.application.AddMovieToWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.AddSeriesToWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.ChangeMovieStatus;
 import fr.zbar.showtime.backend.core.watchlist.application.ChangeSeriesStatus;
+import fr.zbar.showtime.backend.core.watchlist.application.RemoveMovieFromWatchlist;
+import fr.zbar.showtime.backend.core.watchlist.application.RemoveMovieFromWatchlistCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +29,7 @@ class WatchlistController {
 
   private final AddMovieToWatchlist addMovieToWatchlist;
   private final ChangeMovieStatus changeMovieStatus;
+  private final RemoveMovieFromWatchlist removeMovieFromWatchlist;
   private final AddSeriesToWatchlist addSeriesToWatchlist;
   private final ChangeSeriesStatus changeSeriesStatus;
 
@@ -44,6 +48,14 @@ class WatchlistController {
       @RequestBody ChangeMovieStatusRequest request) {
     return WatchlistMovieResponse.from(
         changeMovieStatus.execute(request.toCommand(UUID.fromString(jwt.getSubject()), tmdbId)));
+  }
+
+  @Operation(summary = "Remove a movie from the watchlist of the token owner")
+  @DeleteMapping("/movies/{tmdbId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void removeMovie(@AuthenticationPrincipal Jwt jwt, @PathVariable long tmdbId) {
+    removeMovieFromWatchlist.execute(
+        new RemoveMovieFromWatchlistCommand(UUID.fromString(jwt.getSubject()), tmdbId));
   }
 
   @Operation(summary = "Add a series to the watchlist of the token owner")

@@ -11,5 +11,9 @@ public class RemoveMovieFromWatchlistService implements RemoveMovieFromWatchlist
   private final WatchlistMovieRepository watchlistMovieRepository;
 
   @Override
-  public void execute(RemoveMovieFromWatchlistCommand command) {}
+  public void execute(RemoveMovieFromWatchlistCommand command) {
+    watchlistMovieRepository
+        .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+        .ifPresent(watchlistMovieRepository::delete);
+  }
 }
