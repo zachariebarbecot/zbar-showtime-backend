@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -23,6 +24,7 @@ import lombok.NoArgsConstructor;
             name = "UC_watchlist_movie_user_tmdb",
             columnNames = {"user_id", "tmdb_id"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 @AllArgsConstructor
 public class WatchlistMovieJpaEntity {
 

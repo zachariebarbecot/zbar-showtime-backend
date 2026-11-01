@@ -29,6 +29,14 @@ public class WatchlistMovie extends AggregateRoot<UUID> {
     this.watchedAt = watchedAt;
   }
 
+  public WatchlistMovie changeStatus(MovieStatus newStatus, Clock clock) {
+    if (status == newStatus) {
+      return this;
+    }
+    Instant newWatchedAt = newStatus == MovieStatus.WATCHED ? clock.instant() : null;
+    return new WatchlistMovie(id(), userId, tmdbId, newStatus, addedAt, newWatchedAt);
+  }
+
   public static WatchlistMovie add(UUID userId, long tmdbId, Clock clock) {
     return new WatchlistMovie(
         UUID.randomUUID(), userId, tmdbId, MovieStatus.TO_WATCH, clock.instant(), null);

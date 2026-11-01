@@ -7,6 +7,7 @@ import fr.zbar.showtime.backend.core.user.domain.EmailAlreadyUsedException;
 import fr.zbar.showtime.backend.core.user.domain.InvalidCredentialsException;
 import fr.zbar.showtime.backend.core.user.domain.UserNotFoundException;
 import fr.zbar.showtime.backend.core.watchlist.domain.AlreadyInWatchlistException;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
 import io.micrometer.tracing.Tracer;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,11 @@ class DomainExceptionHandler {
 
   @ExceptionHandler(TitleNotFoundException.class)
   ProblemDetail handleTitleNotFound(TitleNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, exception.getMessage());
+  }
+
+  @ExceptionHandler(WatchlistEntryNotFoundException.class)
+  ProblemDetail handleWatchlistEntryNotFound(WatchlistEntryNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, exception.getMessage());
   }
 
