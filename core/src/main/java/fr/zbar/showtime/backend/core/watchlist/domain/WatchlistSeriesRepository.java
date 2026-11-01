@@ -9,6 +9,8 @@ public interface WatchlistSeriesRepository {
 
   void save(WatchlistSeries series);
 
+  void delete(WatchlistSeries series);
+
   Optional<WatchlistSeries> findByUserIdAndTmdbId(UUID userId, long tmdbId);
 
   List<WatchlistSeries> findByUserIdAndTmdbIdIn(UUID userId, Collection<Long> tmdbIds);
