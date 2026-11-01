@@ -31,6 +31,8 @@ class TmdbTitleAdapterTest {
 
   private static final String MOVIE_1_URL = "https://api.tmdb.test/3/movie/1?language=fr-FR";
 
+  private static final String SERIES_1_URL = "https://api.tmdb.test/3/tv/1?language=fr-FR";
+
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
   private final TmdbTitleAdapter adapter =
@@ -60,6 +62,32 @@ class TmdbTitleAdapterTest {
                 "Matrix",
                 "https://image.tmdb.org/t/p/w342/m.jpg",
                 LocalDate.of(1999, 3, 31)));
+  }
+
+  @Test
+  void should_return_the_series_when_tmdb_knows_the_id() {
+    server
+        .expect(requestTo("https://api.tmdb.test/3/tv/1399?language=fr-FR"))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("Authorization", "Bearer secret-token"))
+        .andRespond(
+            withSuccess(
+                """
+                {"id":1399,"name":"GoT","poster_path":"/g.jpg","first_air_date":"2011-04-17"}
+                """,
+                org.springframework.http.MediaType.APPLICATION_JSON));
+
+    CatalogItem series = adapter.findSeries(1399L);
+
+    server.verify();
+    assertThat(series)
+        .isEqualTo(
+            new CatalogItem(
+                1399L,
+                MediaType.TV,
+                "GoT",
+                "https://image.tmdb.org/t/p/w342/g.jpg",
+                LocalDate.of(2011, 4, 17)));
   }
 
   @Test
@@ -109,5 +137,43 @@ class TmdbTitleAdapterTest {
         .andRespond(withSuccess("", org.springframework.http.MediaType.APPLICATION_JSON));
 
     assertThatThrownBy(() -> adapter.findMovie(1L)).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_throw_title_not_found_when_tmdb_answers_404_for_a_series() {
+    server.expect(requestTo(SERIES_1_URL)).andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+    assertThatThrownBy(() -> adapter.findSeries(1L)).isInstanceOf(TitleNotFoundException.class);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = HttpStatus.class,
+      names = {"INTERNAL_SERVER_ERROR", "BAD_GATEWAY", "TOO_MANY_REQUESTS", "UNAUTHORIZED"})
+  void should_throw_catalog_unavailable_when_tmdb_answers_an_error_for_a_series(HttpStatus status) {
+    server.expect(requestTo(SERIES_1_URL)).andRespond(withStatus(status));
+
+    assertThatThrownBy(() -> adapter.findSeries(1L))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_throw_catalog_unavailable_when_tmdb_times_out_for_a_series() {
+    server
+        .expect(requestTo(SERIES_1_URL))
+        .andRespond(withException(new SocketTimeoutException("read timed out")));
+
+    assertThatThrownBy(() -> adapter.findSeries(1L))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_throw_catalog_unavailable_when_tmdb_answers_an_empty_body_for_a_series() {
+    server
+        .expect(requestTo(SERIES_1_URL))
+        .andRespond(withSuccess("", org.springframework.http.MediaType.APPLICATION_JSON));
+
+    assertThatThrownBy(() -> adapter.findSeries(1L))
+        .isInstanceOf(CatalogUnavailableException.class);
   }
 }

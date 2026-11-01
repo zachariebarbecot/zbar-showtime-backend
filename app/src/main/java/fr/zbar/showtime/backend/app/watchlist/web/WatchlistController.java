@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.app.watchlist.web;
 
 import fr.zbar.showtime.backend.core.watchlist.application.AddMovieToWatchlist;
+import fr.zbar.showtime.backend.core.watchlist.application.AddSeriesToWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.ChangeMovieStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
@@ -24,6 +25,7 @@ class WatchlistController {
 
   private final AddMovieToWatchlist addMovieToWatchlist;
   private final ChangeMovieStatus changeMovieStatus;
+  private final AddSeriesToWatchlist addSeriesToWatchlist;
 
   @Operation(summary = "Add a movie to the watchlist of the token owner")
   @PostMapping(path = "/movies", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -40,5 +42,12 @@ class WatchlistController {
       @RequestBody ChangeMovieStatusRequest request) {
     return WatchlistMovieResponse.from(
         changeMovieStatus.execute(request.toCommand(UUID.fromString(jwt.getSubject()), tmdbId)));
+  }
+
+  @Operation(summary = "Add a series to the watchlist of the token owner")
+  @PostMapping(path = "/series", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  void addSeries(@AuthenticationPrincipal Jwt jwt, @RequestBody AddSeriesRequest request) {
+    addSeriesToWatchlist.execute(request.toCommand(UUID.fromString(jwt.getSubject())));
   }
 }
