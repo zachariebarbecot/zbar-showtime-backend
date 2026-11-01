@@ -4,12 +4,15 @@ import fr.zbar.showtime.backend.core.watchlist.domain.AlreadyInWatchlistExceptio
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
+
+  private static final String UNIQUE_CONSTRAINT = "UC_watchlist_movie_user_tmdb";
 
   private final WatchlistMovieJpaRepository watchlistMovieJpaRepository;
 
@@ -25,7 +28,15 @@ class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
               movie.addedAt(),
               movie.watchedAt()));
     } catch (DataIntegrityViolationException exception) {
-      throw new AlreadyInWatchlistException();
+      if (violatesUniqueness(exception)) {
+        throw new AlreadyInWatchlistException();
+      }
+      throw exception;
     }
+  }
+
+  private static boolean violatesUniqueness(DataIntegrityViolationException exception) {
+    return exception.getCause() instanceof ConstraintViolationException violation
+        && UNIQUE_CONSTRAINT.equalsIgnoreCase(violation.getConstraintName());
   }
 }

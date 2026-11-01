@@ -31,10 +31,17 @@ class TmdbTitleAdapter implements TitleCatalog {
   }
 
   private TmdbSearchResponse.Result fetchMovie(long id) {
-    return tmdbRestClient
-        .get()
-        .uri(uri -> uri.path("/movie/{id}").queryParam("language", properties.language()).build(id))
-        .retrieve()
-        .body(TmdbSearchResponse.Result.class);
+    TmdbSearchResponse.Result result =
+        tmdbRestClient
+            .get()
+            .uri(
+                uri ->
+                    uri.path("/movie/{id}").queryParam("language", properties.language()).build(id))
+            .retrieve()
+            .body(TmdbSearchResponse.Result.class);
+    if (result == null) {
+      throw new CatalogUnavailableException(new IllegalStateException("Empty TMDB response body"));
+    }
+    return result;
   }
 }
