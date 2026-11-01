@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.core.watchlist.domain;
 
 import fr.zbar.showtime.backend.core.shared.AggregateRoot;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
@@ -26,5 +27,10 @@ public class WatchlistMovie extends AggregateRoot<UUID> {
     this.status = status;
     this.addedAt = addedAt;
     this.watchedAt = watchedAt;
+  }
+
+  public static WatchlistMovie add(UUID userId, long tmdbId, Clock clock) {
+    return new WatchlistMovie(
+        UUID.randomUUID(), userId, tmdbId, MovieStatus.TO_WATCH, clock.instant(), null);
   }
 }
