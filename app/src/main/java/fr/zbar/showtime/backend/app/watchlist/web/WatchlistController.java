@@ -47,9 +47,7 @@ class WatchlistController {
   @Operation(summary = "Add a series to the watchlist of the token owner")
   @PostMapping(path = "/series", consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  WatchlistSeriesResponse addSeries(
-      @AuthenticationPrincipal Jwt jwt, @RequestBody AddSeriesRequest request) {
-    return WatchlistSeriesResponse.from(
-        addSeriesToWatchlist.execute(request.toCommand(UUID.fromString(jwt.getSubject()))));
+  void addSeries(@AuthenticationPrincipal Jwt jwt, @RequestBody AddSeriesRequest request) {
+    addSeriesToWatchlist.execute(request.toCommand(UUID.fromString(jwt.getSubject())));
   }
 }

@@ -16,10 +16,8 @@ public class AddSeriesToWatchlistService implements AddSeriesToWatchlist {
   private final Clock clock;
 
   @Override
-  public WatchlistSeries execute(AddSeriesToWatchlistCommand command) {
+  public void execute(AddSeriesToWatchlistCommand command) {
     titleCatalog.findSeries(command.tmdbId());
-    WatchlistSeries series = WatchlistSeries.add(command.userId(), command.tmdbId(), clock);
-    watchlistSeriesRepository.save(series);
-    return series;
+    watchlistSeriesRepository.save(WatchlistSeries.add(command.userId(), command.tmdbId(), clock));
   }
 }
