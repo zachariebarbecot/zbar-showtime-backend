@@ -18,6 +18,12 @@ public class GetMovieDetailService implements GetMovieDetail {
     if (command.tmdbId() <= 0) {
       throw new InvalidFieldException("tmdbId", "TMDB id must be greater than 0");
     }
-    return new MovieDetailView(movieDetailCatalog.findMovieDetail(command.tmdbId()), null);
+    String watchlistStatus =
+        watchlistMovieRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .map(movie -> movie.status().name())
+            .orElse(null);
+    return new MovieDetailView(
+        movieDetailCatalog.findMovieDetail(command.tmdbId()), watchlistStatus);
   }
 }
