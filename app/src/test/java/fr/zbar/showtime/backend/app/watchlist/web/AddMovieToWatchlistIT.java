@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
@@ -119,6 +120,33 @@ class AddMovieToWatchlistIT extends AbstractIT {
         .expectBody()
         .jsonPath("$.detail")
         .isEqualTo("Title not found");
+
+    assertThat(entryIds(email)).isEmpty();
+  }
+
+  @Test
+  void should_return_502_and_create_no_entry_when_tmdb_is_unavailable() {
+    String email = newUserEmail();
+    when(titleCatalog.findMovie(603L))
+        .thenThrow(new CatalogUnavailableException(new IllegalStateException("down")));
+
+    addMovie(email, 603L).expectStatus().isEqualTo(502);
+
+    assertThat(entryIds(email)).isEmpty();
+  }
+
+  @Test
+  void should_return_401_and_create_no_entry_when_the_request_is_not_authenticated() {
+    String email = newUserEmail();
+
+    restTestClient
+        .post()
+        .uri("/watchlist/movies")
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("tmdbId", 603L))
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
 
     assertThat(entryIds(email)).isEmpty();
   }
