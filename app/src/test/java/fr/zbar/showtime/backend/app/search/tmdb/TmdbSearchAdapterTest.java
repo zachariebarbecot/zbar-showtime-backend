@@ -41,7 +41,7 @@ class TmdbSearchAdapterTest {
           Duration.ofSeconds(1),
           Duration.ofSeconds(2));
 
-  private final RestClient.Builder builder = RestClient.builder();
+  private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
   private final TmdbSearchAdapter adapter =
       new TmdbSearchAdapter(TmdbConfiguration.authenticated(builder, PROPERTIES), PROPERTIES);

@@ -38,7 +38,7 @@ class TmdbTitleAdapterTest {
 
   private static final String MOVIE_1_URL = "https://api.tmdb.test/3/movie/1?language=fr-FR";
 
-  private final RestClient.Builder builder = RestClient.builder();
+  private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
   private final TmdbTitleAdapter adapter =
       new TmdbTitleAdapter(TmdbConfiguration.authenticated(builder, PROPERTIES), PROPERTIES);
