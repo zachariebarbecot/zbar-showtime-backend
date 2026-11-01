@@ -15,10 +15,10 @@ public class GetSeasonDetailService implements GetSeasonDetail {
 
   @Override
   public SeasonDetail execute(GetSeasonDetailCommand command) {
-    new TmdbId(command.tmdbId());
+    long tmdbId = new TmdbId(command.tmdbId()).value();
     if (command.seasonNumber() < 0) {
       throw new InvalidFieldException("seasonNumber", "Season number must not be negative");
     }
-    return seasonCatalog.findSeason(command.tmdbId(), command.seasonNumber());
+    return seasonCatalog.findSeason(tmdbId, command.seasonNumber());
   }
 }

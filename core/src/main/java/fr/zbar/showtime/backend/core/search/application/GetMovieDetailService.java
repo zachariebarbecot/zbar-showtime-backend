@@ -15,13 +15,12 @@ public class GetMovieDetailService implements GetMovieDetail {
 
   @Override
   public MovieDetailView execute(GetMovieDetailCommand command) {
-    new TmdbId(command.tmdbId());
+    long tmdbId = new TmdbId(command.tmdbId()).value();
     String watchlistStatus =
         watchlistMovieRepository
-            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .findByUserIdAndTmdbId(command.userId(), tmdbId)
             .map(movie -> movie.status().name())
             .orElse(null);
-    return new MovieDetailView(
-        movieDetailCatalog.findMovieDetail(command.tmdbId()), watchlistStatus);
+    return new MovieDetailView(movieDetailCatalog.findMovieDetail(tmdbId), watchlistStatus);
   }
 }

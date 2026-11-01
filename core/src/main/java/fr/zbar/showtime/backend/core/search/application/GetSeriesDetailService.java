@@ -15,13 +15,12 @@ public class GetSeriesDetailService implements GetSeriesDetail {
 
   @Override
   public SeriesDetailView execute(GetSeriesDetailCommand command) {
-    new TmdbId(command.tmdbId());
+    long tmdbId = new TmdbId(command.tmdbId()).value();
     String watchlistStatus =
         watchlistSeriesRepository
-            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .findByUserIdAndTmdbId(command.userId(), tmdbId)
             .map(series -> series.status().name())
             .orElse(null);
-    return new SeriesDetailView(
-        seriesDetailCatalog.findSeriesDetail(command.tmdbId()), watchlistStatus);
+    return new SeriesDetailView(seriesDetailCatalog.findSeriesDetail(tmdbId), watchlistStatus);
   }
 }
