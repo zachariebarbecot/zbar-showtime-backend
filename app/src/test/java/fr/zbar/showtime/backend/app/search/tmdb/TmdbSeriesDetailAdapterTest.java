@@ -7,6 +7,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
@@ -162,5 +163,49 @@ class TmdbSeriesDetailAdapterTest {
             new CrewMember("Vince Gilligan", List.of("Writer", "Producer")),
             new CrewMember("Dave Porter", List.of("Composer")),
             new CrewMember("Peter Gould", List.of("Screenplay")));
+  }
+
+  @Test
+  void should_keep_the_first_15_cast_members_in_tmdb_order_when_the_series_has_more() {
+    respondWith(
+        """
+        {"id":1396,"name":"Breaking Bad","aggregate_credits":{"cast":[
+          {"name":"Actor 1","roles":[{"character":"Role 1"}],"profile_path":"/p1.jpg"},
+          {"name":"Actor 2","roles":[{"character":"Role 2"}],"profile_path":"/p2.jpg"},
+          {"name":"Actor 3","roles":[{"character":"Role 3"}],"profile_path":"/p3.jpg"},
+          {"name":"Actor 4","roles":[{"character":"Role 4"}],"profile_path":"/p4.jpg"},
+          {"name":"Actor 5","roles":[{"character":"Role 5"}],"profile_path":"/p5.jpg"},
+          {"name":"Actor 6","roles":[{"character":"Role 6"}],"profile_path":"/p6.jpg"},
+          {"name":"Actor 7","roles":[{"character":"Role 7"}],"profile_path":"/p7.jpg"},
+          {"name":"Actor 8","roles":[{"character":"Role 8"}],"profile_path":"/p8.jpg"},
+          {"name":"Actor 9","roles":[{"character":"Role 9"}],"profile_path":"/p9.jpg"},
+          {"name":"Actor 10","roles":[{"character":"Role 10"}],"profile_path":"/p10.jpg"},
+          {"name":"Actor 11","roles":[{"character":"Role 11"}],"profile_path":"/p11.jpg"},
+          {"name":"Actor 12","roles":[{"character":"Role 12"}],"profile_path":"/p12.jpg"},
+          {"name":"Actor 13","roles":[{"character":"Role 13"}],"profile_path":"/p13.jpg"},
+          {"name":"Actor 14","roles":[{"character":"Role 14"}],"profile_path":"/p14.jpg"},
+          {"name":"Actor 15","roles":[{"character":"Role 15"}],"profile_path":"/p15.jpg"},
+          {"name":"Actor 16","roles":[{"character":"Role 16"}],"profile_path":"/p16.jpg"}
+        ]}}
+        """);
+
+    SeriesDetail series = adapter.findSeriesDetail(1396L);
+
+    assertThat(series.cast()).hasSize(15);
+    assertThat(series.cast().getFirst())
+        .isEqualTo(new CastMember("Actor 1", "Role 1", "https://image.tmdb.org/t/p/w185/p1.jpg"));
+    assertThat(series.cast().getLast().name()).isEqualTo("Actor 15");
+  }
+
+  @Test
+  void should_return_a_null_photo_when_a_cast_member_has_no_profile() {
+    respondWith(
+        """
+        {"id":1396,"name":"Breaking Bad","aggregate_credits":{"cast":[
+          {"name":"Bryan Cranston","roles":[{"character":"Walter White"}]}]}}
+        """);
+
+    assertThat(adapter.findSeriesDetail(1396L).cast())
+        .containsExactly(new CastMember("Bryan Cranston", "Walter White", null));
   }
 }

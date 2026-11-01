@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.app.search.web;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
@@ -150,5 +151,44 @@ class SeriesDetailIT extends AbstractIT {
         .isEqualTo("Vince Gilligan")
         .jsonPath("$.crew[0].jobs[1]")
         .isEqualTo("Producer");
+  }
+
+  @Test
+  void should_return_the_cast_and_no_duration_when_the_series_has_actors() {
+    registerUser("series-ca4@mail.fr");
+    when(seriesDetailCatalog.findSeriesDetail(1396L))
+        .thenReturn(
+            new SeriesDetail(
+                1396L,
+                "Breaking Bad",
+                "Breaking Bad",
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of(),
+                List.of(
+                    new CastMember(
+                        "Bryan Cranston",
+                        "Walter White",
+                        "https://image.tmdb.org/t/p/w185/b.jpg"))));
+
+    detail("series-ca4@mail.fr", "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.cast[0].name")
+        .isEqualTo("Bryan Cranston")
+        .jsonPath("$.cast[0].character")
+        .isEqualTo("Walter White")
+        .jsonPath("$.cast[0].photoUrl")
+        .isEqualTo("https://image.tmdb.org/t/p/w185/b.jpg")
+        .jsonPath("$.runtime")
+        .doesNotExist();
   }
 }
