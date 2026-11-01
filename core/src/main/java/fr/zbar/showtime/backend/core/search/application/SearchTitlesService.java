@@ -10,6 +10,8 @@ import fr.zbar.showtime.backend.core.search.domain.SearchType;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,6 +24,7 @@ public class SearchTitlesService implements SearchTitles {
 
   private final SearchCatalog searchCatalog;
   private final WatchlistMovieRepository watchlistMovieRepository;
+  private final WatchlistSeriesRepository watchlistSeriesRepository;
 
   @Override
   public SearchResultPage execute(SearchTitlesCommand command) {
@@ -34,18 +37,18 @@ public class SearchTitlesService implements SearchTitles {
           case TV -> searchCatalog.searchSeries(query, page);
         };
     Map<Long, String> movieStatuses = movieStatuses(command.userId(), catalogPage.results());
+    Map<Long, String> seriesStatuses = seriesStatuses(command.userId(), catalogPage.results());
     return new SearchResultPage(
         catalogPage.page(),
         catalogPage.totalPages(),
         catalogPage.totalResults(),
         catalogPage.results().stream()
-            .map(item -> new SearchResultItem(item, statusOf(item, movieStatuses)))
+            .map(item -> new SearchResultItem(item, statusOf(item, movieStatuses, seriesStatuses)))
             .toList());
   }
 
   private Map<Long, String> movieStatuses(UUID userId, List<CatalogItem> items) {
-    List<Long> movieIds =
-        items.stream().filter(item -> item.type() == MediaType.MOVIE).map(CatalogItem::id).toList();
+    List<Long> movieIds = idsOf(items, MediaType.MOVIE);
     if (movieIds.isEmpty()) {
       return Map.of();
     }
@@ -53,7 +56,21 @@ public class SearchTitlesService implements SearchTitles {
         .collect(Collectors.toMap(WatchlistMovie::tmdbId, movie -> movie.status().name()));
   }
 
-  private static String statusOf(CatalogItem item, Map<Long, String> movieStatuses) {
-    return item.type() == MediaType.MOVIE ? movieStatuses.get(item.id()) : null;
+  private Map<Long, String> seriesStatuses(UUID userId, List<CatalogItem> items) {
+    List<Long> seriesIds = idsOf(items, MediaType.TV);
+    if (seriesIds.isEmpty()) {
+      return Map.of();
+    }
+    return watchlistSeriesRepository.findByUserIdAndTmdbIdIn(userId, seriesIds).stream()
+        .collect(Collectors.toMap(WatchlistSeries::tmdbId, series -> series.status().name()));
+  }
+
+  private static String statusOf(
+      CatalogItem item, Map<Long, String> movieStatuses, Map<Long, String> seriesStatuses) {
+    return (item.type() == MediaType.MOVIE ? movieStatuses : seriesStatuses).get(item.id());
+  }
+
+  private static List<Long> idsOf(List<CatalogItem> items, MediaType type) {
+    return items.stream().filter(item -> item.type() == type).map(CatalogItem::id).toList();
   }
 }

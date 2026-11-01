@@ -1,13 +1,16 @@
 package fr.zbar.showtime.backend.app.watchlist.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fr.zbar.showtime.backend.app.user.persistence.UserJpaEntity;
 import fr.zbar.showtime.backend.app.user.persistence.UserJpaRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -34,5 +37,25 @@ class WatchlistSeriesPersistenceAdapterTest {
             null);
 
     assertThatThrownBy(() -> adapter.save(series)).isSameAs(violation);
+  }
+
+  @Test
+  void should_map_the_entries_of_the_user_found_for_the_requested_ids() {
+    UUID userId = UUID.randomUUID();
+    UserJpaEntity user = mock(UserJpaEntity.class);
+    when(user.getId()).thenReturn(userId);
+    UUID entryId = UUID.randomUUID();
+    Instant addedAt = Instant.parse("2026-01-01T12:00:00Z");
+    Instant watchedAt = Instant.parse("2026-02-01T12:00:00Z");
+    when(jpaRepository.findByUserIdAndTmdbIdIn(userId, List.of(1399L, 70523L)))
+        .thenReturn(
+            List.of(
+                new WatchlistSeriesJpaEntity(entryId, user, 1399L, "WATCHED", addedAt, watchedAt)));
+
+    List<WatchlistSeries> found = adapter.findByUserIdAndTmdbIdIn(userId, List.of(1399L, 70523L));
+
+    assertThat(found)
+        .containsExactly(
+            new WatchlistSeries(entryId, userId, 1399L, SeriesStatus.WATCHED, addedAt, watchedAt));
   }
 }
