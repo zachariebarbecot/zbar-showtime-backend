@@ -23,6 +23,9 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 @AutoConfigureMockMvc
 class AddMovieToWatchlistIT extends AbstractIT {
 
+  private static final CatalogItem MATRIX =
+      new CatalogItem(603L, MediaType.MOVIE, "Matrix", null, null);
+
   @MockitoBean private TitleCatalog titleCatalog;
 
   @Autowired private JdbcTemplate jdbcTemplate;
@@ -46,8 +49,7 @@ class AddMovieToWatchlistIT extends AbstractIT {
   @Test
   void should_return_201_with_a_to_watch_entry_when_the_movie_is_known() {
     String email = newUserEmail();
-    when(titleCatalog.findMovie(603L))
-        .thenReturn(new CatalogItem(603L, MediaType.MOVIE, "Matrix", null, null));
+    when(titleCatalog.findMovie(603L)).thenReturn(MATRIX);
 
     addMovie(email, 603L)
         .expectStatus()
@@ -80,8 +82,7 @@ class AddMovieToWatchlistIT extends AbstractIT {
   @Test
   void should_return_409_and_keep_the_existing_entry_when_the_movie_is_already_in_the_watchlist() {
     String email = newUserEmail();
-    when(titleCatalog.findMovie(603L))
-        .thenReturn(new CatalogItem(603L, MediaType.MOVIE, "Matrix", null, null));
+    when(titleCatalog.findMovie(603L)).thenReturn(MATRIX);
     addMovie(email, 603L).expectStatus().isCreated();
     List<UUID> existing = entryIds(email);
 
@@ -99,8 +100,7 @@ class AddMovieToWatchlistIT extends AbstractIT {
   void should_return_201_for_each_user_when_two_users_add_the_same_movie() {
     String first = newUserEmail();
     String second = newUserEmail();
-    when(titleCatalog.findMovie(603L))
-        .thenReturn(new CatalogItem(603L, MediaType.MOVIE, "Matrix", null, null));
+    when(titleCatalog.findMovie(603L)).thenReturn(MATRIX);
     addMovie(first, 603L).expectStatus().isCreated();
 
     addMovie(second, 603L).expectStatus().isCreated();

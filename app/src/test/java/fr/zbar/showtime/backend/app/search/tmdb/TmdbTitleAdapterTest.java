@@ -36,6 +36,8 @@ class TmdbTitleAdapterTest {
           Duration.ofSeconds(1),
           Duration.ofSeconds(2));
 
+  private static final String MOVIE_1_URL = "https://api.tmdb.test/3/movie/1?language=fr-FR";
+
   private final RestClient.Builder builder = RestClient.builder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
   private final TmdbTitleAdapter adapter =
@@ -69,9 +71,7 @@ class TmdbTitleAdapterTest {
 
   @Test
   void should_throw_title_not_found_when_tmdb_answers_404() {
-    server
-        .expect(requestTo("https://api.tmdb.test/3/movie/1?language=fr-FR"))
-        .andRespond(withStatus(HttpStatus.NOT_FOUND));
+    server.expect(requestTo(MOVIE_1_URL)).andRespond(withStatus(HttpStatus.NOT_FOUND));
 
     assertThatThrownBy(() -> adapter.findMovie(1L)).isInstanceOf(TitleNotFoundException.class);
   }
@@ -81,9 +81,7 @@ class TmdbTitleAdapterTest {
       value = HttpStatus.class,
       names = {"INTERNAL_SERVER_ERROR", "BAD_GATEWAY", "TOO_MANY_REQUESTS", "UNAUTHORIZED"})
   void should_throw_catalog_unavailable_when_tmdb_answers_an_error(HttpStatus status) {
-    server
-        .expect(requestTo("https://api.tmdb.test/3/movie/1?language=fr-FR"))
-        .andRespond(withStatus(status));
+    server.expect(requestTo(MOVIE_1_URL)).andRespond(withStatus(status));
 
     assertThatThrownBy(() -> adapter.findMovie(1L)).isInstanceOf(CatalogUnavailableException.class);
   }
@@ -91,7 +89,7 @@ class TmdbTitleAdapterTest {
   @Test
   void should_throw_catalog_unavailable_when_tmdb_times_out() {
     server
-        .expect(requestTo("https://api.tmdb.test/3/movie/1?language=fr-FR"))
+        .expect(requestTo(MOVIE_1_URL))
         .andRespond(withException(new SocketTimeoutException("read timed out")));
 
     assertThatThrownBy(() -> adapter.findMovie(1L)).isInstanceOf(CatalogUnavailableException.class);
@@ -100,7 +98,7 @@ class TmdbTitleAdapterTest {
   @Test
   void should_throw_catalog_unavailable_when_the_release_date_is_malformed() {
     server
-        .expect(requestTo("https://api.tmdb.test/3/movie/1?language=fr-FR"))
+        .expect(requestTo(MOVIE_1_URL))
         .andRespond(
             withSuccess(
                 """
