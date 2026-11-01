@@ -32,9 +32,10 @@ class AddSeriesToWatchlistServiceTest {
 
   @Test
   void should_save_a_to_watch_entry_added_now_when_the_series_is_known() {
-    WatchlistSeries added = service.execute(new AddSeriesToWatchlistCommand(USER_ID, 1399L));
+    service.execute(new AddSeriesToWatchlistCommand(USER_ID, 1399L));
 
-    assertThat(entries).containsExactly(added);
+    assertThat(entries).hasSize(1);
+    WatchlistSeries added = entries.getFirst();
     assertThat(added.userId()).isEqualTo(USER_ID);
     assertThat(added.tmdbId()).isEqualTo(1399L);
     assertThat(added.status()).isEqualTo(SeriesStatus.TO_WATCH);

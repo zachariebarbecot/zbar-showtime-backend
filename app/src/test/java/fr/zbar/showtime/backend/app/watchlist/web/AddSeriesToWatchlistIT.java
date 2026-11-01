@@ -10,6 +10,7 @@ import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,27 +48,19 @@ class AddSeriesToWatchlistIT extends AbstractIT {
   }
 
   @Test
-  void should_return_201_with_a_to_watch_entry_when_the_series_is_known() {
+  void should_return_201_without_body_and_save_a_to_watch_entry_when_the_series_is_known() {
     String email = newUserEmail();
     when(titleCatalog.findSeries(1399L)).thenReturn(GOT);
 
-    addSeries(email, 1399L)
-        .expectStatus()
-        .isCreated()
-        .expectBody()
-        .jsonPath("$.tmdbId")
-        .isEqualTo(1399)
-        .jsonPath("$.status")
-        .isEqualTo("TO_WATCH")
-        .jsonPath("$.addedAt")
-        .isEqualTo(FixedClockConfiguration.NOW.toString())
-        .jsonPath("$.watchedAt")
-        .doesNotExist();
+    addSeries(email, 1399L).expectStatus().isCreated().expectBody().isEmpty();
+
     Map<String, Object> row =
         jdbcTemplate.queryForMap(
-            "select s.status, s.watched_at from watchlist_series s"
+            "select s.status, s.added_at, s.watched_at from watchlist_series s"
                 + " join users u on u.id = s.user_id where u.email = ? and s.tmdb_id = 1399",
             email);
+    assertThat(((Timestamp) row.get("added_at")).toInstant())
+        .isEqualTo(FixedClockConfiguration.NOW);
     assertThat(row).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
   }
 
