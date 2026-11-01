@@ -5,11 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 record TmdbSearchResponse(
@@ -57,7 +55,7 @@ record TmdbSearchResponse(
           type,
           title(type),
           properties.imageUrl(properties.posterSize(), posterPath),
-          StringUtils.isEmpty(date) ? null : LocalDate.parse(date));
+          TmdbDates.parse(date));
     }
 
     String date(MediaType type) {
