@@ -114,4 +114,20 @@ class ChangeSeriesStatusIT extends AbstractIT {
         .doesNotExist();
     assertThat(row(email)).containsEntry("status", status).containsEntry("watched_at", null);
   }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"unknown", "watched"})
+  void should_return_400_and_keep_the_entry_when_the_status_is_not_allowed(String status) {
+    String email = newUserWithGot();
+
+    changeStatus(email, 1399L, status)
+        .expectStatus()
+        .isBadRequest()
+        .expectBody()
+        .jsonPath("$.errors[0].field")
+        .isEqualTo("status")
+        .jsonPath("$.errors[0].message")
+        .isEqualTo("Status must be TO_WATCH, WATCHING, WATCHED or DROPPED");
+    assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
 }
