@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +48,7 @@ record TmdbMovieDetailResponse(
         title,
         originalTitle,
         genres.stream().map(Genre::name).toList(),
-        StringUtils.isEmpty(releaseDate) ? null : LocalDate.parse(releaseDate),
+        TmdbDates.parse(releaseDate),
         runtime == null || runtime == 0 ? null : runtime,
         movieStatus(),
         StringUtils.defaultIfEmpty(overview, null),

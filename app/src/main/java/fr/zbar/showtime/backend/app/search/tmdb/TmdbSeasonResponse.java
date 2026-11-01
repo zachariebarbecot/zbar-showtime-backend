@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
-import java.time.LocalDate;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,7 +35,7 @@ record TmdbSeasonResponse(
           name,
           StringUtils.defaultIfEmpty(overview, null),
           runtime == null || runtime == 0 ? null : runtime,
-          date(airDate),
+          TmdbDates.parse(airDate),
           properties.imageUrl(properties.stillSize(), stillPath));
     }
   }
@@ -46,12 +45,8 @@ record TmdbSeasonResponse(
         seasonNumber,
         name,
         StringUtils.defaultIfEmpty(overview, null),
-        date(airDate),
+        TmdbDates.parse(airDate),
         properties.imageUrl(properties.posterSize(), posterPath),
         episodes.stream().map(episode -> episode.toEpisode(properties)).toList());
-  }
-
-  private static LocalDate date(String value) {
-    return StringUtils.isEmpty(value) ? null : LocalDate.parse(value);
   }
 }

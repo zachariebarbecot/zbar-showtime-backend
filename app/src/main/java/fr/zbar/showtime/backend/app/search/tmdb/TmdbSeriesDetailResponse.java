@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.zbar.showtime.backend.core.search.domain.SeasonSummary;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -93,8 +92,8 @@ record TmdbSeriesDetailResponse(
         name,
         originalName,
         genres.stream().map(Genre::name).toList(),
-        date(firstAirDate),
-        date(lastAirDate),
+        TmdbDates.parse(firstAirDate),
+        TmdbDates.parse(lastAirDate),
         seriesStatus(),
         StringUtils.defaultIfEmpty(overview, null),
         properties.imageUrl(properties.posterSize(), posterPath),
@@ -110,7 +109,7 @@ record TmdbSeriesDetailResponse(
                         season.seasonNumber(),
                         season.name(),
                         season.episodeCount(),
-                        date(season.airDate()),
+                        TmdbDates.parse(season.airDate()),
                         properties.imageUrl(properties.posterSize(), season.posterPath())))
             .toList());
   }
@@ -129,10 +128,6 @@ record TmdbSeriesDetailResponse(
     return aggregateCredits.cast().stream()
         .map(actor -> new TmdbCredits.Actor(actor.name(), actor.character(), actor.profilePath()))
         .toList();
-  }
-
-  private static LocalDate date(String value) {
-    return StringUtils.isEmpty(value) ? null : LocalDate.parse(value);
   }
 
   private SeriesStatus seriesStatus() {
