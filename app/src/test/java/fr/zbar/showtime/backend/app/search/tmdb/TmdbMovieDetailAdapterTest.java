@@ -7,6 +7,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
 import java.time.LocalDate;
@@ -103,5 +104,33 @@ class TmdbMovieDetailAdapterTest {
     respondWith(movieWithStatus("\"Archived\""));
 
     assertThat(adapter.findMovieDetail(603L).status()).isNull();
+  }
+
+  @Test
+  void should_list_the_directors_and_group_the_key_crew_by_person_when_the_credits_have_crew() {
+    respondWith(
+        """
+        {"id":603,"title":"Matrix","credits":{"crew":[
+          {"id":1,"name":"Lana Wachowski","job":"Director"},
+          {"id":2,"name":"Lilly Wachowski","job":"Director"},
+          {"id":3,"name":"Bill Pope","job":"Director of Photography"},
+          {"id":4,"name":"Joel Silver","job":"Producer"},
+          {"id":1,"name":"Lana Wachowski","job":"Writer"},
+          {"id":5,"name":"Don Davis","job":"Composer"},
+          {"id":2,"name":"Lilly Wachowski","job":"Screenplay"},
+          {"id":4,"name":"Joel Silver","job":"Producer"},
+          {"id":6,"name":"Grant Hill","job":"Executive Producer"}
+        ]}}
+        """);
+
+    MovieDetail movie = adapter.findMovieDetail(603L);
+
+    assertThat(movie.directors()).containsExactly("Lana Wachowski", "Lilly Wachowski");
+    assertThat(movie.crew())
+        .containsExactly(
+            new CrewMember("Lana Wachowski", List.of("Director", "Writer")),
+            new CrewMember("Lilly Wachowski", List.of("Director", "Screenplay")),
+            new CrewMember("Joel Silver", List.of("Producer")),
+            new CrewMember("Don Davis", List.of("Composer")));
   }
 }

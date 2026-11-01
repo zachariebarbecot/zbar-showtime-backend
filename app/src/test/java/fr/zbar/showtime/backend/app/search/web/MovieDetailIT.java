@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.app.search.web;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
@@ -73,5 +74,36 @@ class MovieDetailIT extends AbstractIT {
   @Test
   void should_return_401_when_there_is_no_token() {
     restTestClient.get().uri("/movies/603").exchange().expectStatus().isUnauthorized();
+  }
+
+  @Test
+  void should_return_the_directors_and_the_key_crew_when_the_movie_has_a_crew() {
+    registerUser("movie-ca2@mail.fr");
+    when(movieDetailCatalog.findMovieDetail(603L))
+        .thenReturn(
+            new MovieDetail(
+                603L,
+                "Matrix",
+                "The Matrix",
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of("Lana Wachowski"),
+                List.of(new CrewMember("Lana Wachowski", List.of("Director", "Writer"))),
+                List.of()));
+
+    detail("movie-ca2@mail.fr", "603")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.directors[0]")
+        .isEqualTo("Lana Wachowski")
+        .jsonPath("$.crew[0].name")
+        .isEqualTo("Lana Wachowski")
+        .jsonPath("$.crew[0].jobs[1]")
+        .isEqualTo("Writer");
   }
 }
