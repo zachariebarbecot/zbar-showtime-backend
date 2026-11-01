@@ -41,7 +41,9 @@ class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
 
   @Override
   public Optional<WatchlistMovie> findByUserIdAndTmdbId(UUID userId, long tmdbId) {
-    return Optional.empty();
+    return watchlistMovieJpaRepository
+        .findByUserIdAndTmdbId(userId, tmdbId)
+        .map(WatchlistMovieJpaEntity::toDomain);
   }
 
   private static boolean violatesUniqueness(DataIntegrityViolationException exception) {

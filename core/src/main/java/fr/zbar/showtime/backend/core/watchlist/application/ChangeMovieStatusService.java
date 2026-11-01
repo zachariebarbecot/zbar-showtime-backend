@@ -15,6 +15,12 @@ public class ChangeMovieStatusService implements ChangeMovieStatus {
 
   @Override
   public WatchlistMovie execute(ChangeMovieStatusCommand command) {
-    return null;
+    WatchlistMovie movie =
+        watchlistMovieRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .orElseThrow();
+    WatchlistMovie changed = movie.changeStatus(command.status(), clock);
+    watchlistMovieRepository.save(changed);
+    return changed;
   }
 }

@@ -30,7 +30,7 @@ public class WatchlistMovie extends AggregateRoot<UUID> {
   }
 
   public WatchlistMovie changeStatus(MovieStatus newStatus, Clock clock) {
-    return this;
+    return new WatchlistMovie(id(), userId, tmdbId, newStatus, addedAt, clock.instant());
   }
 
   public static WatchlistMovie add(UUID userId, long tmdbId, Clock clock) {

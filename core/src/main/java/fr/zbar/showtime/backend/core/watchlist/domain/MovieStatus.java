@@ -5,6 +5,6 @@ public enum MovieStatus {
   WATCHED;
 
   public static MovieStatus from(String value) {
-    return TO_WATCH;
+    return valueOf(value);
   }
 }
