@@ -325,7 +325,12 @@ class MovieDetailIT extends AbstractIT {
     when(movieDetailCatalog.findMovieDetail(603L)).thenReturn(matrix());
     addMovieToWatchlist(owner);
 
-    detail(other, "603").expectStatus().isOk().expectBody().jsonPath("$.watchlistStatus").isEqualTo(null);
+    detail(other, "603")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo(null);
   }
 
   @Test
