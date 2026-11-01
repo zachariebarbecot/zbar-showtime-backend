@@ -51,7 +51,9 @@ class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
 
   @Override
   public List<WatchlistMovie> findByUserIdAndTmdbIdIn(UUID userId, Collection<Long> tmdbIds) {
-    return List.of();
+    return watchlistMovieJpaRepository.findByUserIdAndTmdbIdIn(userId, tmdbIds).stream()
+        .map(WatchlistMoviePersistenceAdapter::toDomain)
+        .toList();
   }
 
   private static WatchlistMovie toDomain(WatchlistMovieJpaEntity entity) {

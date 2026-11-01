@@ -18,11 +18,22 @@ public record SearchResponse(int page, int totalPages, long totalResults, List<R
   }
 
   public record Result(
-      long id, MediaType type, String title, String posterUrl, LocalDate releaseDate) {
+      long id,
+      MediaType type,
+      String title,
+      String posterUrl,
+      LocalDate releaseDate,
+      String watchlistStatus) {
 
     static Result from(SearchResultItem result) {
       CatalogItem item = result.item();
-      return new Result(item.id(), item.type(), item.title(), item.posterUrl(), item.releaseDate());
+      return new Result(
+          item.id(),
+          item.type(),
+          item.title(),
+          item.posterUrl(),
+          item.releaseDate(),
+          result.watchlistStatus());
     }
   }
 }
