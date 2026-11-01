@@ -10,6 +10,7 @@ import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -48,27 +49,19 @@ class AddMovieToWatchlistIT extends AbstractIT {
   }
 
   @Test
-  void should_return_201_with_a_to_watch_entry_when_the_movie_is_known() {
+  void should_return_201_without_body_and_save_a_to_watch_entry_when_the_movie_is_known() {
     String email = newUserEmail();
     when(titleCatalog.findMovie(603L)).thenReturn(MATRIX);
 
-    addMovie(email, 603L)
-        .expectStatus()
-        .isCreated()
-        .expectBody()
-        .jsonPath("$.tmdbId")
-        .isEqualTo(603)
-        .jsonPath("$.status")
-        .isEqualTo("TO_WATCH")
-        .jsonPath("$.addedAt")
-        .isEqualTo(FixedClockConfiguration.NOW.toString())
-        .jsonPath("$.watchedAt")
-        .doesNotExist();
+    addMovie(email, 603L).expectStatus().isCreated().expectBody().isEmpty();
+
     Map<String, Object> row =
         jdbcTemplate.queryForMap(
             "select m.status, m.added_at, m.watched_at from watchlist_movie m"
                 + " join users u on u.id = m.user_id where u.email = ? and m.tmdb_id = 603",
             email);
+    assertThat(((OffsetDateTime) row.get("added_at")).toInstant())
+        .isEqualTo(FixedClockConfiguration.NOW);
     assertThat(row).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
   }
 

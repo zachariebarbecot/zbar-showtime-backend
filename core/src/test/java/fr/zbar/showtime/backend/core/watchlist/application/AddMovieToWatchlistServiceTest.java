@@ -32,14 +32,18 @@ class AddMovieToWatchlistServiceTest {
 
   @Test
   void should_save_a_to_watch_entry_added_now_when_the_movie_is_known() {
-    WatchlistMovie added = service.execute(new AddMovieToWatchlistCommand(USER_ID, 603L));
+    service.execute(new AddMovieToWatchlistCommand(USER_ID, 603L));
 
-    assertThat(entries).containsExactly(added);
-    assertThat(added.userId()).isEqualTo(USER_ID);
-    assertThat(added.tmdbId()).isEqualTo(603L);
-    assertThat(added.status()).isEqualTo(MovieStatus.TO_WATCH);
-    assertThat(added.addedAt()).isEqualTo(NOW);
-    assertThat(added.watchedAt()).isNull();
+    assertThat(entries)
+        .singleElement()
+        .satisfies(
+            added -> {
+              assertThat(added.userId()).isEqualTo(USER_ID);
+              assertThat(added.tmdbId()).isEqualTo(603L);
+              assertThat(added.status()).isEqualTo(MovieStatus.TO_WATCH);
+              assertThat(added.addedAt()).isEqualTo(NOW);
+              assertThat(added.watchedAt()).isNull();
+            });
   }
 
   @Test
