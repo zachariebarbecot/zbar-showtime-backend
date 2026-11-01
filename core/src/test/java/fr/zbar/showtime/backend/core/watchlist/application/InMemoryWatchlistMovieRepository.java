@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.core.watchlist.application;
 
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,5 +26,12 @@ public class InMemoryWatchlistMovieRepository implements WatchlistMovieRepositor
     return movies.stream()
         .filter(movie -> movie.userId().equals(userId) && movie.tmdbId() == tmdbId)
         .findFirst();
+  }
+
+  @Override
+  public List<WatchlistMovie> findByUserIdAndTmdbIdIn(UUID userId, Collection<Long> tmdbIds) {
+    return movies.stream()
+        .filter(movie -> movie.userId().equals(userId) && tmdbIds.contains(movie.tmdbId()))
+        .toList();
   }
 }

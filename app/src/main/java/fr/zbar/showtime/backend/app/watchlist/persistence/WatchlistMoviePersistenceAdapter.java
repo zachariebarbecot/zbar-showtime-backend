@@ -5,6 +5,8 @@ import fr.zbar.showtime.backend.core.watchlist.domain.AlreadyInWatchlistExceptio
 import fr.zbar.showtime.backend.core.watchlist.domain.MovieStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,11 @@ class WatchlistMoviePersistenceAdapter implements WatchlistMovieRepository {
     return watchlistMovieJpaRepository
         .findByUserIdAndTmdbId(userId, tmdbId)
         .map(WatchlistMoviePersistenceAdapter::toDomain);
+  }
+
+  @Override
+  public List<WatchlistMovie> findByUserIdAndTmdbIdIn(UUID userId, Collection<Long> tmdbIds) {
+    return List.of();
   }
 
   private static WatchlistMovie toDomain(WatchlistMovieJpaEntity entity) {

@@ -3,8 +3,11 @@ package fr.zbar.showtime.backend.app.search.web;
 import fr.zbar.showtime.backend.core.search.application.SearchTitles;
 import fr.zbar.showtime.backend.core.search.application.SearchTitlesCommand;
 import io.swagger.v3.oas.annotations.Operation;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,11 +25,16 @@ class SearchController {
   @Operation(summary = "Search movies, series or both by keyword")
   @GetMapping
   SearchResponse search(
+      @AuthenticationPrincipal Jwt jwt,
       @RequestParam(required = false) String query,
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(required = false) String type) {
     return SearchResponse.from(
         searchTitles.execute(
-            new SearchTitlesCommand(query, page, type == null ? DEFAULT_TYPE : type)));
+            new SearchTitlesCommand(
+                UUID.fromString(jwt.getSubject()),
+                query,
+                page,
+                type == null ? DEFAULT_TYPE : type)));
   }
 }
