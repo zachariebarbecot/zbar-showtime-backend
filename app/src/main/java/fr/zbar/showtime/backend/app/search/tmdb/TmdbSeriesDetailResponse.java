@@ -51,13 +51,27 @@ record TmdbSeriesDetailResponse(
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  record Cast(String name, List<Role> roles, @JsonProperty("profile_path") String profilePath) {}
+  record Cast(String name, List<Role> roles, @JsonProperty("profile_path") String profilePath) {
+
+    Cast {
+      roles = roles == null ? List.of() : roles;
+    }
+
+    String character() {
+      return roles.isEmpty() ? null : roles.getFirst().character();
+    }
+  }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   record Role(String character) {}
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  record Crew(long id, String name, List<Job> jobs) {}
+  record Crew(long id, String name, List<Job> jobs) {
+
+    Crew {
+      jobs = jobs == null ? List.of() : jobs;
+    }
+  }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   record Job(String job) {}
@@ -92,10 +106,7 @@ record TmdbSeriesDetailResponse(
 
   private List<TmdbCredits.Actor> actors() {
     return aggregateCredits.cast().stream()
-        .map(
-            actor ->
-                new TmdbCredits.Actor(
-                    actor.name(), actor.roles().getFirst().character(), actor.profilePath()))
+        .map(actor -> new TmdbCredits.Actor(actor.name(), actor.character(), actor.profilePath()))
         .toList();
   }
 
