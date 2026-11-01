@@ -7,6 +7,7 @@ import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
+import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -105,5 +106,20 @@ class AddMovieToWatchlistIT extends AbstractIT {
 
     assertThat(entryIds(first)).hasSize(1);
     assertThat(entryIds(second)).hasSize(1);
+  }
+
+  @Test
+  void should_return_404_and_create_no_entry_when_tmdb_does_not_know_the_movie() {
+    String email = newUserEmail();
+    when(titleCatalog.findMovie(603L)).thenThrow(new TitleNotFoundException());
+
+    addMovie(email, 603L)
+        .expectStatus()
+        .isNotFound()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Title not found");
+
+    assertThat(entryIds(email)).isEmpty();
   }
 }
