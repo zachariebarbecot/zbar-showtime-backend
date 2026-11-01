@@ -6,9 +6,12 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class WatchlistSeriesTest {
 
@@ -53,5 +56,28 @@ class WatchlistSeriesTest {
 
     assertThat(again).isSameAs(watched);
     assertThat(again.watchedAt()).isEqualTo(NOW);
+  }
+
+  static Stream<Arguments> transitionsToAnotherStatusThanWatched() {
+    return Stream.of(SeriesStatus.values())
+        .flatMap(
+            from ->
+                Stream.of(SeriesStatus.values())
+                    .filter(to -> to != from && to != SeriesStatus.WATCHED)
+                    .map(to -> Arguments.of(from, to)));
+  }
+
+  @ParameterizedTest
+  @MethodSource("transitionsToAnotherStatusThanWatched")
+  void should_have_no_watched_date_when_the_new_status_is_not_watched(
+      SeriesStatus from, SeriesStatus to) {
+    WatchlistSeries source = entry(from, from == SeriesStatus.WATCHED ? NOW : null);
+
+    WatchlistSeries changed = source.changeStatus(to, LATER);
+
+    assertThat(changed.id()).isEqualTo(source.id());
+    assertThat(changed.status()).isEqualTo(to);
+    assertThat(changed.addedAt()).isEqualTo(ADDED_AT);
+    assertThat(changed.watchedAt()).isNull();
   }
 }

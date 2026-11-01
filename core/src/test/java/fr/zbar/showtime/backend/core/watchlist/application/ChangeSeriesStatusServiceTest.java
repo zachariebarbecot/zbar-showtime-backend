@@ -33,4 +33,17 @@ class ChangeSeriesStatusServiceTest {
     assertThat(changed.status()).isEqualTo(SeriesStatus.WATCHED);
     assertThat(changed.watchedAt()).isEqualTo(NOW);
   }
+
+  @Test
+  void should_save_the_entry_without_watched_date_when_it_goes_back_to_watching() {
+    entries.add(
+        new WatchlistSeries(UUID.randomUUID(), USER_ID, 1399L, SeriesStatus.WATCHED, NOW, NOW));
+
+    WatchlistSeries changed =
+        service.execute(new ChangeSeriesStatusCommand(USER_ID, 1399L, SeriesStatus.WATCHING));
+
+    assertThat(entries).containsExactly(changed);
+    assertThat(changed.status()).isEqualTo(SeriesStatus.WATCHING);
+    assertThat(changed.watchedAt()).isNull();
+  }
 }

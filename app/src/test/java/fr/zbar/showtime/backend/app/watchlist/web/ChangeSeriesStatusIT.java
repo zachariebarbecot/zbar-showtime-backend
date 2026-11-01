@@ -11,6 +11,8 @@ import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
@@ -78,5 +80,38 @@ class ChangeSeriesStatusIT extends AbstractIT {
         .containsEntry("status", "WATCHED")
         .extractingByKey("watched_at")
         .isNotNull();
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"TO_WATCH", "WATCHING", "DROPPED"})
+  void should_return_200_without_watched_date_when_a_watched_series_changes_status(String status) {
+    String email = newUserWithGot();
+    changeStatus(email, 1399L, "WATCHED").expectStatus().isOk();
+
+    changeStatus(email, 1399L, status)
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.status")
+        .isEqualTo(status)
+        .jsonPath("$.watchedAt")
+        .doesNotExist();
+    assertThat(row(email)).containsEntry("status", status).containsEntry("watched_at", null);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"WATCHING", "DROPPED"})
+  void should_return_200_without_watched_date_when_a_to_watch_series_changes_status(String status) {
+    String email = newUserWithGot();
+
+    changeStatus(email, 1399L, status)
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.status")
+        .isEqualTo(status)
+        .jsonPath("$.watchedAt")
+        .doesNotExist();
+    assertThat(row(email)).containsEntry("status", status).containsEntry("watched_at", null);
   }
 }
