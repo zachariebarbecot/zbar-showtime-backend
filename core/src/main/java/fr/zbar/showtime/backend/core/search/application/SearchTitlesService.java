@@ -43,12 +43,7 @@ public class SearchTitlesService implements SearchTitles {
         catalogPage.totalPages(),
         catalogPage.totalResults(),
         catalogPage.results().stream()
-            .map(
-                item ->
-                    new SearchResultItem(
-                        item,
-                        (item.type() == MediaType.MOVIE ? movieStatuses : seriesStatuses)
-                            .get(item.id())))
+            .map(item -> new SearchResultItem(item, statusOf(item, movieStatuses, seriesStatuses)))
             .toList());
   }
 
@@ -68,6 +63,11 @@ public class SearchTitlesService implements SearchTitles {
     }
     return watchlistSeriesRepository.findByUserIdAndTmdbIdIn(userId, seriesIds).stream()
         .collect(Collectors.toMap(WatchlistSeries::tmdbId, series -> series.status().name()));
+  }
+
+  private static String statusOf(
+      CatalogItem item, Map<Long, String> movieStatuses, Map<Long, String> seriesStatuses) {
+    return (item.type() == MediaType.MOVIE ? movieStatuses : seriesStatuses).get(item.id());
   }
 
   private static List<Long> idsOf(List<CatalogItem> items, MediaType type) {
