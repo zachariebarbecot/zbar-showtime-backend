@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app.search.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.zbar.showtime.backend.core.search.domain.SeasonSummary;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
 import java.time.LocalDate;
@@ -23,7 +24,8 @@ record TmdbSeriesDetailResponse(
     List<Genre> genres,
     String overview,
     @JsonProperty("created_by") List<Creator> createdBy,
-    @JsonProperty("aggregate_credits") Credits aggregateCredits) {
+    @JsonProperty("aggregate_credits") Credits aggregateCredits,
+    List<Season> seasons) {
 
   private static final Set<String> KEY_JOBS =
       Set.of("Writer", "Screenplay", "Producer", "Composer");
@@ -33,7 +35,16 @@ record TmdbSeriesDetailResponse(
     createdBy = createdBy == null ? List.of() : createdBy;
     aggregateCredits =
         aggregateCredits == null ? new Credits(List.of(), List.of()) : aggregateCredits;
+    seasons = seasons == null ? List.of() : seasons;
   }
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record Season(
+      @JsonProperty("season_number") int seasonNumber,
+      String name,
+      @JsonProperty("episode_count") int episodeCount,
+      @JsonProperty("air_date") String airDate,
+      @JsonProperty("poster_path") String posterPath) {}
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   record Genre(String name) {}
@@ -92,7 +103,16 @@ record TmdbSeriesDetailResponse(
         createdBy.stream().map(Creator::name).toList(),
         TmdbCredits.keyCrew(contributions(), KEY_JOBS),
         TmdbCredits.cast(actors(), properties),
-        List.of());
+        seasons.stream()
+            .map(
+                season ->
+                    new SeasonSummary(
+                        season.seasonNumber(),
+                        season.name(),
+                        season.episodeCount(),
+                        date(season.airDate()),
+                        properties.imageUrl(properties.posterSize(), season.posterPath())))
+            .toList());
   }
 
   private List<TmdbCredits.Contribution> contributions() {
