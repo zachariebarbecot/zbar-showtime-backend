@@ -30,7 +30,11 @@ public class WatchlistMovie extends AggregateRoot<UUID> {
   }
 
   public WatchlistMovie changeStatus(MovieStatus newStatus, Clock clock) {
-    return new WatchlistMovie(id(), userId, tmdbId, newStatus, addedAt, clock.instant());
+    if (status == newStatus) {
+      return this;
+    }
+    Instant newWatchedAt = newStatus == MovieStatus.WATCHED ? clock.instant() : null;
+    return new WatchlistMovie(id(), userId, tmdbId, newStatus, addedAt, newWatchedAt);
   }
 
   public static WatchlistMovie add(UUID userId, long tmdbId, Clock clock) {
