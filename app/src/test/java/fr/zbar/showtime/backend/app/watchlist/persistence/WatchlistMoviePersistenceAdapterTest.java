@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fr.zbar.showtime.backend.app.user.persistence.UserJpaRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.MovieStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import java.time.Instant;
@@ -16,7 +17,7 @@ class WatchlistMoviePersistenceAdapterTest {
 
   private final WatchlistMovieJpaRepository jpaRepository = mock(WatchlistMovieJpaRepository.class);
   private final WatchlistMoviePersistenceAdapter adapter =
-      new WatchlistMoviePersistenceAdapter(jpaRepository);
+      new WatchlistMoviePersistenceAdapter(jpaRepository, mock(UserJpaRepository.class));
 
   @Test
   void should_rethrow_the_violation_when_it_is_not_the_user_and_tmdb_uniqueness() {
