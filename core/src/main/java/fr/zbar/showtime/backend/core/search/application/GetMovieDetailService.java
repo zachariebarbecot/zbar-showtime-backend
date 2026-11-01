@@ -1,9 +1,9 @@
 package fr.zbar.showtime.backend.core.search.application;
 
-import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetailCatalog;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import fr.zbar.showtime.backend.core.shared.InvalidFieldException;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
 import lombok.RequiredArgsConstructor;
 
 @CoreUseCase
@@ -11,12 +11,19 @@ import lombok.RequiredArgsConstructor;
 public class GetMovieDetailService implements GetMovieDetail {
 
   private final MovieDetailCatalog movieDetailCatalog;
+  private final WatchlistMovieRepository watchlistMovieRepository;
 
   @Override
-  public MovieDetail execute(long tmdbId) {
-    if (tmdbId <= 0) {
+  public MovieDetailView execute(GetMovieDetailCommand command) {
+    if (command.tmdbId() <= 0) {
       throw new InvalidFieldException("tmdbId", "TMDB id must be greater than 0");
     }
-    return movieDetailCatalog.findMovieDetail(tmdbId);
+    String watchlistStatus =
+        watchlistMovieRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .map(movie -> movie.status().name())
+            .orElse(null);
+    return new MovieDetailView(
+        movieDetailCatalog.findMovieDetail(command.tmdbId()), watchlistStatus);
   }
 }

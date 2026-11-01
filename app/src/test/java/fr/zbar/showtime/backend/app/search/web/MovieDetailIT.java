@@ -6,14 +6,18 @@ import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CastMember;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
+import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -27,6 +31,8 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 class MovieDetailIT extends AbstractIT {
 
   @MockitoBean private MovieDetailCatalog movieDetailCatalog;
+
+  @MockitoBean private TitleCatalog titleCatalog;
 
   private RestTestClient.ResponseSpec detail(String email, String id) {
     return restTestClient
@@ -235,5 +241,111 @@ class MovieDetailIT extends AbstractIT {
                 assertThat(body)
                     .contains("\"status\":502")
                     .doesNotContain("test-tmdb-token", "themoviedb", "Exception"));
+  }
+
+  private static MovieDetail matrix() {
+    return new MovieDetail(
+        603L,
+        "Matrix",
+        "The Matrix",
+        List.of(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        List.of(),
+        List.of(),
+        List.of());
+  }
+
+  private void addMovieToWatchlist(String email) {
+    when(titleCatalog.findMovie(603L))
+        .thenReturn(new CatalogItem(603L, MediaType.MOVIE, "Matrix", null, null));
+    restTestClient
+        .post()
+        .uri("/watchlist/movies")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("tmdbId", 603L))
+        .exchange()
+        .expectStatus()
+        .isCreated();
+  }
+
+  private void changeMovieStatus(String email, String status) {
+    restTestClient
+        .patch()
+        .uri("/watchlist/movies/{tmdbId}", 603L)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("status", status))
+        .exchange()
+        .expectStatus()
+        .isOk();
+  }
+
+  @Test
+  void should_expose_the_watchlist_status_when_the_movie_is_in_my_watchlist() {
+    String email = "movie-us2-ca1-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    when(movieDetailCatalog.findMovieDetail(603L)).thenReturn(matrix());
+    addMovieToWatchlist(email);
+
+    detail(email, "603")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo("TO_WATCH");
+  }
+
+  @Test
+  void should_expose_a_null_watchlist_status_and_the_rest_of_the_detail_when_not_in_my_watchlist() {
+    String email = "movie-us2-ca2-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    when(movieDetailCatalog.findMovieDetail(603L)).thenReturn(matrix());
+
+    detail(email, "603")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo(null)
+        .jsonPath("$.title")
+        .isEqualTo("Matrix");
+  }
+
+  @Test
+  void should_expose_a_null_watchlist_status_when_only_another_user_has_the_movie() {
+    String owner = "movie-us2-ca3-owner-" + UUID.randomUUID() + "@mail.fr";
+    String other = "movie-us2-ca3-other-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(owner);
+    registerUser(other);
+    when(movieDetailCatalog.findMovieDetail(603L)).thenReturn(matrix());
+    addMovieToWatchlist(owner);
+
+    detail(other, "603")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo(null);
+  }
+
+  @Test
+  void should_expose_the_new_watchlist_status_when_it_was_changed() {
+    String email = "movie-us2-ca4-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    when(movieDetailCatalog.findMovieDetail(603L)).thenReturn(matrix());
+    addMovieToWatchlist(email);
+    changeMovieStatus(email, "WATCHED");
+
+    detail(email, "603")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchlistStatus")
+        .isEqualTo("WATCHED");
   }
 }
