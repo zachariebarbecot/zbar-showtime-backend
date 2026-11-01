@@ -7,6 +7,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
 import java.time.LocalDate;
@@ -137,5 +138,29 @@ class TmdbSeriesDetailAdapterTest {
     assertThat(series.creators()).isEmpty();
     assertThat(series.crew()).isEmpty();
     assertThat(series.cast()).isEmpty();
+  }
+
+  @Test
+  void should_list_the_creators_and_group_the_key_crew_by_person_when_the_credits_have_crew() {
+    respondWith(
+        """
+        {"id":1396,"name":"Breaking Bad","created_by":[{"name":"Vince Gilligan"},{"name":"Peter Gould"}],
+         "aggregate_credits":{"crew":[
+          {"id":1,"name":"Vince Gilligan","jobs":[{"job":"Writer"},{"job":"Executive Producer"}]},
+          {"id":2,"name":"Michael Slovis","jobs":[{"job":"Director of Photography"}]},
+          {"id":3,"name":"Dave Porter","jobs":[{"job":"Composer"}]},
+          {"id":1,"name":"Vince Gilligan","jobs":[{"job":"Producer"},{"job":"Writer"}]},
+          {"id":4,"name":"Peter Gould","jobs":[{"job":"Screenplay"}]}
+        ]}}
+        """);
+
+    SeriesDetail series = adapter.findSeriesDetail(1396L);
+
+    assertThat(series.creators()).containsExactly("Vince Gilligan", "Peter Gould");
+    assertThat(series.crew())
+        .containsExactly(
+            new CrewMember("Vince Gilligan", List.of("Writer", "Producer")),
+            new CrewMember("Dave Porter", List.of("Composer")),
+            new CrewMember("Peter Gould", List.of("Screenplay")));
   }
 }

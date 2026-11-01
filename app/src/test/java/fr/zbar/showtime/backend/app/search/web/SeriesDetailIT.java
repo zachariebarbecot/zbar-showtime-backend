@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.app.search.web;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SeriesStatus;
@@ -116,5 +117,38 @@ class SeriesDetailIT extends AbstractIT {
         .isEqualTo(null)
         .jsonPath("$.genres")
         .isEmpty();
+  }
+
+  @Test
+  void should_return_the_creators_and_the_key_crew_when_the_series_has_a_crew() {
+    registerUser("series-ca3@mail.fr");
+    when(seriesDetailCatalog.findSeriesDetail(1396L))
+        .thenReturn(
+            new SeriesDetail(
+                1396L,
+                "Breaking Bad",
+                "Breaking Bad",
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of("Vince Gilligan"),
+                List.of(new CrewMember("Vince Gilligan", List.of("Writer", "Producer"))),
+                List.of()));
+
+    detail("series-ca3@mail.fr", "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.creators[0]")
+        .isEqualTo("Vince Gilligan")
+        .jsonPath("$.crew[0].name")
+        .isEqualTo("Vince Gilligan")
+        .jsonPath("$.crew[0].jobs[1]")
+        .isEqualTo("Producer");
   }
 }
