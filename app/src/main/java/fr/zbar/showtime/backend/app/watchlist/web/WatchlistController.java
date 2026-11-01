@@ -24,9 +24,7 @@ class WatchlistController {
   @Operation(summary = "Add a movie to the watchlist of the token owner")
   @PostMapping(path = "/movies", consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
-  WatchlistMovieResponse addMovie(
-      @AuthenticationPrincipal Jwt jwt, @RequestBody AddMovieRequest request) {
-    return WatchlistMovieResponse.from(
-        addMovieToWatchlist.execute(request.toCommand(UUID.fromString(jwt.getSubject()))));
+  void addMovie(@AuthenticationPrincipal Jwt jwt, @RequestBody AddMovieRequest request) {
+    addMovieToWatchlist.execute(request.toCommand(UUID.fromString(jwt.getSubject())));
   }
 }

@@ -16,10 +16,8 @@ public class AddMovieToWatchlistService implements AddMovieToWatchlist {
   private final Clock clock;
 
   @Override
-  public WatchlistMovie execute(AddMovieToWatchlistCommand command) {
+  public void execute(AddMovieToWatchlistCommand command) {
     titleCatalog.findMovie(command.tmdbId());
-    WatchlistMovie movie = WatchlistMovie.add(command.userId(), command.tmdbId(), clock);
-    watchlistMovieRepository.save(movie);
-    return movie;
+    watchlistMovieRepository.save(WatchlistMovie.add(command.userId(), command.tmdbId(), clock));
   }
 }
