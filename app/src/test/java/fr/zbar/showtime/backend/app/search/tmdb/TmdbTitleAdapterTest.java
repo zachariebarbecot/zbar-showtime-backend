@@ -41,7 +41,10 @@ class TmdbTitleAdapterTest {
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
   private final TmdbTitleAdapter adapter =
-      new TmdbTitleAdapter(TmdbConfiguration.authenticated(builder, PROPERTIES), PROPERTIES);
+      new TmdbTitleAdapter(
+          TmdbConfiguration.movieApi(TmdbConfiguration.authenticated(builder, PROPERTIES)),
+          TmdbConfiguration.seriesApi(TmdbConfiguration.authenticated(builder, PROPERTIES)),
+          PROPERTIES);
 
   @Test
   void should_return_the_movie_when_tmdb_knows_the_id() {

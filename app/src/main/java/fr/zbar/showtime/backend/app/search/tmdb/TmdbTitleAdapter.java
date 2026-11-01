@@ -5,9 +5,6 @@ import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.support.RestClientAdapter;
-import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Component
 class TmdbTitleAdapter implements TitleCatalog {
@@ -16,11 +13,9 @@ class TmdbTitleAdapter implements TitleCatalog {
   private final TmdbSeriesApi seriesApi;
   private final TmdbProperties properties;
 
-  TmdbTitleAdapter(RestClient tmdbRestClient, TmdbProperties properties) {
-    HttpServiceProxyFactory factory =
-        HttpServiceProxyFactory.builderFor(RestClientAdapter.create(tmdbRestClient)).build();
-    this.movieApi = factory.createClient(TmdbMovieApi.class);
-    this.seriesApi = factory.createClient(TmdbSeriesApi.class);
+  TmdbTitleAdapter(TmdbMovieApi movieApi, TmdbSeriesApi seriesApi, TmdbProperties properties) {
+    this.movieApi = movieApi;
+    this.seriesApi = seriesApi;
     this.properties = properties;
   }
 

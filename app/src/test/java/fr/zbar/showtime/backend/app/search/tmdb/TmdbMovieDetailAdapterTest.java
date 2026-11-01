@@ -46,7 +46,9 @@ class TmdbMovieDetailAdapterTest {
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
   private final TmdbMovieDetailAdapter adapter =
-      new TmdbMovieDetailAdapter(TmdbConfiguration.authenticated(builder, PROPERTIES), PROPERTIES);
+      new TmdbMovieDetailAdapter(
+          TmdbConfiguration.movieApi(TmdbConfiguration.authenticated(builder, PROPERTIES)),
+          PROPERTIES);
 
   private void respondWith(String json) {
     server
