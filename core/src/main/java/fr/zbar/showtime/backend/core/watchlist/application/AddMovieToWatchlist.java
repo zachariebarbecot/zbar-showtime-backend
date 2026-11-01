@@ -1,0 +1,8 @@
+package fr.zbar.showtime.backend.core.watchlist.application;
+
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
+
+public interface AddMovieToWatchlist {
+
+  WatchlistMovie execute(AddMovieToWatchlistCommand command);
+}
