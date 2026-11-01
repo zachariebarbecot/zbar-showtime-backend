@@ -18,8 +18,8 @@ public record MovieDetailResponse(
     String overview,
     MovieStatus status,
     List<String> directors,
-    List<CrewMember> crew,
-    List<CastMember> cast) {
+    List<Crew> crew,
+    List<Cast> cast) {
 
   static MovieDetailResponse from(MovieDetail movie) {
     return new MovieDetailResponse(
@@ -33,7 +33,21 @@ public record MovieDetailResponse(
         movie.overview(),
         movie.status(),
         movie.directors(),
-        movie.crew(),
-        movie.cast());
+        movie.crew().stream().map(Crew::from).toList(),
+        movie.cast().stream().map(Cast::from).toList());
+  }
+
+  public record Crew(String name, List<String> jobs) {
+
+    static Crew from(CrewMember member) {
+      return new Crew(member.name(), member.jobs());
+    }
+  }
+
+  public record Cast(String name, String character, String photoUrl) {
+
+    static Cast from(CastMember member) {
+      return new Cast(member.name(), member.character(), member.photoUrl());
+    }
   }
 }
