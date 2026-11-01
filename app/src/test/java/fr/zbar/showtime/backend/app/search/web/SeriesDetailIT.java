@@ -80,4 +80,41 @@ class SeriesDetailIT extends AbstractIT {
   void should_return_401_when_there_is_no_token() {
     restTestClient.get().uri("/series/1396").exchange().expectStatus().isUnauthorized();
   }
+
+  @Test
+  void should_return_200_with_null_fields_and_empty_lists_when_the_series_has_no_data() {
+    registerUser("series-ca2@mail.fr");
+    when(seriesDetailCatalog.findSeriesDetail(1396L))
+        .thenReturn(
+            new SeriesDetail(
+                1396L,
+                "Breaking Bad",
+                "Breaking Bad",
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                0,
+                0,
+                List.of(),
+                List.of(),
+                List.of()));
+
+    detail("series-ca2@mail.fr", "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.firstAirDate")
+        .isEqualTo(null)
+        .jsonPath("$.lastAirDate")
+        .isEqualTo(null)
+        .jsonPath("$.status")
+        .isEqualTo(null)
+        .jsonPath("$.overview")
+        .isEqualTo(null)
+        .jsonPath("$.genres")
+        .isEmpty();
+  }
 }

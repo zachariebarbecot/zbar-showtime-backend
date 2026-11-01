@@ -13,6 +13,9 @@ import java.time.LocalDate;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -77,5 +80,62 @@ class TmdbSeriesDetailAdapterTest {
                 List.of(),
                 List.of(),
                 List.of()));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "Returning Series,RETURNING",
+    "Ended,ENDED",
+    "Canceled,CANCELED",
+    "In Production,IN_PRODUCTION",
+    "Planned,PLANNED",
+    "Pilot,PILOT"
+  })
+  void should_map_the_tmdb_status_when_it_is_known(String tmdbStatus, SeriesStatus expected) {
+    respondWith("{\"id\":1396,\"name\":\"Breaking Bad\",\"status\":\"" + tmdbStatus + "\"}");
+
+    assertThat(adapter.findSeriesDetail(1396L).status()).isEqualTo(expected);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        """
+        {"id":1396,"name":"Breaking Bad","status":"Archived"}
+        """,
+        """
+        {"id":1396,"name":"Breaking Bad","status":null}
+        """
+      })
+  void should_return_a_null_status_when_the_tmdb_status_is_unknown_or_absent(String json) {
+    respondWith(json);
+
+    assertThat(adapter.findSeriesDetail(1396L).status()).isNull();
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        """
+        {"id":1396,"name":"Breaking Bad","first_air_date":"","last_air_date":"","overview":""}
+        """,
+        """
+        {"id":1396,"name":"Breaking Bad","first_air_date":null,"last_air_date":null,
+         "overview":null,"genres":null}
+        """
+      })
+  void should_return_null_fields_and_empty_lists_when_tmdb_has_no_data(String json) {
+    respondWith(json);
+
+    SeriesDetail series = adapter.findSeriesDetail(1396L);
+
+    assertThat(series.firstAirDate()).isNull();
+    assertThat(series.lastAirDate()).isNull();
+    assertThat(series.overview()).isNull();
+    assertThat(series.posterUrl()).isNull();
+    assertThat(series.genres()).isEmpty();
+    assertThat(series.creators()).isEmpty();
+    assertThat(series.crew()).isEmpty();
+    assertThat(series.cast()).isEmpty();
   }
 }
