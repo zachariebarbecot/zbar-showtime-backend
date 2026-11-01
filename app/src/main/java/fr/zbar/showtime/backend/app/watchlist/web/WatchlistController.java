@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.app.watchlist.web;
 import fr.zbar.showtime.backend.core.watchlist.application.AddMovieToWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.AddSeriesToWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.ChangeMovieStatus;
+import fr.zbar.showtime.backend.core.watchlist.application.ChangeSeriesStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ class WatchlistController {
   private final AddMovieToWatchlist addMovieToWatchlist;
   private final ChangeMovieStatus changeMovieStatus;
   private final AddSeriesToWatchlist addSeriesToWatchlist;
+  private final ChangeSeriesStatus changeSeriesStatus;
 
   @Operation(summary = "Add a movie to the watchlist of the token owner")
   @PostMapping(path = "/movies", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -49,5 +51,15 @@ class WatchlistController {
   @ResponseStatus(HttpStatus.CREATED)
   void addSeries(@AuthenticationPrincipal Jwt jwt, @RequestBody AddSeriesRequest request) {
     addSeriesToWatchlist.execute(request.toCommand(UUID.fromString(jwt.getSubject())));
+  }
+
+  @Operation(summary = "Change the status of a series of the watchlist of the token owner")
+  @PatchMapping(path = "/series/{tmdbId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+  WatchlistSeriesResponse changeSeriesStatus(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable long tmdbId,
+      @RequestBody ChangeSeriesStatusRequest request) {
+    return WatchlistSeriesResponse.from(
+        changeSeriesStatus.execute(request.toCommand(UUID.fromString(jwt.getSubject()), tmdbId)));
   }
 }
