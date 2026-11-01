@@ -7,6 +7,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
@@ -132,5 +133,48 @@ class TmdbMovieDetailAdapterTest {
             new CrewMember("Lilly Wachowski", List.of("Director", "Screenplay")),
             new CrewMember("Joel Silver", List.of("Producer")),
             new CrewMember("Don Davis", List.of("Composer")));
+  }
+
+  @Test
+  void should_keep_the_first_15_cast_members_in_tmdb_order_when_the_movie_has_more() {
+    respondWith(
+        """
+        {"id":603,"title":"Matrix","credits":{"cast":[
+          {"name":"Actor 1","character":"Role 1","profile_path":"/p1.jpg"},
+          {"name":"Actor 2","character":"Role 2","profile_path":"/p2.jpg"},
+          {"name":"Actor 3","character":"Role 3","profile_path":"/p3.jpg"},
+          {"name":"Actor 4","character":"Role 4","profile_path":"/p4.jpg"},
+          {"name":"Actor 5","character":"Role 5","profile_path":"/p5.jpg"},
+          {"name":"Actor 6","character":"Role 6","profile_path":"/p6.jpg"},
+          {"name":"Actor 7","character":"Role 7","profile_path":"/p7.jpg"},
+          {"name":"Actor 8","character":"Role 8","profile_path":"/p8.jpg"},
+          {"name":"Actor 9","character":"Role 9","profile_path":"/p9.jpg"},
+          {"name":"Actor 10","character":"Role 10","profile_path":"/p10.jpg"},
+          {"name":"Actor 11","character":"Role 11","profile_path":"/p11.jpg"},
+          {"name":"Actor 12","character":"Role 12","profile_path":"/p12.jpg"},
+          {"name":"Actor 13","character":"Role 13","profile_path":"/p13.jpg"},
+          {"name":"Actor 14","character":"Role 14","profile_path":"/p14.jpg"},
+          {"name":"Actor 15","character":"Role 15","profile_path":"/p15.jpg"},
+          {"name":"Actor 16","character":"Role 16","profile_path":"/p16.jpg"}
+        ]}}
+        """);
+
+    MovieDetail movie = adapter.findMovieDetail(603L);
+
+    assertThat(movie.cast()).hasSize(15);
+    assertThat(movie.cast().getFirst())
+        .isEqualTo(new CastMember("Actor 1", "Role 1", "https://image.tmdb.org/t/p/w185/p1.jpg"));
+    assertThat(movie.cast().getLast().name()).isEqualTo("Actor 15");
+  }
+
+  @Test
+  void should_return_a_null_photo_when_a_cast_member_has_no_profile() {
+    respondWith(
+        """
+        {"id":603,"title":"Matrix","credits":{"cast":[{"name":"Keanu Reeves","character":"Neo"}]}}
+        """);
+
+    assertThat(adapter.findMovieDetail(603L).cast())
+        .containsExactly(new CastMember("Keanu Reeves", "Neo", null));
   }
 }
