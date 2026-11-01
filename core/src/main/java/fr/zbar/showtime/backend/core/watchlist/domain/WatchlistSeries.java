@@ -33,7 +33,8 @@ public class WatchlistSeries extends AggregateRoot<UUID> {
     if (status == newStatus) {
       return this;
     }
-    return new WatchlistSeries(id(), userId, tmdbId, newStatus, addedAt, clock.instant());
+    Instant newWatchedAt = newStatus == SeriesStatus.WATCHED ? clock.instant() : null;
+    return new WatchlistSeries(id(), userId, tmdbId, newStatus, addedAt, newWatchedAt);
   }
 
   public static WatchlistSeries add(UUID userId, long tmdbId, Clock clock) {
