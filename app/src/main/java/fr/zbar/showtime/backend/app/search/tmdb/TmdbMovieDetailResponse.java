@@ -2,6 +2,7 @@ package fr.zbar.showtime.backend.app.search.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
 import fr.zbar.showtime.backend.core.search.domain.MovieDetail;
 import fr.zbar.showtime.backend.core.search.domain.MovieStatus;
@@ -25,25 +26,30 @@ record TmdbMovieDetailResponse(
     String overview,
     Credits credits) {
 
+  private static final int MAX_CAST = 15;
   private static final String DIRECTOR = "Director";
   private static final Set<String> KEY_JOBS =
       Set.of(DIRECTOR, "Writer", "Screenplay", "Producer", "Composer");
 
   TmdbMovieDetailResponse {
     genres = genres == null ? List.of() : genres;
-    credits = credits == null ? new Credits(List.of()) : credits;
+    credits = credits == null ? new Credits(List.of(), List.of()) : credits;
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   record Genre(String name) {}
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  record Credits(List<Crew> crew) {
+  record Credits(List<Cast> cast, List<Crew> crew) {
 
     Credits {
+      cast = cast == null ? List.of() : cast;
       crew = crew == null ? List.of() : crew;
     }
   }
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record Cast(String name, String character, @JsonProperty("profile_path") String profilePath) {}
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   record Crew(long id, String name, String job) {}
@@ -61,7 +67,19 @@ record TmdbMovieDetailResponse(
         properties.imageUrl(properties.posterSize(), posterPath),
         directors(),
         keyCrew(),
-        List.of());
+        cast(properties));
+  }
+
+  private List<CastMember> cast(TmdbProperties properties) {
+    return credits.cast().stream()
+        .limit(MAX_CAST)
+        .map(
+            actor ->
+                new CastMember(
+                    actor.name(),
+                    actor.character(),
+                    properties.imageUrl(properties.profileSize(), actor.profilePath())))
+        .toList();
   }
 
   private List<String> directors() {
