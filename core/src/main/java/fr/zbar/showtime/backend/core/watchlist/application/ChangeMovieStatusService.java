@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.core.watchlist.application;
 
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovie;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistMovieRepository;
 import java.time.Clock;
@@ -18,7 +19,7 @@ public class ChangeMovieStatusService implements ChangeMovieStatus {
     WatchlistMovie movie =
         watchlistMovieRepository
             .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
-            .orElseThrow();
+            .orElseThrow(WatchlistEntryNotFoundException::new);
     WatchlistMovie changed = movie.changeStatus(command.status(), clock);
     watchlistMovieRepository.save(changed);
     return changed;
