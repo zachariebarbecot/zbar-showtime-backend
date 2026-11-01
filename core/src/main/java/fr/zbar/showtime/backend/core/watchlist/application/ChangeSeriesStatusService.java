@@ -1,0 +1,20 @@
+package fr.zbar.showtime.backend.core.watchlist.application;
+
+import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
+import java.time.Clock;
+import lombok.RequiredArgsConstructor;
+
+@CoreUseCase
+@RequiredArgsConstructor
+public class ChangeSeriesStatusService implements ChangeSeriesStatus {
+
+  private final WatchlistSeriesRepository watchlistSeriesRepository;
+  private final Clock clock;
+
+  @Override
+  public WatchlistSeries execute(ChangeSeriesStatusCommand command) {
+    return null;
+  }
+}

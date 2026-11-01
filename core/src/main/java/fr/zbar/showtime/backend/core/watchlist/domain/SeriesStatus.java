@@ -4,5 +4,9 @@ public enum SeriesStatus {
   TO_WATCH,
   WATCHING,
   WATCHED,
-  DROPPED
+  DROPPED;
+
+  public static SeriesStatus from(String value) {
+    return null;
+  }
 }
