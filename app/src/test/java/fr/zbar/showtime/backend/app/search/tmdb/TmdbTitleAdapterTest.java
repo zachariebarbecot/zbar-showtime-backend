@@ -40,10 +40,11 @@ class TmdbTitleAdapterTest {
 
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+  private final RestClient restClient = TmdbConfiguration.authenticated(builder, PROPERTIES);
   private final TmdbTitleAdapter adapter =
       new TmdbTitleAdapter(
-          TmdbConfiguration.movieApi(TmdbConfiguration.authenticated(builder, PROPERTIES)),
-          TmdbConfiguration.seriesApi(TmdbConfiguration.authenticated(builder, PROPERTIES)),
+          TmdbConfiguration.movieApi(restClient),
+          TmdbConfiguration.seriesApi(restClient),
           PROPERTIES);
 
   @Test
