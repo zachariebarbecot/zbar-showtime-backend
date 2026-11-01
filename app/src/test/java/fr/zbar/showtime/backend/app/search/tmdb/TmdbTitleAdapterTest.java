@@ -31,6 +31,8 @@ class TmdbTitleAdapterTest {
 
   private static final String MOVIE_1_URL = "https://api.tmdb.test/3/movie/1?language=fr-FR";
 
+  private static final String SERIES_1_URL = "https://api.tmdb.test/3/tv/1?language=fr-FR";
+
   private final RestClient.Builder builder = TmdbRestClientBuilders.bootBuilder();
   private final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
   private final TmdbTitleAdapter adapter =
@@ -135,5 +137,43 @@ class TmdbTitleAdapterTest {
         .andRespond(withSuccess("", org.springframework.http.MediaType.APPLICATION_JSON));
 
     assertThatThrownBy(() -> adapter.findMovie(1L)).isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_throw_title_not_found_when_tmdb_answers_404_for_a_series() {
+    server.expect(requestTo(SERIES_1_URL)).andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+    assertThatThrownBy(() -> adapter.findSeries(1L)).isInstanceOf(TitleNotFoundException.class);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = HttpStatus.class,
+      names = {"INTERNAL_SERVER_ERROR", "BAD_GATEWAY", "TOO_MANY_REQUESTS", "UNAUTHORIZED"})
+  void should_throw_catalog_unavailable_when_tmdb_answers_an_error_for_a_series(HttpStatus status) {
+    server.expect(requestTo(SERIES_1_URL)).andRespond(withStatus(status));
+
+    assertThatThrownBy(() -> adapter.findSeries(1L))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_throw_catalog_unavailable_when_tmdb_times_out_for_a_series() {
+    server
+        .expect(requestTo(SERIES_1_URL))
+        .andRespond(withException(new SocketTimeoutException("read timed out")));
+
+    assertThatThrownBy(() -> adapter.findSeries(1L))
+        .isInstanceOf(CatalogUnavailableException.class);
+  }
+
+  @Test
+  void should_throw_catalog_unavailable_when_tmdb_answers_an_empty_body_for_a_series() {
+    server
+        .expect(requestTo(SERIES_1_URL))
+        .andRespond(withSuccess("", org.springframework.http.MediaType.APPLICATION_JSON));
+
+    assertThatThrownBy(() -> adapter.findSeries(1L))
+        .isInstanceOf(CatalogUnavailableException.class);
   }
 }

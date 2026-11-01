@@ -6,8 +6,10 @@ import static org.mockito.Mockito.when;
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
+import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -105,5 +107,31 @@ class AddSeriesToWatchlistIT extends AbstractIT {
 
     assertThat(entryIds(first)).hasSize(1);
     assertThat(entryIds(second)).hasSize(1);
+  }
+
+  @Test
+  void should_return_404_and_create_no_entry_when_tmdb_does_not_know_the_series() {
+    String email = newUserEmail();
+    when(titleCatalog.findSeries(1399L)).thenThrow(new TitleNotFoundException());
+
+    addSeries(email, 1399L)
+        .expectStatus()
+        .isNotFound()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Title not found");
+
+    assertThat(entryIds(email)).isEmpty();
+  }
+
+  @Test
+  void should_return_502_and_create_no_entry_when_tmdb_is_unavailable() {
+    String email = newUserEmail();
+    when(titleCatalog.findSeries(1399L))
+        .thenThrow(new CatalogUnavailableException(new IllegalStateException("down")));
+
+    addSeries(email, 1399L).expectStatus().isEqualTo(502);
+
+    assertThat(entryIds(email)).isEmpty();
   }
 }

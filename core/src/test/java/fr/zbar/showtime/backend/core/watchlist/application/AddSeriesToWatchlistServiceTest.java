@@ -1,10 +1,12 @@
 package fr.zbar.showtime.backend.core.watchlist.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.search.application.InMemoryTitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
+import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
 import java.time.Clock;
@@ -38,5 +40,13 @@ class AddSeriesToWatchlistServiceTest {
     assertThat(added.status()).isEqualTo(SeriesStatus.TO_WATCH);
     assertThat(added.addedAt()).isEqualTo(NOW);
     assertThat(added.watchedAt()).isNull();
+  }
+
+  @Test
+  void should_save_nothing_when_the_series_is_unknown() {
+    assertThatThrownBy(() -> service.execute(new AddSeriesToWatchlistCommand(USER_ID, 1L)))
+        .isInstanceOf(TitleNotFoundException.class);
+
+    assertThat(entries).isEmpty();
   }
 }
