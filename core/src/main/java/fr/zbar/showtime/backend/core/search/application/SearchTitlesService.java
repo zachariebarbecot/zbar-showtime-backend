@@ -46,6 +46,9 @@ public class SearchTitlesService implements SearchTitles {
   private Map<Long, String> movieStatuses(UUID userId, List<CatalogItem> items) {
     List<Long> movieIds =
         items.stream().filter(item -> item.type() == MediaType.MOVIE).map(CatalogItem::id).toList();
+    if (movieIds.isEmpty()) {
+      return Map.of();
+    }
     return watchlistMovieRepository.findByUserIdAndTmdbIdIn(userId, movieIds).stream()
         .collect(Collectors.toMap(WatchlistMovie::tmdbId, movie -> movie.status().name()));
   }
