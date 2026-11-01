@@ -114,4 +114,21 @@ class ChangeMovieStatusIT extends AbstractIT {
         .isEqualTo("Status must be TO_WATCH or WATCHED");
     assertThat(row(email)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
   }
+
+  @Test
+  void
+      should_return_404_and_keep_the_entry_of_another_user_when_the_movie_is_not_in_my_watchlist() {
+    String owner = newUserWithMatrix();
+    String other = "watchlist-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(other);
+
+    changeStatus(other, 603L, "WATCHED")
+        .expectStatus()
+        .isNotFound()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Watchlist entry not found");
+
+    assertThat(row(owner)).containsEntry("status", "TO_WATCH").containsEntry("watched_at", null);
+  }
 }
