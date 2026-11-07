@@ -47,11 +47,24 @@ class WatchedEpisodePersistenceAdapter implements WatchedEpisodeRepository {
   @Override
   public Optional<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber) {
-    return Optional.empty();
+    return watchedEpisodeJpaRepository
+        .findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
+            userId, seriesTmdbId, seasonNumber, episodeNumber)
+        .map(
+            entity ->
+                new WatchedEpisode(
+                    entity.getId(),
+                    userId,
+                    seriesTmdbId,
+                    seasonNumber,
+                    episodeNumber,
+                    entity.getWatchedAt()));
   }
 
   @Override
-  public void delete(WatchedEpisode episode) {}
+  public void delete(WatchedEpisode episode) {
+    watchedEpisodeJpaRepository.deleteById(episode.id());
+  }
 
   private static boolean violatesUniqueness(DataIntegrityViolationException exception) {
     return exception.getCause() instanceof ConstraintViolationException violation

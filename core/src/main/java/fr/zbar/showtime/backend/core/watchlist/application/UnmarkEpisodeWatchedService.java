@@ -11,5 +11,10 @@ public class UnmarkEpisodeWatchedService implements UnmarkEpisodeWatched {
   private final WatchedEpisodeRepository watchedEpisodeRepository;
 
   @Override
-  public void execute(UnmarkEpisodeWatchedCommand command) {}
+  public void execute(UnmarkEpisodeWatchedCommand command) {
+    watchedEpisodeRepository
+        .findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
+            command.userId(), command.tmdbId(), command.seasonNumber(), command.episodeNumber())
+        .ifPresent(watchedEpisodeRepository::delete);
+  }
 }
