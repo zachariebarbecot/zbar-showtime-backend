@@ -52,9 +52,14 @@ class UnmarkEpisodeWatchedIT extends AbstractIT {
                     new Episode(2, "Le chat", null, null, null, null))));
   }
 
-  private String newUserWithSeries() {
+  private String newUser() {
     String email = "unmark-" + UUID.randomUUID() + "@mail.fr";
     registerUser(email);
+    return email;
+  }
+
+  private String newUserWithSeries() {
+    String email = newUser();
     restTestClient
         .post()
         .uri("/watchlist/series")
@@ -103,5 +108,35 @@ class UnmarkEpisodeWatchedIT extends AbstractIT {
     unmark(email, 2).expectStatus().isNoContent().expectBody().isEmpty();
 
     assertThat(viewedEpisodes(email)).containsExactly(1);
+  }
+
+  @Test
+  void should_return_404_when_the_episode_is_not_watched() {
+    String email = newUserWithSeries();
+
+    unmark(email, 2)
+        .expectStatus()
+        .isNotFound()
+        .expectBody()
+        .jsonPath("$.detail")
+        .isEqualTo("Watchlist entry not found");
+  }
+
+  @Test
+  void should_return_404_when_the_series_is_not_in_my_watchlist() {
+    String email = newUser();
+
+    unmark(email, 1).expectStatus().isNotFound();
+  }
+
+  @Test
+  void should_return_404_and_keep_the_viewing_of_the_other_user_when_only_they_watched_it() {
+    String first = newUserWithSeries();
+    String second = newUserWithSeries();
+    mark(first, 1);
+
+    unmark(second, 1).expectStatus().isNotFound();
+
+    assertThat(viewedEpisodes(first)).containsExactly(1);
   }
 }
