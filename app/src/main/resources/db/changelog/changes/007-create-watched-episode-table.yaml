@@ -1,0 +1,62 @@
+databaseChangeLog:
+- changeSet:
+    id: 1794089835282-1
+    author: zbarbecot (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: watched_episodePK
+            name: id
+            type: UUID
+        - column:
+            constraints:
+              nullable: false
+            name: episode_number
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: season_number
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: series_tmdb_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: watched_at
+            type: TIMESTAMP(6) WITH TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: user_id
+            type: UUID
+        tableName: watched_episode
+- changeSet:
+    id: 1794089835282-2
+    author: zbarbecot (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: user_id, series_tmdb_id, season_number, episode_number
+        constraintName: UC_watched_episode_user_series_season_episode
+        tableName: watched_episode
+- changeSet:
+    id: 1794089835282-3
+    author: zbarbecot (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_id
+        baseTableName: watched_episode
+        constraintName: FKbqcy4w5hnhyr2a1qepb9qi14y
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users
+        validate: true
+
