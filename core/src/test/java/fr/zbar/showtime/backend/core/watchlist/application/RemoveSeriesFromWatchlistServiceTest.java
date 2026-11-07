@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
 import java.time.Clock;
@@ -22,8 +23,15 @@ class RemoveSeriesFromWatchlistServiceTest {
   private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
 
   private final List<WatchlistSeries> entries = new ArrayList<>();
+  private final List<WatchedEpisode> watched = new ArrayList<>();
   private final RemoveSeriesFromWatchlistService service =
-      new RemoveSeriesFromWatchlistService(new InMemoryWatchlistSeriesRepository(entries));
+      new RemoveSeriesFromWatchlistService(
+          new InMemoryWatchlistSeriesRepository(entries),
+          new InMemoryWatchedEpisodeRepository(watched));
+
+  private static WatchedEpisode viewing(UUID userId, long seriesId, int episode) {
+    return new WatchedEpisode(UUID.randomUUID(), userId, seriesId, 1, episode, NOW);
+  }
 
   @Test
   void should_remove_the_entry_when_it_is_in_the_watchlist_whatever_its_status() {
@@ -64,5 +72,30 @@ class RemoveSeriesFromWatchlistServiceTest {
     service.execute(new RemoveSeriesFromWatchlistCommand(USER_ID, 1399L));
 
     assertThat(entries).containsExactly(other);
+  }
+
+  @Test
+  void should_delete_all_my_viewings_of_the_series_and_keep_those_of_other_series() {
+    entries.add(WatchlistSeries.add(USER_ID, 1399L, CLOCK));
+    WatchedEpisode otherSeries = viewing(USER_ID, 1396L, 1);
+    watched.add(viewing(USER_ID, 1399L, 1));
+    watched.add(viewing(USER_ID, 1399L, 2));
+    watched.add(otherSeries);
+
+    service.execute(new RemoveSeriesFromWatchlistCommand(USER_ID, 1399L));
+
+    assertThat(watched).containsExactly(otherSeries);
+  }
+
+  @Test
+  void should_keep_the_viewings_of_the_other_user_when_both_watched_the_series() {
+    entries.add(WatchlistSeries.add(USER_ID, 1399L, CLOCK));
+    WatchedEpisode others = viewing(OTHER_USER_ID, 1399L, 1);
+    watched.add(viewing(USER_ID, 1399L, 1));
+    watched.add(others);
+
+    service.execute(new RemoveSeriesFromWatchlistCommand(USER_ID, 1399L));
+
+    assertThat(watched).containsExactly(others);
   }
 }

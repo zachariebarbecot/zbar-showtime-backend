@@ -66,6 +66,9 @@ class WatchedEpisodePersistenceAdapter implements WatchedEpisodeRepository {
     watchedEpisodeJpaRepository.deleteById(episode.id());
   }
 
+  @Override
+  public void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId) {}
+
   private static boolean violatesUniqueness(DataIntegrityViolationException exception) {
     return exception.getCause() instanceof ConstraintViolationException violation
         && UNIQUE_CONSTRAINT.equalsIgnoreCase(violation.getConstraintName());

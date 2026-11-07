@@ -48,4 +48,10 @@ public class InMemoryWatchedEpisodeRepository implements WatchedEpisodeRepositor
   public void delete(WatchedEpisode episode) {
     episodes.remove(episode);
   }
+
+  @Override
+  public void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId) {
+    episodes.removeIf(
+        episode -> episode.userId().equals(userId) && episode.seriesTmdbId() == seriesTmdbId);
+  }
 }

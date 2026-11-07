@@ -14,4 +14,6 @@ public interface WatchedEpisodeRepository {
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber);
 
   void delete(WatchedEpisode episode);
+
+  void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId);
 }
