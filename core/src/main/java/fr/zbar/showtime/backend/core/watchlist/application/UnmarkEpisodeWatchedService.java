@@ -1,7 +1,9 @@
 package fr.zbar.showtime.backend.core.watchlist.application;
 
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisodeRepository;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @CoreUseCase
@@ -12,9 +14,11 @@ public class UnmarkEpisodeWatchedService implements UnmarkEpisodeWatched {
 
   @Override
   public void execute(UnmarkEpisodeWatchedCommand command) {
-    watchedEpisodeRepository
-        .findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
-            command.userId(), command.tmdbId(), command.seasonNumber(), command.episodeNumber())
-        .ifPresent(watchedEpisodeRepository::delete);
+    WatchedEpisode episode =
+        watchedEpisodeRepository
+            .findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
+                command.userId(), command.tmdbId(), command.seasonNumber(), command.episodeNumber())
+            .orElseThrow(WatchlistEntryNotFoundException::new);
+    watchedEpisodeRepository.delete(episode);
   }
 }
