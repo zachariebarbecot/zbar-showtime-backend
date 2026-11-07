@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -67,7 +68,10 @@ class WatchedEpisodePersistenceAdapter implements WatchedEpisodeRepository {
   }
 
   @Override
-  public void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId) {}
+  @Transactional
+  public void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId) {
+    watchedEpisodeJpaRepository.deleteByUserIdAndSeriesTmdbId(userId, seriesTmdbId);
+  }
 
   private static boolean violatesUniqueness(DataIntegrityViolationException exception) {
     return exception.getCause() instanceof ConstraintViolationException violation

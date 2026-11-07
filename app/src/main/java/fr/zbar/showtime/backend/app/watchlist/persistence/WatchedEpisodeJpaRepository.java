@@ -11,4 +11,6 @@ public interface WatchedEpisodeJpaRepository extends JpaRepository<WatchedEpisod
 
   Optional<WatchedEpisodeJpaEntity> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber);
+
+  void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId);
 }

@@ -20,6 +20,7 @@ public class RemoveSeriesFromWatchlistService implements RemoveSeriesFromWatchli
         watchlistSeriesRepository
             .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
             .orElseThrow(WatchlistEntryNotFoundException::new);
+    watchedEpisodeRepository.deleteByUserIdAndSeriesTmdbId(command.userId(), command.tmdbId());
     watchlistSeriesRepository.delete(series);
   }
 }

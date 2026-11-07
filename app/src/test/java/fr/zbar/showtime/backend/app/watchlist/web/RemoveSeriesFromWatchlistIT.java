@@ -5,14 +5,14 @@ import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.PageNumber;
-import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.SearchCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SearchPage;
+import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
 import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
-import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import java.util.List;
 import java.util.Map;
