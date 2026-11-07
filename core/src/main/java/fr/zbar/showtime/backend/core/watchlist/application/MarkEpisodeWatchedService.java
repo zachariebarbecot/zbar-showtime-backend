@@ -24,10 +24,7 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
     watchlistSeriesRepository
         .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
         .orElseThrow(WatchlistEntryNotFoundException::new);
-    boolean episodeExists =
-        seasonCatalog.findSeason(command.tmdbId(), command.seasonNumber()).episodes().stream()
-            .anyMatch(episode -> episode.episodeNumber() == command.episodeNumber());
-    if (!episodeExists) {
+    if (!existsInCatalog(command)) {
       throw new TitleNotFoundException();
     }
     if (watchedEpisodeRepository.existsByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
@@ -41,5 +38,10 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
             command.seasonNumber(),
             command.episodeNumber(),
             clock));
+  }
+
+  private boolean existsInCatalog(MarkEpisodeWatchedCommand command) {
+    return seasonCatalog.findSeason(command.tmdbId(), command.seasonNumber()).episodes().stream()
+        .anyMatch(episode -> episode.episodeNumber() == command.episodeNumber());
   }
 }
