@@ -36,6 +36,7 @@ public class WatchedEpisode extends AggregateRoot<UUID> {
 
   public static WatchedEpisode mark(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber, Clock clock) {
-    return null;
+    return new WatchedEpisode(
+        UUID.randomUUID(), userId, seriesTmdbId, seasonNumber, episodeNumber, clock.instant());
   }
 }

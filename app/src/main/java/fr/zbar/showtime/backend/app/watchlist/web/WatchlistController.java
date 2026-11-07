@@ -4,6 +4,8 @@ import fr.zbar.showtime.backend.core.watchlist.application.AddMovieToWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.AddSeriesToWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.ChangeMovieStatus;
 import fr.zbar.showtime.backend.core.watchlist.application.ChangeSeriesStatus;
+import fr.zbar.showtime.backend.core.watchlist.application.MarkEpisodeWatched;
+import fr.zbar.showtime.backend.core.watchlist.application.MarkEpisodeWatchedCommand;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveMovieFromWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveMovieFromWatchlistCommand;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlist;
@@ -35,6 +37,7 @@ class WatchlistController {
   private final AddSeriesToWatchlist addSeriesToWatchlist;
   private final ChangeSeriesStatus changeSeriesStatus;
   private final RemoveSeriesFromWatchlist removeSeriesFromWatchlist;
+  private final MarkEpisodeWatched markEpisodeWatched;
 
   @Operation(summary = "Add a movie to the watchlist of the token owner")
   @PostMapping(path = "/movies", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -84,5 +87,18 @@ class WatchlistController {
   void removeSeries(@AuthenticationPrincipal Jwt jwt, @PathVariable long tmdbId) {
     removeSeriesFromWatchlist.execute(
         new RemoveSeriesFromWatchlistCommand(UUID.fromString(jwt.getSubject()), tmdbId));
+  }
+
+  @Operation(summary = "Mark an episode of a series of the watchlist as watched")
+  @PostMapping("/series/{tmdbId}/seasons/{seasonNumber}/episodes/{episodeNumber}/watched")
+  @ResponseStatus(HttpStatus.CREATED)
+  void markEpisodeWatched(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable long tmdbId,
+      @PathVariable int seasonNumber,
+      @PathVariable int episodeNumber) {
+    markEpisodeWatched.execute(
+        new MarkEpisodeWatchedCommand(
+            UUID.fromString(jwt.getSubject()), tmdbId, seasonNumber, episodeNumber));
   }
 }

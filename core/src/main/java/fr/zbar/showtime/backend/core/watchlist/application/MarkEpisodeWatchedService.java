@@ -1,8 +1,11 @@
 package fr.zbar.showtime.backend.core.watchlist.application;
 
 import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
+import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisodeRepository;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
@@ -17,5 +20,26 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
   private final Clock clock;
 
   @Override
-  public void execute(MarkEpisodeWatchedCommand command) {}
+  public void execute(MarkEpisodeWatchedCommand command) {
+    watchlistSeriesRepository
+        .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+        .orElseThrow(WatchlistEntryNotFoundException::new);
+    boolean episodeExists =
+        seasonCatalog.findSeason(command.tmdbId(), command.seasonNumber()).episodes().stream()
+            .anyMatch(episode -> episode.episodeNumber() == command.episodeNumber());
+    if (!episodeExists) {
+      throw new TitleNotFoundException();
+    }
+    if (watchedEpisodeRepository.existsByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
+        command.userId(), command.tmdbId(), command.seasonNumber(), command.episodeNumber())) {
+      return;
+    }
+    watchedEpisodeRepository.save(
+        WatchedEpisode.mark(
+            command.userId(),
+            command.tmdbId(),
+            command.seasonNumber(),
+            command.episodeNumber(),
+            clock));
+  }
 }
