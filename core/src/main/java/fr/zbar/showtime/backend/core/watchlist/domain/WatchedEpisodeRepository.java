@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.core.watchlist.domain;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface WatchedEpisodeRepository {
@@ -8,4 +9,9 @@ public interface WatchedEpisodeRepository {
 
   boolean existsByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber);
+
+  Optional<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
+      UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber);
+
+  void delete(WatchedEpisode episode);
 }
