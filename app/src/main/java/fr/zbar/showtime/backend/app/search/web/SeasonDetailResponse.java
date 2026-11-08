@@ -45,8 +45,8 @@ public record SeasonDetailResponse(
           episode.runtime(),
           episode.airDate(),
           episode.stillUrl(),
-          false,
-          null);
+          watchedAtByEpisode.containsKey(episode.episodeNumber()),
+          watchedAtByEpisode.get(episode.episodeNumber()));
     }
   }
 }

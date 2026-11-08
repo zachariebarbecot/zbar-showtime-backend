@@ -86,7 +86,21 @@ class WatchedEpisodePersistenceAdapter implements WatchedEpisodeRepository {
   @Override
   public List<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumber(
       UUID userId, long seriesTmdbId, int seasonNumber) {
-    return List.of();
+    return watchedEpisodeJpaRepository
+        .findByUserIdAndSeriesTmdbIdAndSeasonNumber(userId, seriesTmdbId, seasonNumber)
+        .stream()
+        .map(WatchedEpisodePersistenceAdapter::toDomain)
+        .toList();
+  }
+
+  private static WatchedEpisode toDomain(WatchedEpisodeJpaEntity entity) {
+    return new WatchedEpisode(
+        entity.getId(),
+        entity.getUser().getId(),
+        entity.getSeriesTmdbId(),
+        entity.getSeasonNumber(),
+        entity.getEpisodeNumber(),
+        entity.getWatchedAt());
   }
 
   private static boolean violatesUniqueness(DataIntegrityViolationException exception) {
