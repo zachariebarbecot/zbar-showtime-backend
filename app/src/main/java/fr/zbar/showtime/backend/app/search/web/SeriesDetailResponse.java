@@ -25,7 +25,9 @@ public record SeriesDetailResponse(
     List<Crew> crew,
     List<Cast> cast,
     List<Season> seasons,
-    String watchlistStatus) {
+    String watchlistStatus,
+    Integer watchedEpisodes,
+    Integer totalEpisodes) {
 
   static SeriesDetailResponse from(SeriesDetailView view) {
     SeriesDetail series = view.series();
@@ -45,7 +47,9 @@ public record SeriesDetailResponse(
         series.crew().stream().map(Crew::from).toList(),
         series.cast().stream().map(Cast::from).toList(),
         series.seasons().stream().map(Season::from).toList(),
-        view.watchlistStatus());
+        view.watchlistStatus(),
+        view.watchedEpisodes(),
+        view.totalEpisodes());
   }
 
   public record Crew(String name, List<String> jobs) {
