@@ -3,6 +3,8 @@ package fr.zbar.showtime.backend.app.config;
 import fr.zbar.showtime.backend.core.auth.application.AuthenticateUser;
 import fr.zbar.showtime.backend.core.auth.application.AuthenticateUserService;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.watchlist.application.MarkEpisodeWatched;
+import fr.zbar.showtime.backend.core.watchlist.application.MarkEpisodeWatchedService;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlistService;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +33,13 @@ class CoreConfiguration {
   @Primary
   RemoveSeriesFromWatchlist transactionalRemoveSeriesFromWatchlist(
       RemoveSeriesFromWatchlistService delegate, TransactionTemplate transactionTemplate) {
+    return command -> transactionTemplate.executeWithoutResult(status -> delegate.execute(command));
+  }
+
+  @Bean
+  @Primary
+  MarkEpisodeWatched transactionalMarkEpisodeWatched(
+      MarkEpisodeWatchedService delegate, TransactionTemplate transactionTemplate) {
     return command -> transactionTemplate.executeWithoutResult(status -> delegate.execute(command));
   }
 }

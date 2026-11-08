@@ -6,6 +6,7 @@ import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisodeRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,10 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
 
   @Override
   public void execute(MarkEpisodeWatchedCommand command) {
-    watchlistSeriesRepository
-        .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
-        .orElseThrow(WatchlistEntryNotFoundException::new);
+    WatchlistSeries series =
+        watchlistSeriesRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .orElseThrow(WatchlistEntryNotFoundException::new);
     if (!existsInCatalog(command)) {
       throw new TitleNotFoundException();
     }
@@ -38,6 +40,7 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
             command.seasonNumber(),
             command.episodeNumber(),
             clock));
+    watchlistSeriesRepository.save(series.onEpisodeWatched(clock));
   }
 
   private boolean existsInCatalog(MarkEpisodeWatchedCommand command) {
