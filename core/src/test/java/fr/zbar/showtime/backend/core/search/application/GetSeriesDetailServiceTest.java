@@ -126,6 +126,16 @@ class GetSeriesDetailServiceTest {
     assertThat(view.totalEpisodes()).isEqualTo(10);
   }
 
+  @Test
+  void should_expose_no_progress_when_the_series_is_not_in_the_watchlist() {
+    watchedEpisodes.add(watched(USER, 1, 1));
+
+    SeriesDetailView view = service.execute(new GetSeriesDetailCommand(USER, 1396L));
+
+    assertThat(view.watchedEpisodes()).isNull();
+    assertThat(view.totalEpisodes()).isNull();
+  }
+
   @ParameterizedTest
   @ValueSource(longs = {0L, -1L})
   void should_throw_invalid_field_without_calling_the_catalog_when_the_id_is_not_positive(
