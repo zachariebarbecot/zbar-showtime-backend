@@ -127,6 +127,18 @@ class GetSeriesDetailServiceTest {
   }
 
   @Test
+  void should_expose_zero_watched_episodes_when_none_is_watched() {
+    watchlist.add(
+        inWatchlist(
+            USER, 1396L, fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus.TO_WATCH));
+
+    SeriesDetailView view = service.execute(new GetSeriesDetailCommand(USER, 1396L));
+
+    assertThat(view.watchedEpisodes()).isZero();
+    assertThat(view.totalEpisodes()).isEqualTo(10);
+  }
+
+  @Test
   void should_expose_no_progress_when_the_series_is_not_in_the_watchlist() {
     watchedEpisodes.add(watched(USER, 1, 1));
 
@@ -134,6 +146,16 @@ class GetSeriesDetailServiceTest {
 
     assertThat(view.watchedEpisodes()).isNull();
     assertThat(view.totalEpisodes()).isNull();
+  }
+
+  @Test
+  void should_not_count_the_episodes_watched_by_another_user() {
+    watchlist.add(
+        inWatchlist(
+            USER, 1396L, fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus.WATCHING));
+    watchedEpisodes.add(watched(OTHER_USER, 1, 1));
+
+    assertThat(service.execute(new GetSeriesDetailCommand(USER, 1396L)).watchedEpisodes()).isZero();
   }
 
   @ParameterizedTest
