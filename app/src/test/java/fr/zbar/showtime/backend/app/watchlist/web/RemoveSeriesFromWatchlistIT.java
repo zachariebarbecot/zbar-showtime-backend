@@ -5,11 +5,14 @@ import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
+import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.PageNumber;
 import fr.zbar.showtime.backend.core.search.domain.SearchCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SearchPage;
 import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
+import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
+import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,8 @@ class RemoveSeriesFromWatchlistIT extends AbstractIT {
   @MockitoBean private TitleCatalog titleCatalog;
 
   @MockitoBean private SearchCatalog searchCatalog;
+
+  @MockitoBean private SeasonCatalog seasonCatalog;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -63,6 +68,34 @@ class RemoveSeriesFromWatchlistIT extends AbstractIT {
         .exchange()
         .expectStatus()
         .isCreated();
+  }
+
+  private void markEpisodeWatched(String email, long tmdbId) {
+    when(seasonCatalog.findSeason(tmdbId, 1))
+        .thenReturn(
+            new SeasonDetail(
+                1,
+                "Saison 1",
+                null,
+                null,
+                null,
+                List.of(new Episode(1, "Pilote", null, null, null, null))));
+    restTestClient
+        .post()
+        .uri("/watchlist/series/{tmdbId}/seasons/1/episodes/1/watched", tmdbId)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .exchange()
+        .expectStatus()
+        .isCreated();
+  }
+
+  private int viewingCount(String email, long tmdbId) {
+    return jdbcTemplate.queryForObject(
+        "select count(*) from watched_episode w"
+            + " join users u on u.id = w.user_id where u.email = ? and w.series_tmdb_id = ?",
+        Integer.class,
+        email,
+        tmdbId);
   }
 
   private RestTestClient.ResponseSpec remove(String email, long tmdbId) {
@@ -181,5 +214,20 @@ class RemoveSeriesFromWatchlistIT extends AbstractIT {
                 String.class,
                 email))
         .isEqualTo("TO_WATCH");
+  }
+
+  @Test
+  void should_delete_my_viewings_and_keep_those_of_the_other_user_when_the_series_is_removed() {
+    String first = newUser();
+    String second = newUser();
+    addSeries(first, 1399L);
+    addSeries(second, 1399L);
+    markEpisodeWatched(first, 1399L);
+    markEpisodeWatched(second, 1399L);
+
+    remove(first, 1399L).expectStatus().isNoContent();
+
+    assertThat(viewingCount(first, 1399L)).isZero();
+    assertThat(viewingCount(second, 1399L)).isEqualTo(1);
   }
 }

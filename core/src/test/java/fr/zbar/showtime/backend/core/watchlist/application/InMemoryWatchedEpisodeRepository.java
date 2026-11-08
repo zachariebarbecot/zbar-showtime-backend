@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.core.watchlist.application;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisodeRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class InMemoryWatchedEpisodeRepository implements WatchedEpisodeRepository {
@@ -28,5 +29,29 @@ public class InMemoryWatchedEpisodeRepository implements WatchedEpisodeRepositor
                     && episode.seriesTmdbId() == seriesTmdbId
                     && episode.seasonNumber() == seasonNumber
                     && episode.episodeNumber() == episodeNumber);
+  }
+
+  @Override
+  public Optional<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
+      UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber) {
+    return episodes.stream()
+        .filter(
+            episode ->
+                episode.userId().equals(userId)
+                    && episode.seriesTmdbId() == seriesTmdbId
+                    && episode.seasonNumber() == seasonNumber
+                    && episode.episodeNumber() == episodeNumber)
+        .findFirst();
+  }
+
+  @Override
+  public void delete(WatchedEpisode episode) {
+    episodes.remove(episode);
+  }
+
+  @Override
+  public void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId) {
+    episodes.removeIf(
+        episode -> episode.userId().equals(userId) && episode.seriesTmdbId() == seriesTmdbId);
   }
 }

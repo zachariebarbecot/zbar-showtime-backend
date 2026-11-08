@@ -10,6 +10,8 @@ import fr.zbar.showtime.backend.core.watchlist.application.RemoveMovieFromWatchl
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveMovieFromWatchlistCommand;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlistCommand;
+import fr.zbar.showtime.backend.core.watchlist.application.UnmarkEpisodeWatched;
+import fr.zbar.showtime.backend.core.watchlist.application.UnmarkEpisodeWatchedCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ class WatchlistController {
   private final ChangeSeriesStatus changeSeriesStatus;
   private final RemoveSeriesFromWatchlist removeSeriesFromWatchlist;
   private final MarkEpisodeWatched markEpisodeWatched;
+  private final UnmarkEpisodeWatched unmarkEpisodeWatched;
 
   @Operation(summary = "Add a movie to the watchlist of the token owner")
   @PostMapping(path = "/movies", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -99,6 +102,19 @@ class WatchlistController {
       @PathVariable int episodeNumber) {
     markEpisodeWatched.execute(
         new MarkEpisodeWatchedCommand(
+            UUID.fromString(jwt.getSubject()), tmdbId, seasonNumber, episodeNumber));
+  }
+
+  @Operation(summary = "Delete the viewing of an episode of a series of the watchlist")
+  @DeleteMapping("/series/{tmdbId}/seasons/{seasonNumber}/episodes/{episodeNumber}/watched")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void unmarkEpisodeWatched(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable long tmdbId,
+      @PathVariable int seasonNumber,
+      @PathVariable int episodeNumber) {
+    unmarkEpisodeWatched.execute(
+        new UnmarkEpisodeWatchedCommand(
             UUID.fromString(jwt.getSubject()), tmdbId, seasonNumber, episodeNumber));
   }
 }
