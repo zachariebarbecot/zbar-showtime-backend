@@ -21,6 +21,9 @@ public record SeriesDetail(
     List<SeasonSummary> seasons) {
 
   public int totalEpisodes() {
-    return 0;
+    return seasons.stream()
+        .filter(season -> season.seasonNumber() > 0)
+        .mapToInt(SeasonSummary::episodeCount)
+        .sum();
   }
 }
