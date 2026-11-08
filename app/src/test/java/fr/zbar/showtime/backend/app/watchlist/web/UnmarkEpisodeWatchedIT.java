@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.app.support.SeriesDetails;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
+import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +35,14 @@ class UnmarkEpisodeWatchedIT extends AbstractIT {
 
   @MockitoBean private SeasonCatalog seasonCatalog;
 
+  @MockitoBean private SeriesDetailCatalog seriesDetailCatalog;
+
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @BeforeEach
   void stubCatalogs() {
+    when(seriesDetailCatalog.findSeriesDetail(SERIES_ID))
+        .thenReturn(SeriesDetails.returning(SERIES_ID));
     when(titleCatalog.findSeries(SERIES_ID))
         .thenReturn(new CatalogItem(SERIES_ID, MediaType.TV, "Breaking Bad", null, null));
     when(seasonCatalog.findSeason(SERIES_ID, 1))

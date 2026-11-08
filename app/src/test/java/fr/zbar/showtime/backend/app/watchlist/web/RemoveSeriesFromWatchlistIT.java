@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.app.support.SeriesDetails;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
@@ -13,6 +14,7 @@ import fr.zbar.showtime.backend.core.search.domain.SearchPage;
 import fr.zbar.showtime.backend.core.search.domain.SearchQuery;
 import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
+import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,8 @@ class RemoveSeriesFromWatchlistIT extends AbstractIT {
   @MockitoBean private SearchCatalog searchCatalog;
 
   @MockitoBean private SeasonCatalog seasonCatalog;
+
+  @MockitoBean private SeriesDetailCatalog seriesDetailCatalog;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -71,6 +75,7 @@ class RemoveSeriesFromWatchlistIT extends AbstractIT {
   }
 
   private void markEpisodeWatched(String email, long tmdbId) {
+    when(seriesDetailCatalog.findSeriesDetail(tmdbId)).thenReturn(SeriesDetails.returning(tmdbId));
     when(seasonCatalog.findSeason(tmdbId, 1))
         .thenReturn(
             new SeasonDetail(
