@@ -27,9 +27,9 @@ public class GetSeriesDetailService implements GetSeriesDetail {
                 new SeriesDetailView(
                     series,
                     entry.status().name(),
-                    (int)
+                    Math.toIntExact(
                         watchedEpisodeRepository.countByUserIdAndSeriesTmdbIdExcludingSpecials(
-                            command.userId(), tmdbId),
+                            command.userId(), tmdbId)),
                     series.totalEpisodes()))
         .orElseGet(() -> new SeriesDetailView(series, null, null, null));
   }
