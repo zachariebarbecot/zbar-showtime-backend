@@ -32,6 +32,13 @@ public class InMemoryWatchedEpisodeRepository implements WatchedEpisodeRepositor
   }
 
   @Override
+  public boolean existsByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId) {
+    return episodes.stream()
+        .anyMatch(
+            episode -> episode.userId().equals(userId) && episode.seriesTmdbId() == seriesTmdbId);
+  }
+
+  @Override
   public Optional<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber) {
     return episodes.stream()

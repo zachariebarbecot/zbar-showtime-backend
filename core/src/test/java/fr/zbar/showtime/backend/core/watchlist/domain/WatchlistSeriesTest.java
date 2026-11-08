@@ -101,4 +101,25 @@ class WatchlistSeriesTest {
 
     assertThat(source.onEpisodeWatched(CLOCK)).isSameAs(source);
   }
+
+  @Test
+  void should_be_to_watch_when_the_last_episode_is_unwatched_on_a_watching_series() {
+    WatchlistSeries source = entry(SeriesStatus.WATCHING, null);
+
+    WatchlistSeries reset = source.onLastEpisodeUnwatched(CLOCK);
+
+    assertThat(reset.id()).isEqualTo(source.id());
+    assertThat(reset.status()).isEqualTo(SeriesStatus.TO_WATCH);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = SeriesStatus.class,
+      names = {"TO_WATCH", "DROPPED"})
+  void should_keep_its_status_when_the_last_episode_is_unwatched_on_another_status(
+      SeriesStatus from) {
+    WatchlistSeries source = entry(from, null);
+
+    assertThat(source.onLastEpisodeUnwatched(CLOCK)).isSameAs(source);
+  }
 }

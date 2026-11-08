@@ -99,6 +99,36 @@ class UnmarkEpisodeWatchedIT extends AbstractIT {
         SERIES_ID);
   }
 
+  private String seriesStatus(String email) {
+    return jdbcTemplate.queryForObject(
+        "select s.status from watchlist_series s join users u on u.id = s.user_id"
+            + " where u.email = ? and s.tmdb_id = ?",
+        String.class,
+        email,
+        SERIES_ID);
+  }
+
+  @Test
+  void should_set_the_series_back_to_to_watch_when_the_last_viewing_is_deleted() {
+    String email = newUserWithSeries();
+    mark(email, 1);
+
+    unmark(email, 1).expectStatus().isNoContent();
+
+    assertThat(seriesStatus(email)).isEqualTo("TO_WATCH");
+  }
+
+  @Test
+  void should_keep_the_series_watching_when_other_viewings_remain() {
+    String email = newUserWithSeries();
+    mark(email, 1);
+    mark(email, 2);
+
+    unmark(email, 1).expectStatus().isNoContent();
+
+    assertThat(seriesStatus(email)).isEqualTo("WATCHING");
+  }
+
   @Test
   void should_return_204_without_body_and_delete_only_that_viewing_when_the_episode_is_watched() {
     String email = newUserWithSeries();
