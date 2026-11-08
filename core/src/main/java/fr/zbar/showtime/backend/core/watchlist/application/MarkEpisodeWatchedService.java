@@ -1,8 +1,11 @@
 package fr.zbar.showtime.backend.core.watchlist.application;
 
 import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
+import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
+import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisodeRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
@@ -17,6 +20,7 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
 
   private final WatchlistSeriesRepository watchlistSeriesRepository;
   private final SeasonCatalog seasonCatalog;
+  private final SeriesDetailCatalog seriesDetailCatalog;
   private final WatchedEpisodeRepository watchedEpisodeRepository;
   private final Clock clock;
 
@@ -40,7 +44,19 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
             command.seasonNumber(),
             command.episodeNumber(),
             clock));
-    watchlistSeriesRepository.save(series.onEpisodeWatched(clock));
+    WatchlistSeries started = series.onEpisodeWatched(clock);
+    watchlistSeriesRepository.save(
+        isCompleted(command) ? started.changeStatus(SeriesStatus.WATCHED, clock) : started);
+  }
+
+  private boolean isCompleted(MarkEpisodeWatchedCommand command) {
+    SeriesDetail detail = seriesDetailCatalog.findSeriesDetail(command.tmdbId());
+    int total = detail.totalEpisodes();
+    return detail.isFinished()
+        && total > 0
+        && watchedEpisodeRepository.countByUserIdAndSeriesTmdbIdExcludingSpecials(
+                command.userId(), command.tmdbId())
+            >= total;
   }
 
   private boolean existsInCatalog(MarkEpisodeWatchedCommand command) {

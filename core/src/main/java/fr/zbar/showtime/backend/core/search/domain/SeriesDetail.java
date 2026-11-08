@@ -18,4 +18,16 @@ public record SeriesDetail(
     List<String> creators,
     List<CrewMember> crew,
     List<CastMember> cast,
-    List<SeasonSummary> seasons) {}
+    List<SeasonSummary> seasons) {
+
+  public boolean isFinished() {
+    return status == SeriesStatus.ENDED || status == SeriesStatus.CANCELED;
+  }
+
+  public int totalEpisodes() {
+    return seasons.stream()
+        .filter(season -> season.seasonNumber() > 0)
+        .mapToInt(SeasonSummary::episodeCount)
+        .sum();
+  }
+}

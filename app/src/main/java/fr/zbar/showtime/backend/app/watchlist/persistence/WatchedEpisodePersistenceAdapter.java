@@ -50,6 +50,12 @@ class WatchedEpisodePersistenceAdapter implements WatchedEpisodeRepository {
   }
 
   @Override
+  public long countByUserIdAndSeriesTmdbIdExcludingSpecials(UUID userId, long seriesTmdbId) {
+    return watchedEpisodeJpaRepository.countByUserIdAndSeriesTmdbIdAndSeasonNumberGreaterThan(
+        userId, seriesTmdbId, 0);
+  }
+
+  @Override
   public Optional<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber) {
     return watchedEpisodeJpaRepository

@@ -105,4 +105,27 @@ class UnmarkEpisodeWatchedServiceTest {
 
     assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.DROPPED);
   }
+
+  @Test
+  void should_set_the_series_to_watching_when_a_regular_episode_is_unwatched_on_a_watched_series() {
+    inWatchlist(SeriesStatus.WATCHED);
+    watched.add(viewing(USER_ID, 1, 1));
+    watched.add(viewing(USER_ID, 1, 2));
+
+    service.execute(new UnmarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 2));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHING);
+    assertThat(series).extracting(WatchlistSeries::watchedAt).containsOnlyNulls();
+  }
+
+  @Test
+  void should_keep_the_series_watched_when_a_specials_episode_is_unwatched() {
+    inWatchlist(SeriesStatus.WATCHED);
+    watched.add(viewing(USER_ID, 1, 1));
+    watched.add(viewing(USER_ID, 0, 1));
+
+    service.execute(new UnmarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 0, 1));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHED);
+  }
 }

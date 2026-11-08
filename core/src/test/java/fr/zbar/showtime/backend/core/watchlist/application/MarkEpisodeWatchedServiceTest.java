@@ -4,8 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fr.zbar.showtime.backend.core.search.application.InMemorySeasonCatalog;
+import fr.zbar.showtime.backend.core.search.application.InMemorySeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
+import fr.zbar.showtime.backend.core.search.domain.SeasonSummary;
+import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
@@ -13,6 +16,7 @@ import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundExce
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +44,9 @@ class MarkEpisodeWatchedServiceTest {
               new Episode(1, "Pilote", null, null, null, null),
               new Episode(2, "Le chat", null, null, null, null)));
 
+  private SeriesDetail detail =
+      seriesDetail(fr.zbar.showtime.backend.core.search.domain.SeriesStatus.RETURNING, 2, 0);
+
   private final List<WatchlistSeries> series = new ArrayList<>();
   private final List<WatchedEpisode> watched = new ArrayList<>();
 
@@ -47,8 +54,33 @@ class MarkEpisodeWatchedServiceTest {
     return new MarkEpisodeWatchedService(
         new InMemoryWatchlistSeriesRepository(series),
         new InMemorySeasonCatalog(SERIES_ID, SEASON_1),
+        new InMemorySeriesDetailCatalog(detail),
         new InMemoryWatchedEpisodeRepository(watched),
         Clock.fixed(now, ZoneOffset.UTC));
+  }
+
+  private static SeriesDetail seriesDetail(
+      fr.zbar.showtime.backend.core.search.domain.SeriesStatus status,
+      int season1Episodes,
+      int specials) {
+    return new SeriesDetail(
+        SERIES_ID,
+        "Breaking Bad",
+        "Breaking Bad",
+        List.of(),
+        LocalDate.of(2008, 1, 20),
+        null,
+        status,
+        null,
+        null,
+        2,
+        season1Episodes + specials,
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of(
+            new SeasonSummary(0, "Épisodes spéciaux", specials, null, null),
+            new SeasonSummary(1, "Saison 1", season1Episodes, null, null)));
   }
 
   private void inWatchlist(UUID userId) {
@@ -160,5 +192,65 @@ class MarkEpisodeWatchedServiceTest {
     serviceAt(SECOND_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
 
     assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHING);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = fr.zbar.showtime.backend.core.search.domain.SeriesStatus.class,
+      names = {"ENDED", "CANCELED"})
+  void should_set_the_series_to_watched_when_the_last_episode_of_a_finished_series_is_marked(
+      fr.zbar.showtime.backend.core.search.domain.SeriesStatus tmdbStatus) {
+    detail = seriesDetail(tmdbStatus, 2, 0);
+    inWatchlist(USER_ID, SeriesStatus.WATCHING);
+    serviceAt(FIRST_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    serviceAt(SECOND_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 2));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHED);
+    assertThat(series).extracting(WatchlistSeries::watchedAt).containsExactly(SECOND_MARK);
+  }
+
+  @Test
+  void should_set_the_series_to_watched_when_only_the_specials_season_is_left_unwatched() {
+    detail = seriesDetail(fr.zbar.showtime.backend.core.search.domain.SeriesStatus.ENDED, 2, 3);
+    inWatchlist(USER_ID, SeriesStatus.WATCHING);
+    serviceAt(FIRST_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    serviceAt(SECOND_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 2));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHED);
+  }
+
+  @Test
+  void should_keep_the_series_watching_when_all_known_episodes_of_a_running_series_are_watched() {
+    detail = seriesDetail(fr.zbar.showtime.backend.core.search.domain.SeriesStatus.RETURNING, 2, 0);
+    inWatchlist(USER_ID, SeriesStatus.WATCHING);
+    serviceAt(FIRST_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    serviceAt(SECOND_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 2));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHING);
+  }
+
+  @Test
+  void should_keep_the_series_watching_when_episodes_remain_on_a_finished_series() {
+    detail = seriesDetail(fr.zbar.showtime.backend.core.search.domain.SeriesStatus.ENDED, 3, 0);
+    inWatchlist(USER_ID, SeriesStatus.WATCHING);
+
+    serviceAt(FIRST_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHING);
+  }
+
+  @Test
+  void should_keep_the_series_watched_when_an_already_watched_episode_is_marked_again() {
+    detail = seriesDetail(fr.zbar.showtime.backend.core.search.domain.SeriesStatus.ENDED, 2, 0);
+    inWatchlist(USER_ID, SeriesStatus.WATCHED);
+    watched.add(new WatchedEpisode(UUID.randomUUID(), USER_ID, SERIES_ID, 1, 1, FIRST_MARK));
+    watched.add(new WatchedEpisode(UUID.randomUUID(), USER_ID, SERIES_ID, 1, 2, FIRST_MARK));
+
+    serviceAt(SECOND_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 2));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHED);
   }
 }
