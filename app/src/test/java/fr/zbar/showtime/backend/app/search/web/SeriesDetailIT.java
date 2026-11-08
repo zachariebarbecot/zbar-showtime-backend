@@ -9,7 +9,10 @@ import fr.zbar.showtime.backend.core.search.domain.CastMember;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.CrewMember;
+import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
+import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
+import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeasonSummary;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
@@ -34,6 +37,8 @@ class SeriesDetailIT extends AbstractIT {
   @MockitoBean private SeriesDetailCatalog seriesDetailCatalog;
 
   @MockitoBean private TitleCatalog titleCatalog;
+
+  @MockitoBean private SeasonCatalog seasonCatalog;
 
   private RestTestClient.ResponseSpec detail(String email, String id) {
     return restTestClient
@@ -446,5 +451,72 @@ class SeriesDetailIT extends AbstractIT {
         .expectBody()
         .jsonPath("$.watchlistStatus")
         .isEqualTo("WATCHING");
+  }
+
+  @Test
+  void should_expose_the_progress_without_the_specials_when_the_series_is_in_my_watchlist() {
+    String email = "series-us6-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    SeriesDetail series = breakingBad();
+    when(seriesDetailCatalog.findSeriesDetail(1396L))
+        .thenReturn(
+            new SeriesDetail(
+                series.id(),
+                series.name(),
+                series.originalName(),
+                series.genres(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                series.creators(),
+                series.crew(),
+                series.cast(),
+                List.of(
+                    new SeasonSummary(0, "Specials", 3, null, null),
+                    new SeasonSummary(1, "Saison 1", 7, null, null))));
+    for (int season : List.of(0, 1)) {
+      when(seasonCatalog.findSeason(1396L, season))
+          .thenReturn(
+              new SeasonDetail(
+                  season,
+                  "Saison",
+                  null,
+                  null,
+                  null,
+                  List.of(
+                      new Episode(1, "Un", null, null, null, null),
+                      new Episode(2, "Deux", null, null, null, null))));
+    }
+    addSeriesToWatchlist(email);
+    markWatched(email, 1, 1);
+    markWatched(email, 1, 2);
+    markWatched(email, 0, 1);
+
+    detail(email, "1396")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.watchedEpisodes")
+        .isEqualTo(2)
+        .jsonPath("$.totalEpisodes")
+        .isEqualTo(7);
+  }
+
+  private void markWatched(String email, int season, int episode) {
+    restTestClient
+        .post()
+        .uri(
+            "/watchlist/series/{tmdbId}/seasons/{season}/episodes/{episode}/watched",
+            1396L,
+            season,
+            episode)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .exchange()
+        .expectStatus()
+        .isCreated();
   }
 }
