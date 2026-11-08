@@ -29,9 +29,12 @@ public class UnmarkEpisodeWatchedService implements UnmarkEpisodeWatched {
             .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
             .orElseThrow(WatchlistEntryNotFoundException::new);
     watchedEpisodeRepository.delete(episode);
+    WatchlistSeries updated =
+        command.seasonNumber() > 0 ? series.onRegularEpisodeUnwatched(clock) : series;
     if (!watchedEpisodeRepository.existsByUserIdAndSeriesTmdbId(
         command.userId(), command.tmdbId())) {
-      watchlistSeriesRepository.save(series.onLastEpisodeUnwatched(clock));
+      updated = updated.onLastEpisodeUnwatched(clock);
     }
+    watchlistSeriesRepository.save(updated);
   }
 }
