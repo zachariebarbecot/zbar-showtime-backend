@@ -37,6 +37,10 @@ public class WatchlistSeries extends AggregateRoot<UUID> {
     return new WatchlistSeries(id(), userId, tmdbId, newStatus, addedAt, newWatchedAt);
   }
 
+  public WatchlistSeries onEpisodeWatched(Clock clock) {
+    return this;
+  }
+
   public static WatchlistSeries add(UUID userId, long tmdbId, Clock clock) {
     return new WatchlistSeries(
         UUID.randomUUID(), userId, tmdbId, SeriesStatus.TO_WATCH, clock.instant(), null);

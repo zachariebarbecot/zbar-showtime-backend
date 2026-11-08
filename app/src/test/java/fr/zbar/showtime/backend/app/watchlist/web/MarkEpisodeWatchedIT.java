@@ -107,6 +107,24 @@ class MarkEpisodeWatchedIT extends AbstractIT {
         .isEqualTo(FixedClockConfiguration.NOW);
   }
 
+  private String seriesStatus(String email) {
+    return jdbcTemplate.queryForObject(
+        "select s.status from watchlist_series s join users u on u.id = s.user_id"
+            + " where u.email = ? and s.tmdb_id = ?",
+        String.class,
+        email,
+        SERIES_ID);
+  }
+
+  @Test
+  void should_set_the_series_to_watching_when_an_episode_is_marked() {
+    String email = newUserWithSeries();
+
+    mark(email, 1, 1).expectStatus().isCreated();
+
+    assertThat(seriesStatus(email)).isEqualTo("WATCHING");
+  }
+
   @Test
   void should_return_201_and_keep_a_single_viewing_when_the_episode_is_marked_again() {
     String email = newUserWithSeries();

@@ -80,4 +80,25 @@ class WatchlistSeriesTest {
     assertThat(changed.addedAt()).isEqualTo(ADDED_AT);
     assertThat(changed.watchedAt()).isNull();
   }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = SeriesStatus.class,
+      names = {"TO_WATCH", "DROPPED"})
+  void should_be_watching_when_an_episode_is_watched_on_a_series_not_started(SeriesStatus from) {
+    WatchlistSeries source = entry(from, null);
+
+    WatchlistSeries started = source.onEpisodeWatched(CLOCK);
+
+    assertThat(started.id()).isEqualTo(source.id());
+    assertThat(started.status()).isEqualTo(SeriesStatus.WATCHING);
+    assertThat(started.watchedAt()).isNull();
+  }
+
+  @Test
+  void should_stay_watching_when_an_episode_is_watched_on_a_watching_series() {
+    WatchlistSeries source = entry(SeriesStatus.WATCHING, null);
+
+    assertThat(source.onEpisodeWatched(CLOCK)).isSameAs(source);
+  }
 }

@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.UUID;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class MarkEpisodeWatchedServiceTest {
 
@@ -50,9 +52,11 @@ class MarkEpisodeWatchedServiceTest {
   }
 
   private void inWatchlist(UUID userId) {
-    series.add(
-        new WatchlistSeries(
-            UUID.randomUUID(), userId, SERIES_ID, SeriesStatus.TO_WATCH, FIRST_MARK, null));
+    inWatchlist(userId, SeriesStatus.TO_WATCH);
+  }
+
+  private void inWatchlist(UUID userId, SeriesStatus status) {
+    series.add(new WatchlistSeries(UUID.randomUUID(), userId, SERIES_ID, status, FIRST_MARK, null));
   }
 
   @Test
@@ -133,5 +137,28 @@ class MarkEpisodeWatchedServiceTest {
         .extracting(WatchedEpisode::userId, WatchedEpisode::watchedAt)
         .containsExactlyInAnyOrder(
             Tuple.tuple(USER_ID, FIRST_MARK), Tuple.tuple(OTHER_USER_ID, SECOND_MARK));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = SeriesStatus.class,
+      names = {"TO_WATCH", "DROPPED"})
+  void should_set_the_series_to_watching_when_an_episode_is_marked_on_a_series_not_started(
+      SeriesStatus status) {
+    inWatchlist(USER_ID, status);
+
+    serviceAt(FIRST_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHING);
+  }
+
+  @Test
+  void should_keep_the_series_watching_when_an_already_watched_episode_is_marked_again() {
+    inWatchlist(USER_ID, SeriesStatus.WATCHING);
+    serviceAt(FIRST_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    serviceAt(SECOND_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHING);
   }
 }
