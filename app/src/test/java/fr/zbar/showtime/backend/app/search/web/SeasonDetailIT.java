@@ -5,13 +5,20 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
+import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
+import fr.zbar.showtime.backend.app.support.SeriesDetails;
+import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.CatalogUnavailableException;
 import fr.zbar.showtime.backend.core.search.domain.Episode;
+import fr.zbar.showtime.backend.core.search.domain.MediaType;
 import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
 import fr.zbar.showtime.backend.core.search.domain.SeasonDetail;
+import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
+import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,12 +33,135 @@ class SeasonDetailIT extends AbstractIT {
 
   @MockitoBean private SeasonCatalog seasonCatalog;
 
+  @MockitoBean private TitleCatalog titleCatalog;
+
+  @MockitoBean private SeriesDetailCatalog seriesDetailCatalog;
+
   private RestTestClient.ResponseSpec season(String email, String id, String seasonNumber) {
     return restTestClient
         .get()
         .uri("/series/{id}/seasons/{n}", id, seasonNumber)
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
         .exchange();
+  }
+
+  private String userWatching(int season, int... episodes) {
+    String email = "season-watch-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+    addToWatchlist(email);
+    for (int episode : episodes) {
+      markWatched(email, season, episode);
+    }
+    return email;
+  }
+
+  private void addToWatchlist(String email) {
+    when(seriesDetailCatalog.findSeriesDetail(1396L)).thenReturn(SeriesDetails.returning(1396L));
+    when(titleCatalog.findSeries(1396L))
+        .thenReturn(new CatalogItem(1396L, MediaType.TV, "Breaking Bad", null, null));
+    restTestClient
+        .post()
+        .uri("/watchlist/series")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        .body(Map.of("tmdbId", 1396L))
+        .exchange()
+        .expectStatus()
+        .isCreated();
+  }
+
+  private void markWatched(String email, int season, int episode) {
+    restTestClient
+        .post()
+        .uri("/watchlist/series/1396/seasons/{s}/episodes/{e}/watched", season, episode)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginToken(email))
+        .exchange()
+        .expectStatus()
+        .isCreated();
+  }
+
+  private void stubSeason(int number) {
+    when(seasonCatalog.findSeason(1396L, number))
+        .thenReturn(
+            new SeasonDetail(
+                number,
+                "Saison " + number,
+                null,
+                null,
+                null,
+                List.of(
+                    new Episode(1, "Pilote", null, null, null, null),
+                    new Episode(2, "Le chat", null, null, null, null))));
+  }
+
+  @Test
+  void should_expose_the_viewing_date_of_a_watched_episode_and_flag_the_others_unwatched() {
+    stubSeason(1);
+    String email = userWatching(1, 2);
+
+    season(email, "1396", "1")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.episodes[1].watched")
+        .isEqualTo(true)
+        .jsonPath("$.episodes[1].watchedAt")
+        .isEqualTo(FixedClockConfiguration.NOW.toString())
+        .jsonPath("$.episodes[0].watched")
+        .isEqualTo(false)
+        .jsonPath("$.episodes[0].watchedAt")
+        .doesNotExist();
+  }
+
+  @Test
+  void should_flag_every_episode_unwatched_when_the_series_is_not_in_my_watchlist() {
+    stubSeason(1);
+    String email = "season-nowl-" + UUID.randomUUID() + "@mail.fr";
+    registerUser(email);
+
+    season(email, "1396", "1")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.episodes[0].watched")
+        .isEqualTo(false)
+        .jsonPath("$.episodes[0].watchedAt")
+        .doesNotExist()
+        .jsonPath("$.episodes[1].watched")
+        .isEqualTo(false)
+        .jsonPath("$.episodes[1].watchedAt")
+        .doesNotExist();
+  }
+
+  @Test
+  void should_flag_the_episode_unwatched_when_only_another_user_watched_it() {
+    stubSeason(1);
+    userWatching(1, 1);
+    String me = userWatching(1);
+
+    season(me, "1396", "1")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.episodes[0].watched")
+        .isEqualTo(false)
+        .jsonPath("$.episodes[0].watchedAt")
+        .doesNotExist();
+  }
+
+  @Test
+  void should_expose_the_viewings_of_the_specials_season() {
+    stubSeason(0);
+    String email = userWatching(0, 1);
+
+    season(email, "1396", "0")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.episodes[0].watched")
+        .isEqualTo(true)
+        .jsonPath("$.episodes[0].watchedAt")
+        .isEqualTo(FixedClockConfiguration.NOW.toString());
   }
 
   @Test

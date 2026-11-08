@@ -33,8 +33,10 @@ class SeriesController {
 
   @Operation(summary = "Get the episodes of a season")
   @GetMapping("/{tmdbId}/seasons/{seasonNumber}")
-  SeasonDetailResponse season(@PathVariable long tmdbId, @PathVariable int seasonNumber) {
+  SeasonDetailResponse season(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable long tmdbId, @PathVariable int seasonNumber) {
     return SeasonDetailResponse.from(
-        getSeasonDetail.execute(new GetSeasonDetailCommand(tmdbId, seasonNumber)));
+        getSeasonDetail.execute(
+            new GetSeasonDetailCommand(UUID.fromString(jwt.getSubject()), tmdbId, seasonNumber)));
   }
 }

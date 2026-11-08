@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.app.watchlist.persistence;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +25,7 @@ public interface WatchedEpisodeJpaRepository extends JpaRepository<WatchedEpisod
       "delete from WatchedEpisodeJpaEntity w"
           + " where w.user.id = :userId and w.seriesTmdbId = :seriesTmdbId")
   void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId);
+
+  List<WatchedEpisodeJpaEntity> findByUserIdAndSeriesTmdbIdAndSeasonNumber(
+      UUID userId, long seriesTmdbId, int seasonNumber);
 }

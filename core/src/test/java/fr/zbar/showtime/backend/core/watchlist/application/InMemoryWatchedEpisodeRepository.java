@@ -72,4 +72,16 @@ public class InMemoryWatchedEpisodeRepository implements WatchedEpisodeRepositor
     episodes.removeIf(
         episode -> episode.userId().equals(userId) && episode.seriesTmdbId() == seriesTmdbId);
   }
+
+  @Override
+  public List<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumber(
+      UUID userId, long seriesTmdbId, int seasonNumber) {
+    return episodes.stream()
+        .filter(
+            episode ->
+                episode.userId().equals(userId)
+                    && episode.seriesTmdbId() == seriesTmdbId
+                    && episode.seasonNumber() == seasonNumber)
+        .toList();
+  }
 }
