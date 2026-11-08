@@ -1,3 +1,5 @@
 package fr.zbar.showtime.backend.core.search.application;
 
-public record GetSeasonDetailCommand(long tmdbId, int seasonNumber) {}
+import java.util.UUID;
+
+public record GetSeasonDetailCommand(UUID userId, long tmdbId, int seasonNumber) {}

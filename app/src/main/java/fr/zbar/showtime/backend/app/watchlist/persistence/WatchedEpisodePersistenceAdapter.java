@@ -3,6 +3,7 @@ package fr.zbar.showtime.backend.app.watchlist.persistence;
 import fr.zbar.showtime.backend.app.user.persistence.UserJpaRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisodeRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -80,6 +81,12 @@ class WatchedEpisodePersistenceAdapter implements WatchedEpisodeRepository {
   @Override
   public void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId) {
     watchedEpisodeJpaRepository.deleteByUserIdAndSeriesTmdbId(userId, seriesTmdbId);
+  }
+
+  @Override
+  public List<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumber(
+      UUID userId, long seriesTmdbId, int seasonNumber) {
+    return List.of();
   }
 
   private static boolean violatesUniqueness(DataIntegrityViolationException exception) {

@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.core.watchlist.domain;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,4 +21,7 @@ public interface WatchedEpisodeRepository {
   void delete(WatchedEpisode episode);
 
   void deleteByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId);
+
+  List<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumber(
+      UUID userId, long seriesTmdbId, int seasonNumber);
 }
