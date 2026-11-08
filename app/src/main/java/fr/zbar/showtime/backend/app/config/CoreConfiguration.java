@@ -3,6 +3,8 @@ package fr.zbar.showtime.backend.app.config;
 import fr.zbar.showtime.backend.core.auth.application.AuthenticateUser;
 import fr.zbar.showtime.backend.core.auth.application.AuthenticateUserService;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
+import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlist;
+import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlistService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -23,5 +25,12 @@ class CoreConfiguration {
   AuthenticateUser transactionalAuthenticateUser(
       AuthenticateUserService delegate, TransactionTemplate transactionTemplate) {
     return command -> transactionTemplate.execute(status -> delegate.execute(command));
+  }
+
+  @Bean
+  @Primary
+  RemoveSeriesFromWatchlist transactionalRemoveSeriesFromWatchlist(
+      RemoveSeriesFromWatchlistService delegate, TransactionTemplate transactionTemplate) {
+    return command -> transactionTemplate.executeWithoutResult(status -> delegate.execute(command));
   }
 }
