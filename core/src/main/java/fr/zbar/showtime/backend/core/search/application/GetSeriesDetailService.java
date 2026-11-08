@@ -19,18 +19,18 @@ public class GetSeriesDetailService implements GetSeriesDetail {
   @Override
   public SeriesDetailView execute(GetSeriesDetailCommand command) {
     long tmdbId = new TmdbId(command.tmdbId()).value();
-    String watchlistStatus =
-        watchlistSeriesRepository
-            .findByUserIdAndTmdbId(command.userId(), tmdbId)
-            .map(series -> series.status().name())
-            .orElse(null);
     SeriesDetail series = seriesDetailCatalog.findSeriesDetail(tmdbId);
-    return new SeriesDetailView(
-        series,
-        watchlistStatus,
-        (int)
-            watchedEpisodeRepository.countByUserIdAndSeriesTmdbIdExcludingSpecials(
-            command.userId(), tmdbId),
-        series.totalEpisodes());
+    return watchlistSeriesRepository
+        .findByUserIdAndTmdbId(command.userId(), tmdbId)
+        .map(
+            entry ->
+                new SeriesDetailView(
+                    series,
+                    entry.status().name(),
+                    (int)
+                        watchedEpisodeRepository.countByUserIdAndSeriesTmdbIdExcludingSpecials(
+                            command.userId(), tmdbId),
+                    series.totalEpisodes()))
+        .orElseGet(() -> new SeriesDetailView(series, null, null, null));
   }
 }
