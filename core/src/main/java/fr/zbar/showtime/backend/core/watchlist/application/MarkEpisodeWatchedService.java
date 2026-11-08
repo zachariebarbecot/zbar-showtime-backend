@@ -1,6 +1,7 @@
 package fr.zbar.showtime.backend.core.watchlist.application;
 
 import fr.zbar.showtime.backend.core.search.domain.SeasonCatalog;
+import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
@@ -17,6 +18,7 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
 
   private final WatchlistSeriesRepository watchlistSeriesRepository;
   private final SeasonCatalog seasonCatalog;
+  private final SeriesDetailCatalog seriesDetailCatalog;
   private final WatchedEpisodeRepository watchedEpisodeRepository;
   private final Clock clock;
 

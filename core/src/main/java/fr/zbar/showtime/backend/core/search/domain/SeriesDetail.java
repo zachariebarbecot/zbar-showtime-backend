@@ -18,4 +18,9 @@ public record SeriesDetail(
     List<String> creators,
     List<CrewMember> crew,
     List<CastMember> cast,
-    List<SeasonSummary> seasons) {}
+    List<SeasonSummary> seasons) {
+
+  public int totalEpisodes() {
+    return 0;
+  }
+}

@@ -12,6 +12,8 @@ public interface WatchedEpisodeRepository {
 
   boolean existsByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId);
 
+  long countByUserIdAndSeriesTmdbIdExcludingSpecials(UUID userId, long seriesTmdbId);
+
   Optional<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber);
 

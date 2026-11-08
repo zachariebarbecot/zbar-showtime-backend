@@ -39,6 +39,17 @@ public class InMemoryWatchedEpisodeRepository implements WatchedEpisodeRepositor
   }
 
   @Override
+  public long countByUserIdAndSeriesTmdbIdExcludingSpecials(UUID userId, long seriesTmdbId) {
+    return episodes.stream()
+        .filter(
+            episode ->
+                episode.userId().equals(userId)
+                    && episode.seriesTmdbId() == seriesTmdbId
+                    && episode.seasonNumber() > 0)
+        .count();
+  }
+
+  @Override
   public Optional<WatchedEpisode> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber) {
     return episodes.stream()
