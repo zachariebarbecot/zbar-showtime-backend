@@ -46,7 +46,7 @@ class WatchedEpisodePersistenceAdapter implements WatchedEpisodeRepository {
 
   @Override
   public boolean existsByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId) {
-    throw new UnsupportedOperationException();
+    return watchedEpisodeJpaRepository.existsByUserIdAndSeriesTmdbId(userId, seriesTmdbId);
   }
 
   @Override

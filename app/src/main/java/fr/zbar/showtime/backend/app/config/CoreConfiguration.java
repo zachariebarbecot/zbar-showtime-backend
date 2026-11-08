@@ -7,6 +7,8 @@ import fr.zbar.showtime.backend.core.watchlist.application.MarkEpisodeWatched;
 import fr.zbar.showtime.backend.core.watchlist.application.MarkEpisodeWatchedService;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlist;
 import fr.zbar.showtime.backend.core.watchlist.application.RemoveSeriesFromWatchlistService;
+import fr.zbar.showtime.backend.core.watchlist.application.UnmarkEpisodeWatched;
+import fr.zbar.showtime.backend.core.watchlist.application.UnmarkEpisodeWatchedService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -40,6 +42,13 @@ class CoreConfiguration {
   @Primary
   MarkEpisodeWatched transactionalMarkEpisodeWatched(
       MarkEpisodeWatchedService delegate, TransactionTemplate transactionTemplate) {
+    return command -> transactionTemplate.executeWithoutResult(status -> delegate.execute(command));
+  }
+
+  @Bean
+  @Primary
+  UnmarkEpisodeWatched transactionalUnmarkEpisodeWatched(
+      UnmarkEpisodeWatchedService delegate, TransactionTemplate transactionTemplate) {
     return command -> transactionTemplate.executeWithoutResult(status -> delegate.execute(command));
   }
 }

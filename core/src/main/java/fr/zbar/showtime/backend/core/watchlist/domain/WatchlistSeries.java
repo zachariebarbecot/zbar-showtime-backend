@@ -44,7 +44,7 @@ public class WatchlistSeries extends AggregateRoot<UUID> {
   }
 
   public WatchlistSeries onLastEpisodeUnwatched(Clock clock) {
-    return this;
+    return status == SeriesStatus.WATCHING ? changeStatus(SeriesStatus.TO_WATCH, clock) : this;
   }
 
   public static WatchlistSeries add(UUID userId, long tmdbId, Clock clock) {
