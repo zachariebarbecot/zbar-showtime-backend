@@ -16,6 +16,7 @@ import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TitleNotFoundException;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -207,6 +208,7 @@ class MarkEpisodeWatchedIT extends AbstractIT {
     String email = newUserWithSeries();
     mark(email, 0, 1).expectStatus().isCreated();
     mark(email, 1, 1).expectStatus().isCreated();
+    assertThat(seriesStatus(email)).isEqualTo("WATCHING");
 
     mark(email, 1, 2).expectStatus().isCreated();
 
@@ -214,7 +216,7 @@ class MarkEpisodeWatchedIT extends AbstractIT {
     assertThat(seriesWatchedAt(email)).isEqualTo(FixedClockConfiguration.NOW);
   }
 
-  private java.time.Instant seriesWatchedAt(String email) {
+  private Instant seriesWatchedAt(String email) {
     return jdbcTemplate
         .queryForObject(
             "select s.watched_at from watchlist_series s join users u on u.id = s.user_id"
