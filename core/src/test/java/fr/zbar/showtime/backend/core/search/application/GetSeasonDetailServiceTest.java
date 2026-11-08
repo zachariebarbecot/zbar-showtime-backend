@@ -96,6 +96,14 @@ class GetSeasonDetailServiceTest {
         .isEmpty();
   }
 
+  @Test
+  void should_expose_the_viewings_of_the_specials_season() {
+    GetSeasonDetailService specials = serviceWith(SPECIALS, List.of(viewing(USER_ID, 0, 3)));
+
+    assertThat(specials.execute(new GetSeasonDetailCommand(USER_ID, 1396L, 0)).watchedAtByEpisode())
+        .isEqualTo(Map.of(3, WATCHED_AT));
+  }
+
   @ParameterizedTest
   @CsvSource({
     "0,1,tmdbId: TMDB id must be greater than 0",

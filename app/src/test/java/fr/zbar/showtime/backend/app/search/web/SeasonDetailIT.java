@@ -150,6 +150,21 @@ class SeasonDetailIT extends AbstractIT {
   }
 
   @Test
+  void should_expose_the_viewings_of_the_specials_season() {
+    stubSeason(0);
+    String email = userWatching(0, 1);
+
+    season(email, "1396", "0")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.episodes[0].watched")
+        .isEqualTo(true)
+        .jsonPath("$.episodes[0].watchedAt")
+        .isEqualTo(FixedClockConfiguration.NOW.toString());
+  }
+
+  @Test
   void should_return_200_with_the_episodes_when_tmdb_knows_the_season() {
     registerUser("season-ca1@mail.fr");
     when(seasonCatalog.findSeason(1396L, 1))
