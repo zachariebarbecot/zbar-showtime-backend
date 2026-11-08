@@ -3,9 +3,13 @@ package fr.zbar.showtime.backend.core.watchlist.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fr.zbar.showtime.backend.core.watchlist.domain.SeriesStatus;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,8 +23,17 @@ class UnmarkEpisodeWatchedServiceTest {
   private static final Instant WATCHED_AT = Instant.parse("2026-04-02T08:00:00Z");
 
   private final List<WatchedEpisode> watched = new ArrayList<>();
+  private final List<WatchlistSeries> series = new ArrayList<>();
   private final UnmarkEpisodeWatchedService service =
-      new UnmarkEpisodeWatchedService(new InMemoryWatchedEpisodeRepository(watched));
+      new UnmarkEpisodeWatchedService(
+          new InMemoryWatchedEpisodeRepository(watched),
+          new InMemoryWatchlistSeriesRepository(series),
+          Clock.fixed(WATCHED_AT, ZoneOffset.UTC));
+
+  private void inWatchlist(SeriesStatus status) {
+    series.add(
+        new WatchlistSeries(UUID.randomUUID(), USER_ID, SERIES_ID, status, WATCHED_AT, null));
+  }
 
   private WatchedEpisode viewing(UUID userId, int season, int episode) {
     return new WatchedEpisode(UUID.randomUUID(), userId, SERIES_ID, season, episode, WATCHED_AT);
@@ -28,6 +41,7 @@ class UnmarkEpisodeWatchedServiceTest {
 
   @Test
   void should_delete_the_viewing_and_keep_the_others_when_the_episode_is_watched() {
+    inWatchlist(SeriesStatus.WATCHING);
     WatchedEpisode other = viewing(USER_ID, 1, 1);
     watched.add(other);
     watched.add(viewing(USER_ID, 1, 2));
@@ -59,5 +73,36 @@ class UnmarkEpisodeWatchedServiceTest {
         .isInstanceOf(WatchlistEntryNotFoundException.class);
 
     assertThat(watched).containsExactly(other);
+  }
+
+  @Test
+  void should_set_the_series_to_to_watch_when_the_last_viewing_is_deleted() {
+    inWatchlist(SeriesStatus.WATCHING);
+    watched.add(viewing(USER_ID, 1, 1));
+
+    service.execute(new UnmarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.TO_WATCH);
+  }
+
+  @Test
+  void should_keep_the_series_watching_when_other_viewings_remain() {
+    inWatchlist(SeriesStatus.WATCHING);
+    watched.add(viewing(USER_ID, 1, 1));
+    watched.add(viewing(USER_ID, 1, 2));
+
+    service.execute(new UnmarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHING);
+  }
+
+  @Test
+  void should_keep_the_series_dropped_when_the_last_viewing_is_deleted() {
+    inWatchlist(SeriesStatus.DROPPED);
+    watched.add(viewing(USER_ID, 1, 1));
+
+    service.execute(new UnmarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 1));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.DROPPED);
   }
 }

@@ -37,6 +37,16 @@ public class WatchlistSeries extends AggregateRoot<UUID> {
     return new WatchlistSeries(id(), userId, tmdbId, newStatus, addedAt, newWatchedAt);
   }
 
+  public WatchlistSeries onEpisodeWatched(Clock clock) {
+    return status == SeriesStatus.TO_WATCH || status == SeriesStatus.DROPPED
+        ? changeStatus(SeriesStatus.WATCHING, clock)
+        : this;
+  }
+
+  public WatchlistSeries onLastEpisodeUnwatched(Clock clock) {
+    return status == SeriesStatus.WATCHING ? changeStatus(SeriesStatus.TO_WATCH, clock) : this;
+  }
+
   public static WatchlistSeries add(UUID userId, long tmdbId, Clock clock) {
     return new WatchlistSeries(
         UUID.randomUUID(), userId, tmdbId, SeriesStatus.TO_WATCH, clock.instant(), null);

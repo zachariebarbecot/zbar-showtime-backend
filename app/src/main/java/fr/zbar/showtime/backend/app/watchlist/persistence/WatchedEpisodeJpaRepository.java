@@ -11,6 +11,8 @@ public interface WatchedEpisodeJpaRepository extends JpaRepository<WatchedEpisod
   boolean existsByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber);
 
+  boolean existsByUserIdAndSeriesTmdbId(UUID userId, long seriesTmdbId);
+
   Optional<WatchedEpisodeJpaEntity> findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
       UUID userId, long seriesTmdbId, int seasonNumber, int episodeNumber);
 

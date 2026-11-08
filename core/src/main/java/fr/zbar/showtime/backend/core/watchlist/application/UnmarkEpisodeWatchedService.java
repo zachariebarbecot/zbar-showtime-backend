@@ -4,6 +4,9 @@ import fr.zbar.showtime.backend.core.shared.CoreUseCase;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisode;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchedEpisodeRepository;
 import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistEntryNotFoundException;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeries;
+import fr.zbar.showtime.backend.core.watchlist.domain.WatchlistSeriesRepository;
+import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 
 @CoreUseCase
@@ -11,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 public class UnmarkEpisodeWatchedService implements UnmarkEpisodeWatched {
 
   private final WatchedEpisodeRepository watchedEpisodeRepository;
+  private final WatchlistSeriesRepository watchlistSeriesRepository;
+  private final Clock clock;
 
   @Override
   public void execute(UnmarkEpisodeWatchedCommand command) {
@@ -19,6 +24,14 @@ public class UnmarkEpisodeWatchedService implements UnmarkEpisodeWatched {
             .findByUserIdAndSeriesTmdbIdAndSeasonNumberAndEpisodeNumber(
                 command.userId(), command.tmdbId(), command.seasonNumber(), command.episodeNumber())
             .orElseThrow(WatchlistEntryNotFoundException::new);
+    WatchlistSeries series =
+        watchlistSeriesRepository
+            .findByUserIdAndTmdbId(command.userId(), command.tmdbId())
+            .orElseThrow(WatchlistEntryNotFoundException::new);
     watchedEpisodeRepository.delete(episode);
+    if (!watchedEpisodeRepository.existsByUserIdAndSeriesTmdbId(
+        command.userId(), command.tmdbId())) {
+      watchlistSeriesRepository.save(series.onLastEpisodeUnwatched(clock));
+    }
   }
 }
