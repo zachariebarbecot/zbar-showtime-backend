@@ -84,6 +84,18 @@ class GetSeasonDetailServiceTest {
         .isEmpty();
   }
 
+  @Test
+  void should_ignore_the_viewings_of_other_users_and_other_seasons() {
+    GetSeasonDetailService withViewings =
+        serviceWith(SEASON_1, List.of(viewing(OTHER_USER_ID, 1, 1), viewing(USER_ID, 2, 1)));
+
+    assertThat(
+            withViewings
+                .execute(new GetSeasonDetailCommand(USER_ID, 1396L, 1))
+                .watchedAtByEpisode())
+        .isEmpty();
+  }
+
   @ParameterizedTest
   @CsvSource({
     "0,1,tmdbId: TMDB id must be greater than 0",

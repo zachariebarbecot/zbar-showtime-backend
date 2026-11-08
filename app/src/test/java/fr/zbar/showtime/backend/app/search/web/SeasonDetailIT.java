@@ -134,6 +134,22 @@ class SeasonDetailIT extends AbstractIT {
   }
 
   @Test
+  void should_flag_the_episode_unwatched_when_only_another_user_watched_it() {
+    stubSeason(1);
+    userWatching(1, 1);
+    String me = userWatching(1);
+
+    season(me, "1396", "1")
+        .expectStatus()
+        .isOk()
+        .expectBody()
+        .jsonPath("$.episodes[0].watched")
+        .isEqualTo(false)
+        .jsonPath("$.episodes[0].watchedAt")
+        .doesNotExist();
+  }
+
+  @Test
   void should_return_200_with_the_episodes_when_tmdb_knows_the_season() {
     registerUser("season-ca1@mail.fr");
     when(seasonCatalog.findSeason(1396L, 1))
