@@ -1,5 +1,6 @@
 package fr.zbar.showtime.backend.core.search.application;
 
+import fr.zbar.showtime.backend.core.search.domain.SeriesDetail;
 import fr.zbar.showtime.backend.core.search.domain.SeriesDetailCatalog;
 import fr.zbar.showtime.backend.core.search.domain.TmdbId;
 import fr.zbar.showtime.backend.core.shared.CoreUseCase;
@@ -23,7 +24,13 @@ public class GetSeriesDetailService implements GetSeriesDetail {
             .findByUserIdAndTmdbId(command.userId(), tmdbId)
             .map(series -> series.status().name())
             .orElse(null);
+    SeriesDetail series = seriesDetailCatalog.findSeriesDetail(tmdbId);
     return new SeriesDetailView(
-        seriesDetailCatalog.findSeriesDetail(tmdbId), watchlistStatus, null, null);
+        series,
+        watchlistStatus,
+        (int)
+            watchedEpisodeRepository.countByUserIdAndSeriesTmdbIdExcludingSpecials(
+            command.userId(), tmdbId),
+        series.totalEpisodes());
   }
 }
