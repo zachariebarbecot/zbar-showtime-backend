@@ -20,6 +20,10 @@ public record SeriesDetail(
     List<CastMember> cast,
     List<SeasonSummary> seasons) {
 
+  public boolean isFinished() {
+    return status == SeriesStatus.ENDED || status == SeriesStatus.CANCELED;
+  }
+
   public int totalEpisodes() {
     return seasons.stream()
         .filter(season -> season.seasonNumber() > 0)

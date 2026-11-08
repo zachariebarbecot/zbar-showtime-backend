@@ -52,8 +52,7 @@ public class MarkEpisodeWatchedService implements MarkEpisodeWatched {
   private boolean isCompleted(MarkEpisodeWatchedCommand command) {
     SeriesDetail detail = seriesDetailCatalog.findSeriesDetail(command.tmdbId());
     int total = detail.totalEpisodes();
-    return (detail.status() == fr.zbar.showtime.backend.core.search.domain.SeriesStatus.ENDED
-            || detail.status() == fr.zbar.showtime.backend.core.search.domain.SeriesStatus.CANCELED)
+    return detail.isFinished()
         && total > 0
         && watchedEpisodeRepository.countByUserIdAndSeriesTmdbIdExcludingSpecials(
                 command.userId(), command.tmdbId())
