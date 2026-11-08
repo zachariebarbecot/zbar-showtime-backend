@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import fr.zbar.showtime.backend.app.support.AbstractIT;
-import fr.zbar.showtime.backend.app.support.SeriesDetails;
 import fr.zbar.showtime.backend.app.support.FixedClockConfiguration;
+import fr.zbar.showtime.backend.app.support.SeriesDetails;
 import fr.zbar.showtime.backend.core.search.domain.CatalogItem;
 import fr.zbar.showtime.backend.core.search.domain.Episode;
 import fr.zbar.showtime.backend.core.search.domain.MediaType;
