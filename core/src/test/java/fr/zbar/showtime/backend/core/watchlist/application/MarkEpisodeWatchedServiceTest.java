@@ -241,4 +241,16 @@ class MarkEpisodeWatchedServiceTest {
 
     assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHING);
   }
+
+  @Test
+  void should_keep_the_series_watched_when_an_already_watched_episode_is_marked_again() {
+    detail = seriesDetail(fr.zbar.showtime.backend.core.search.domain.SeriesStatus.ENDED, 2, 0);
+    inWatchlist(USER_ID, SeriesStatus.WATCHED);
+    watched.add(new WatchedEpisode(UUID.randomUUID(), USER_ID, SERIES_ID, 1, 1, FIRST_MARK));
+    watched.add(new WatchedEpisode(UUID.randomUUID(), USER_ID, SERIES_ID, 1, 2, FIRST_MARK));
+
+    serviceAt(SECOND_MARK).execute(new MarkEpisodeWatchedCommand(USER_ID, SERIES_ID, 1, 2));
+
+    assertThat(series).extracting(WatchlistSeries::status).containsExactly(SeriesStatus.WATCHED);
+  }
 }
